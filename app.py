@@ -1,4 +1,26 @@
 import streamlit as st
+import numpy as np
+
+lista_indicadores = [
+    {"indicador": "Emissão de CO2 (M ton)", "peso": 5.77, "categoria": "ESG", "faixas": [(0, 1000, 100), (1000.01, 5000, 70), (5000.01, np.inf, 40)]},
+    {"indicador": "Gestão de Resíduos (%)", "peso": 5.77, "categoria": "ESG", "faixas": [(90, 100, 100), (70, 89.99, 70), (0, 69.99, 40)]},
+    {"indicador": "Eficiência energética (%)", "peso": 5.77, "categoria": "ESG", "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 40)]},
+    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 5.77, "categoria": "ESG", "faixas": [(50, 100, 100), (30, 49.99, 70), (0, 29.99, 40)]},
+    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 5.77, "categoria": "ESG", "faixas": [(50, 100, 100), (30, 49.99, 70), (0, 29.99, 40)]},
+    {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 1.92,"categoria": "ESG", "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 40)]},
+    {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 5.77,"categoria": "ESG", "faixas": [(1, np.inf, 100), (0, 0, 50)]},
+    {"indicador": "Risco Ambiental - existência de riscos (0 a 10)", "peso": 3.85, "categoria": "ESG", "faixas": [(0, 0, 100), (1, 1, 50)]},
+    {"indicador": "Variação da ação YoY (%)", "peso": 7.89, "categoria": "Financeiro", "faixas": [(-np.inf, 0, 0), (0.01, 10, 40), (10.01, 20, 70), (20.01, np.inf, 100)]},
+    {"indicador": "EBITDA (R$ Bi)", "peso": 7.89, "categoria": "Financeiro", "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
+    {"indicador": "EBITDA YoY (%)", "peso": 5.26, "categoria": "Financeiro", "faixas": [(-np.inf, 0, 0), (0, 9.99, 40), (10, 14.99, 70), (15, np.inf, 100)]},
+    {"indicador": "Margem EBITDA (%)", "peso": 2.63, "categoria": "Financeiro", "faixas": [(-np.inf, 0, 0), (0, 9.99, 40), (10, 19.99, 70), (20, np.inf, 100)]},
+    {"indicador": "Posição no MERCO", "peso": 5.26, "categoria": "Financeiro", "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (101, np.inf, 0)]},
+    {"indicador": "Participação em Índices ESG (quantidade)", "peso": 5.26, "categoria": "Financeiro", "faixas": [(0, 0, 40), (1, 1, 70), (2, np.inf, 100)]},
+    {"indicador": "Lucro Líquido (R$ Bi)", "peso": 7.89, "categoria": "Financeiro", "faixas": [(-np.inf, 0, 0), (0, 9.99, 40), (10, 19.99, 70), (20, np.inf, 100)]},
+    {"indicador": "Lucro Líquido YoY (%)", "peso": 5.26, "categoria": "Financeiro", "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
+    {"indicador": "Margem Líquida (%)", "peso": 2.63, "categoria": "Financeiro", "faixas": [(-np.inf, 0, 0), (0, 9.99, 40), (10, 19.99, 70), (20, np.inf, 100)]},
+]
+
 
 # Perguntas divididas por etapas
 questions_etapa1 = [
@@ -33,30 +55,34 @@ questions_etapa3 = [
 ]
 
 # Funções de pontuação
+
+def calcular_score(valores, indicadores):
+    nota = 0
+    peso_total = 0
+    for valor, indicador in zip(valores, indicadores):
+        pontuacao = 0
+        for faixa in indicador["faixas"]:
+            minimo, maximo, nota_faixa = faixa
+            if minimo <= valor <= maximo:
+                pontuacao = nota_faixa
+                break
+        peso = indicador["peso"]
+        nota += pontuacao * peso
+        peso_total += peso
+    return round(nota / peso_total, 2)
+
 def etapa_1_basica(respostas):
     eliminacoes = sum([1 for r in respostas if r == 0])
     return eliminacoes < 3
 
 def calcular_score_esg(valores):
-    pesos = [10, 10, 10, 10, 10, 10, 10, 10]
-    nota = 0
-    for i, valor in enumerate(valores):
-        # Normalizações básicas para score
-        if i == 0:  # Emissão de CO2 (quanto menor, melhor)
-            nota += pesos[i] * max(0, (10000 - valor)/10000)
-        elif i == 7:  # Risco ambiental (quanto menor, melhor)
-            nota += pesos[i] * max(0, (10 - valor)/10)
-        else:
-            nota += pesos[i] * min(valor, 100) / 100
-    return round(nota, 2)
+    indicadores_esg = [i for i in lista_indicadores if i["categoria"] == "ESG"]
+    return calcular_score(valores, indicadores_esg)
 
 def calcular_score_financeiro(valores):
-    pesos = [2, 2, 1.5, 1.5, 1, 1, 1, 0.5, 0.5]  # Ajuste conforme o número de indicadores
-    nota = 0
-    for i in range(min(len(pesos), len(valores))):
-        valor = valores[i]
-        nota += pesos[i] * valor / 100  # Permite valores negativos
-    return round(nota / sum(pesos) * 100, 2)
+    indicadores_fin = [i for i in lista_indicadores if i["categoria"] == "Financeiro"]
+    return calcular_score(valores, indicadores_fin)
+
 
 # Streamlit
 st.set_page_config(page_title="Avaliação ESG + Financeira", layout="centered")
