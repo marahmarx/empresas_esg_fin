@@ -1,5 +1,6 @@
 import streamlit as st
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Função para calcular o score ESG
 def calcular_score_esg(respostas):
@@ -48,7 +49,7 @@ st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
 # Etapa Unificada - Coleta de Dados
 
-st.header("Dados Básicos (Binários)")
+st.header("Dados Básicos")
 perguntas_binarias = [
     "1. A empresa tem políticas de sustentabilidade?",
     "2. A empresa possui certificação ambiental?",
@@ -62,19 +63,12 @@ for i, pergunta in enumerate(perguntas_binarias):
     resposta = st.radio(pergunta, options=["Sim", "Não"], key=f"pergunta_binaria_{i}")
     respostas_binarias.append(1 if resposta == "Sim" else 0)
 
-st.divider()
-
 st.header("Indicadores ESG Quantitativos")
 respostas_esg = []
 for indicador in indicadores_esg:
     st.subheader(indicador["indicador"])
     valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", min_value=0.0, format="%.2f", key=f"esg_{indicador['indicador']}")
     respostas_esg.append((valor, indicador["peso"], indicador["faixas"]))
-
-score_esg = calcular_score_esg(respostas_esg)
-st.metric("Score ESG", score_esg)
-
-st.divider()
 
 st.header("Indicadores Financeiros")
 respostas_financeiros = []
@@ -85,10 +79,11 @@ for indicador in indicadores_financeiros:
 
 if st.button("Calcular Resultado Final"):
     score_financeiro = calcular_score_financeiro(respostas_financeiros)
+    score_esg = calcular_score_esg(respostas_esg)
     st.session_state.score_financeiro = score_financeiro
     st.session_state.score_esg = score_esg
     st.session_state.calculado = True
-
+    st.metric("Score ESG", score_esg)
     st.metric("Score Financeiro", score_financeiro)
 
     if score_financeiro > 70 and score_esg > 70:
