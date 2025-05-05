@@ -109,43 +109,52 @@ for pergunta in perguntas_binarias:
     respostas_binarias.append(1 if resposta == "Sim" else 0)
 
 if st.button("Avançar para Etapa 2"):
-    passou_etapa1 = etapa_1_basica(respostas_binarias)
-
-    if not nome_empresa or not segmento or not setor:
-        st.warning("⚠️ Por favor, preencha todos os campos antes de prosseguir.")
-    elif passou_etapa1:
-        st.success("✅ Empresa APROVADA na Etapa 1!")
-        # Salva no session_state
-        st.session_state["etapa1_concluida"] = True
-        st.session_state["nome_empresa"] = nome_empresa
-        st.session_state["segmento"] = segmento
-        st.session_state["setor"] = setor
-        st.session_state["respostas_binarias"] = respostas_binarias
-        # Avança para próxima página
-        st.switch_page("etapa2.py")
+    if sum([1 for r in respostas_binarias if r == 0]) >= 3:
+        st.error("❌ Empresa eliminada na triagem básica (Etapa 1).")
     else:
-        st.error("❌ Empresa ELIMINADA na Triagem Básica (Etapa 1).")
+        st.success("✅ Empresa aprovada na triagem básica.")
         
-        st.header("Etapa 2 - Indicadores ESG")
-        etapa2_resp = [st.number_input(q, min_value=0.0, format="%.2f") for q in questions_etapa2]
+        # Etapa 2
+        st.header("Etapa 2 - Indicadores ESG Quantitativos")
+        perguntas_etapa2 = [
+            "6. Emissão de carbono (M toneladas/ano)",
+            "7. Percentual de resíduos reciclados/reutilizados (%)",
+            "8. Eficiência energética (%)",
+            "9. Diversidade - mulheres (%)",
+            "10. Diversidade - pessoas negras (%)",
+            "11. Índice de satisfação dos funcionários (%)",
+            "12. Investimento em programas sociais (R$ milhões)",
+            "13. Risco ambiental do setor (0=Não há, 1=Há)"
+        ]
+        respostas_etapa2 = [st.number_input(p, min_value=0.0, format="%.2f") for p in perguntas_etapa2]
+        if st.button("Avançar para Etapa 3"):
+            score_esg = calcular_score_esg(respostas_binarias + respostas_etapa2)
+            st.metric("Score ESG", score_esg)
 
-        score_esg = calcular_score_esg(etapa2_resp)
-        st.metric("Score ESG", score_esg)
-
-        if score_esg > 50:
-            st.success("Empresa APROVADA para a Etapa 3")
-
-            st.header("Etapa 3 - Indicadores Financeiros")
-            etapa3_resp = [st.number_input(q, min_value=0.0, format="%.2f") for q in questions_etapa3]
-
-            score_fin = calcular_score_financeiro(etapa3_resp)
-            st.metric("Score Financeiro", score_fin)
-
-            if score_fin > 60:
-                st.success(f"✅ {nome} foi APROVADA na Avaliação Final!")
+            if score_esg <= 50:
+                st.error("❌ Empresa reprovada na Etapa ESG.")
             else:
-                st.error(f"❌ {nome} foi REPROVADA na Etapa Financeira.")
-        else:
-            st.error(f"❌ {nome} foi REPROVADA na Etapa ESG.")
-    else:
-        st.error(f"❌ {nome} foi ELIMINADA na Triagem Básica.")
+                st.success("✅ Empresa aprovada na Etapa ESG.")
+
+                # Etapa 3
+                st.header("Etapa 3 - Indicadores Financeiros")
+                perguntas_etapa3 = [
+                    "14. Variação da ação na B3 (% YoY)",
+                    "15. EBITDA (R$ Bi)",
+                    "16. EBITDA YoY (%)",
+                    "17. Margem EBITDA (%)",
+                    "18. Posição no ranking MERCO (0 se não listada)",
+                    "19. Participações em índices ESG brasileiros",
+                    "20. Lucro líquido (R$ Bi)",
+                    "21. Lucro líquido YoY (%)",
+                    "22. Margem de lucro líquida (%)"
+                ]
+                respostas_etapa3 = [st.number_input(p, min_value=0.0, format="%.2f") for p in perguntas_etapa3]
+                if st.button("Finalizar Avaliação"):
+                    score_fin = calcular_score_financeiro(respostas_etapa3)
+                    st.metric("Score Financeiro", score_fin)
+
+                    if score_fin > 60:
+                        st.success(f"🎉 {nome_empresa} foi **APROVADA** na Avaliação Final!")
+                    else:
+                        st.error(f"❌ {nome_empresa} foi **REPROVADA** na Etapa Financeira.")
