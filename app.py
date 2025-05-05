@@ -75,11 +75,11 @@ if st.session_state.etapa_atual == 1:
     
     # Exibe as perguntas e armazena as respostas
     for i, p in enumerate(perguntas_binarias):
-        st.session_state.respostas_binarias[i] = st.radio(p, options=["Sim", "Não"], index=st.session_state.respostas_binarias[i])
+        st.session_state.respostas_binarias[i] = st.radio(p, options=[1, 0], index=st.session_state.respostas_binarias[i])
 
     # Botão para avançar
     if st.button("Avançar para Etapa 2"):
-        if sum(["Sim" for r in st.session_state.respostas_binarias if r == "Não"]) >= 3:
+        if sum([1 for r in st.session_state.respostas_binarias if r == 0]) >= 3:
             st.error("❌ Empresa eliminada na triagem básica (Etapa 1).")
         else:
             st.success("✅ Empresa aprovada na triagem básica.")
@@ -130,3 +130,42 @@ if st.session_state.etapa_atual == 3 and st.session_state.aprovada_etapa2:
         else:
             st.error("❌ Empresa reprovada na triagem financeira.")
             st.write("### Resultado final: Empresa Reprovada.")
+
+# --- Mostrar Matriz ESG x Financeiro com empresa atual e dados da planilha ---
+if st.session_state.etapa_atual == 3 and st.session_state.aprovada_etapa2:
+    st.header("📊 Comparativo: Matriz ESG x Financeiro")
+
+    # 1. Carrega os dados das empresas já avaliadas (Google Sheets)
+    url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
+    df_empresas = pd.read_csv(url)
+
+    # Garante que as colunas tenham os nomes corretos (ajuste conforme o seu Sheet)
+    df_empresas.columns = df_empresas.columns.str.strip()
+    col_esg = 'Score ESG'
+    col_fin = 'Score Financeiro'
+
+    # 2. Adiciona a nova empresa ao dataframe (não salva no Google Sheets, apenas localmente)
+    nova_empresa = {
+        'Empresa': 'Nova Empresa',
+        col_esg: st.session_state.score_esg,
+        col_fin: st.session_state.score_financeiro
+    }
+    df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
+
+    # 3. Plotagem da matriz ESG x Financeiro
+    fig, ax = plt.subplots(figsize=(8, 6))
+    for _, row in df_empresas.iterrows():
+        if row['Empresa'] == 'Nova Empresa':
+            ax.scatter(row[col_esg], row[col_fin], color='red', s=120, label='Nova Empresa')
+            ax.annotate("Nova Empresa", (row[col_esg], row[col_fin]), textcoords="offset points", xytext=(0,10), ha='center', color='red')
+        else:
+            ax.scatter(row[col_esg], row[col_fin], color='blue', alpha=0.6)
+
+    ax.set_xlabel("Score ESG")
+    ax.set_ylabel("Score Financeiro")
+    ax.set_title("Matriz ESG x Financeiro")
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
+    ax.grid(True)
+    st.pyplot(fig)
+
