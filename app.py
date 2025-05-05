@@ -51,14 +51,12 @@ def calcular_score_esg(valores):
     return round(nota, 2)
 
 def calcular_score_financeiro(valores):
-    pesos = [10, 15, 10, 10, 10, 10, 15, 10]
+    pesos = [2, 2, 1.5, 1.5, 1, 1, 1, 0.5, 0.5]  # Ajuste conforme o número de indicadores
     nota = 0
-    for i, valor in enumerate(valores):
-        if i == 4:  # Ranking MERCO (quanto menor melhor)
-            nota += pesos[i] * max(0, (100 - valor)/100)
-        else:
-            nota += pesos[i] * min(valor, 100) / 100
-    return round(nota, 2)
+    for i in range(min(len(pesos), len(valores))):
+        valor = valores[i]
+        nota += pesos[i] * valor / 100  # Permite valores negativos
+    return round(nota / sum(pesos) * 100, 2)
 
 # Streamlit
 st.set_page_config(page_title="Avaliação ESG + Financeira", layout="centered")
