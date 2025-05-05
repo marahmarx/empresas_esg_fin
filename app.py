@@ -1,5 +1,7 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
+
 
 # Função para calcular o score ESG
 def calcular_score_esg(respostas):
