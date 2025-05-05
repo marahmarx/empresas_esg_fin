@@ -87,14 +87,7 @@ if st.session_state.etapa_atual == 1:
             st.success("✅ Empresa aprovada na triagem básica.")
             st.session_state.aprovada_etapa1 = True
             avancar_etapa()
-    # Botão para avançar
-    if st.button("Avançar para Etapa 2"):
-        if sum([1 for r in st.session_state.respostas_binarias if r == 0]) >= 3:
-            st.error("❌ Empresa eliminada na triagem básica (Etapa 1).")
-        else:
-            st.success("✅ Empresa aprovada na triagem básica.")
-            st.session_state.aprovada_etapa1 = True
-            avancar_etapa()  # Avança para a Etapa 2
+
 
 # Etapa 2 - Coleta de indicadores ESG Quantitativos
 if st.session_state.etapa_atual == 2 and st.session_state.aprovada_etapa1:
