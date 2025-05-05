@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 # Função para calcular o score ESG
@@ -97,7 +98,7 @@ if st.button("Calcular Resultado Final"):
 
 #Segunda parte 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
-import matplotlib.pyplot as plt
+
 if st.session_state.get('calculado'):
     st.header("📊 Comparativo: Matriz ESG x Financeiro")
 
