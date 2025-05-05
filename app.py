@@ -75,11 +75,11 @@ if st.session_state.etapa_atual == 1:
     
     # Exibe as perguntas e armazena as respostas
     for i, p in enumerate(perguntas_binarias):
-        st.session_state.respostas_binarias[i] = st.radio(p, options=[0, 1], index=st.session_state.respostas_binarias[i])
+        st.session_state.respostas_binarias[i] = st.radio(p, options=["Sim", "Não"], index=st.session_state.respostas_binarias[i])
 
     # Botão para avançar
     if st.button("Avançar para Etapa 2"):
-        if sum([1 for r in st.session_state.respostas_binarias if r == 0]) >= 3:
+        if sum(["Sim" for r in st.session_state.respostas_binarias if r == "Não"]) >= 3:
             st.error("❌ Empresa eliminada na triagem básica (Etapa 1).")
         else:
             st.success("✅ Empresa aprovada na triagem básica.")
