@@ -1,4 +1,4 @@
- import streamlit as st
+import streamlit as st
 import numpy as np
 
 # Função para calcular o score ESG
