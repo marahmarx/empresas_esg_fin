@@ -1,4 +1,4 @@
-import streamlit as st
+ import streamlit as st
 import numpy as np
 
 # Função para calcular o score ESG
@@ -75,7 +75,7 @@ if st.session_state.etapa_atual == 1:
     
     # Exibe as perguntas e armazena as respostas
     for i, p in enumerate(perguntas_binarias):
-        st.session_state.respostas_binarias[i] = st.radio(p, options=[1, 0], index=st.session_state.respostas_binarias[i])
+        st.session_state.respostas_binarias[i] = st.radio(p, options=[0, 1], index=st.session_state.respostas_binarias[i])
 
     # Botão para avançar
     if st.button("Avançar para Etapa 2"):
@@ -168,4 +168,3 @@ if st.session_state.etapa_atual == 3 and st.session_state.aprovada_etapa2:
     ax.set_ylim(0, 100)
     ax.grid(True)
     st.pyplot(fig)
-
