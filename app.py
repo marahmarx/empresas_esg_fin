@@ -98,12 +98,15 @@ st.title("📊 Avaliação ESG + Financeira")
 def etapa1():
     st.title("Etapa 1 - Informações Básicas")
 
+    # Entrada de nome da empresa
     nome_empresa = st.text_input("Nome da Empresa")
+
+    # Campos sem peso (informativos)
     segmento = st.text_input("Qual o segmento de atuação da empresa?")
     setor = st.selectbox("Qual o setor de atuação da empresa? (Primário, Secundário ou Terciário)",
                          ["Primário", "Secundário", "Terciário"])
 
-    # Perguntas binárias (indicadores ESG básicos com peso)
+    # Perguntas com peso (indicadores binários ESG)
     perguntas_binarias = [
         "A empresa possui políticas de sustentabilidade?",
         "A empresa possui políticas de diversidade?",
@@ -111,18 +114,24 @@ def etapa1():
         "A empresa publica relatórios ESG?",
         "A empresa está em conformidade com legislações ambientais?"
     ]
+
     respostas_binarias = []
-    for pergunta in perguntas_binarias:
-        resposta = st.radio(pergunta, ["Sim", "Não"], key=pergunta)
+    for i, pergunta in enumerate(perguntas_binarias):
+        resposta = st.radio(pergunta, ["Sim", "Não"], key=f"pergunta_{i}")
         respostas_binarias.append(1 if resposta == "Sim" else 0)
 
+    # Botão para avançar
     if st.button("Avançar para Etapa 2"):
-        st.session_state["etapa1_concluida"] = True
-        st.session_state["nome_empresa"] = nome_empresa
-        st.session_state["segmento"] = segmento
-        st.session_state["setor"] = setor
-        st.session_state["respostas_binarias"] = respostas_binarias
-        st.switch_page("etapa2.py")
+        if not nome_empresa:
+            st.warning("Por favor, preencha o nome da empresa antes de continuar.")
+        else:
+            # Armazenamento no session_state
+            st.session_state["etapa1_concluida"] = True
+            st.session_state["nome_empresa"] = nome_empresa
+            st.session_state["segmento"] = segmento
+            st.session_state["setor"] = setor
+            st.session_state["respostas_binarias"] = respostas_binarias
+            st.switch_page("etapa2.py")  # Substitua se o nome real for diferente
 
         st.header("Etapa 2 - Indicadores ESG")
         etapa2_resp = [st.number_input(q, min_value=0.0, format="%.2f") for q in questions_etapa2]
