@@ -1,7 +1,30 @@
 import streamlit as st
+import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
-lista_indicadores = [
+# --- Página de seleção ---
+st.set_page_config(page_title="Triagem ESG e Financeira", layout="wide")
+st.sidebar.title("Navegação")
+pagina = st.sidebar.radio("Escolha a etapa:", ["1. Carregar dados", "2. Calcular scores", "3. Matriz ESG x Financeiro"])
+
+# --- 1. Carregar dados das empresas ---
+@st.cache_data
+def carregar_dados():
+    url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
+    df = pd.read_csv(url)
+    df.columns = df.columns.str.strip()
+    return df
+
+df_empresas = carregar_dados()
+
+# --- 2. Lista de indicadores com pesos e faixas ---
+indicadores = [
+    {"indicador": "Política Ambiental Formalizada (1 ou 0)", "peso": 1.92, "categoria": "ESG", "faixas": [(1, 1, 100), (0, 0, 50)]},
+    {"indicador": "Relatórios de Sustentabilidade Auditados", "peso": 1.92, "categoria": "ESG", "faixas": [(1, 1, 100), (0, 0, 50)]},
+    {"indicador": "Práticas Anticorrupção", "peso": 1.92, "categoria": "ESG", "faixas": [(1, 1, 100), (0, 0, 40)]},
+    {"indicador": "Comitê ESG Existente", "peso": 1.92, "categoria": "ESG", "faixas": [(1, 1, 100), (0, 0, 50)]},
+    {"indicador": "Transparência Financeira", "peso": 1.92, "categoria": "ESG", "faixas": [(1, 1, 100), (0, 0, 40)]},
     {"indicador": "Emissão de CO2 (M ton)", "peso": 5.77, "categoria": "ESG", "faixas": [(0, 1000, 100), (1000.01, 5000, 70), (5000.01, np.inf, 40)]},
     {"indicador": "Gestão de Resíduos (%)", "peso": 5.77, "categoria": "ESG", "faixas": [(90, 100, 100), (70, 89.99, 70), (0, 69.99, 40)]},
     {"indicador": "Eficiência energética (%)", "peso": 5.77, "categoria": "ESG", "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 40)]},
@@ -21,102 +44,106 @@ lista_indicadores = [
     {"indicador": "Margem Líquida (%)", "peso": 2.63, "categoria": "Financeiro", "faixas": [(-np.inf, 0, 0), (0, 9.99, 40), (10, 19.99, 70), (20, np.inf, 100)]},
 ]
 
+def tratar_dados(df):
+    for indicador in [i["indicador"] for i in indicadores]:
+        if indicador in df.columns:
+            df[indicador] = (
+                df[indicador]
+                .astype(str)
+                .str.replace(',', '.', regex=False)
+                .str.extract(r'([-+]?\d*\.?\d+)')[0]
+                .astype(float)
+                .fillna(0)
+            )
+    return df
 
-# Perguntas divididas por etapas
-questions_etapa1 = [
-    "1. A empresa possui uma política ambiental formalizada? (1=Sim, 0=Não)",
-    "2. A empresa possui relatórios de sustentabilidade auditados? (1=Sim, 0=Não)",
-    "3. A empresa possui Práticas Anticorrupção? (1=Sim, 0=Não)",
-    "4. A empresa possui Comitê ESG Existente? (1=Sim, 0=Não)",
-    "5. A empresa possui Transparência Financeira? (1=Sim, 0=Não)"
-]
+def calcular_pontuacao(valor, faixas):
+    for minimo, maximo, nota in faixas:
+        if minimo <= valor <= maximo:
+            return nota
+    return 0
 
-questions_etapa2 = [
-    "6. Qual é a emissão de carbono (CO2) da empresa em toneladas por ano?",
-    "7. Qual o percentual de resíduos reciclados ou reutilizados pela empresa?",
-    "8. Qual o percentual de eficiência energética (uso de energia renovável ou economia)?",
-    "9. Qual o percentual de diversidade de mulheres entre os funcionários?",
-    "10. Qual o percentual de diversidade de negros entre os funcionários?",
-    "11. Qual o índice de satisfação dos funcionários (0 a 100)?",
-    "12. Qual o valor de investimento em programas sociais (R$ M)?",
-    "13. Qual o Risco Ambiental do setor? existência de riscos (0 a 10)"
-]
+def calcular_scores(df):
+    df = tratar_dados(df)
+    dados_empresas = []
 
-questions_etapa3 = [
-    "14. Qual a variação da ação da empresa na B3 (% YoY)?",
-    "15. Qual foi o EBITDA da empresa em 2024 (R$ Bi)?",
-    "16. Qual o EBITDA YoY (%)?",
-    "17. Qual a margem EBITDA YoY (%)?",
-    "18. Qual a posição da empresa no ranking MERCO (digite 0 se não estiver listada)?",
-    "19. Quantas participações a empresa tem em índices ESG brasileiros (ISE B3, DJSI etc.)?",
-    "20. Qual foi o lucro líquido de 2024 (R$ Bi)?",
-    "22. Qual foi o lucro líquido  YOY (%)?",
-    "23. Qual a margem de lucro líquida (%)?"
-]
+    peso_esg_total = sum(i["peso"] for i in indicadores if i["categoria"].lower() == "esg")
+    peso_fin_total = sum(i["peso"] for i in indicadores if i["categoria"].lower() == "financeiro")
 
-# Funções de pontuação
+    for _, empresa in df.iterrows():
+        score_esg = 0
+        score_fin = 0
 
-def calcular_score(valores, indicadores):
-    nota = 0
-    peso_total = 0
-    for valor, indicador in zip(valores, indicadores):
-        pontuacao = 0
-        for faixa in indicador["faixas"]:
-            minimo, maximo, nota_faixa = faixa
-            if minimo <= valor <= maximo:
-                pontuacao = nota_faixa
-                break
-        peso = indicador["peso"]
-        nota += pontuacao * peso
-        peso_total += peso
-    return round(nota / peso_total, 2)
+        for indicador_info in indicadores:
+            nome = indicador_info["indicador"]
+            valor = empresa.get(nome, 0)
+            nota = calcular_pontuacao(valor, indicador_info["faixas"])
+            score_ponderado = nota * indicador_info["peso"] / 100
 
-def etapa_1_basica(respostas):
-    eliminacoes = sum([1 for r in respostas if r == 0])
-    return eliminacoes < 3
-
-def calcular_score_esg(valores):
-    indicadores_esg = [i for i in lista_indicadores if i["categoria"] == "ESG"]
-    return calcular_score(valores, indicadores_esg)
-
-def calcular_score_financeiro(valores):
-    indicadores_fin = [i for i in lista_indicadores if i["categoria"] == "Financeiro"]
-    return calcular_score(valores, indicadores_fin)
-
-
-# Streamlit
-st.set_page_config(page_title="Avaliação ESG + Financeira", layout="centered")
-st.title("📊 Avaliação ESG + Financeira")
-
-nome = st.text_input("Digite o nome da empresa")
-
-if nome:
-    st.header("Etapa 1 - Triagem Básica")
-    etapa1_resp = [st.radio(q, [1, 0], horizontal=True) for q in questions_etapa1]
-
-    if etapa_1_basica(etapa1_resp):
-        st.success("Empresa APROVADA para a Etapa 2")
-
-        st.header("Etapa 2 - Indicadores ESG")
-        etapa2_resp = [st.number_input(q, min_value=0.0, format="%.2f") for q in questions_etapa2]
-
-        score_esg = calcular_score_esg(etapa2_resp)
-        st.metric("Score ESG", score_esg)
-
-        if score_esg > 50:
-            st.success("Empresa APROVADA para a Etapa 3")
-
-            st.header("Etapa 3 - Indicadores Financeiros")
-            etapa3_resp = [st.number_input(q, min_value=0.0, format="%.2f") for q in questions_etapa3]
-
-            score_fin = calcular_score_financeiro(etapa3_resp)
-            st.metric("Score Financeiro", score_fin)
-
-            if score_fin > 60:
-                st.success(f"✅ {nome} foi APROVADA na Avaliação Final!")
+            if indicador_info["categoria"].lower() == "esg":
+                score_esg += score_ponderado
             else:
-                st.error(f"❌ {nome} foi REPROVADA na Etapa Financeira.")
-        else:
-            st.error(f"❌ {nome} foi REPROVADA na Etapa ESG.")
-    else:
-        st.error(f"❌ {nome} foi ELIMINADA na Triagem Básica.")
+                score_fin += score_ponderado
+
+        score_esg_normalizado = score_esg * (100 / peso_esg_total)
+        score_fin_normalizado = score_fin * (100 / peso_fin_total)
+        score_final = (score_esg_normalizado + score_fin_normalizado) / 2
+
+        dados_empresas.append({
+            "Empresas": empresa["Empresas"],
+            "Score ESG": score_esg_normalizado,
+            "Score Financeiro": score_fin_normalizado,
+            "Score Final": score_final
+        })
+
+    return pd.DataFrame(dados_empresas)
+
+def plotar_matriz(score_esg_empresa, score_financeiro_empresa, nome_empresa, exemplos):
+    plt.figure(figsize=(12, 8))
+
+    plt.axvspan(0, 49, color='lightcoral', alpha=0.3, label='Baixo ESG')
+    plt.axvspan(50, 79, color='khaki', alpha=0.3, label='Médio ESG')
+    plt.axvspan(80, 100, color='lightgreen', alpha=0.3, label='Alto ESG')
+    plt.axhspan(0, 49, color='lightcoral', alpha=0.3)
+    plt.axhspan(50, 79, color='khaki', alpha=0.3)
+    plt.axhspan(80, 100, color='lightgreen', alpha=0.3)
+
+    for empresa, (score_esg, score_fin) in exemplos.items():
+        plt.scatter(score_esg, score_fin, s=100, edgecolor='black')
+        plt.text(score_esg, score_fin + 1, empresa, fontsize=9, ha='center')
+
+    plt.scatter(score_esg_empresa, score_financeiro_empresa, color='red', s=150, edgecolor='black')
+    plt.text(score_esg_empresa, score_financeiro_empresa + 1.5, nome_empresa,
+             fontsize=12, ha='center', weight='bold', color='red')
+
+    plt.xlabel('Score ESG')
+    plt.ylabel('Desempenho Financeiro')
+    plt.title('Matriz ESG x Financeiro', fontsize=16, weight='bold')
+    plt.xlim(0, 100)
+    plt.ylim(0, 100)
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+    st.pyplot(plt)
+
+# --- Página 1 ---
+if pagina == "1. Carregar dados":
+    st.header("🔍 Visualização dos Dados Brutos")
+    st.dataframe(df_empresas)
+
+# --- Página 2 ---
+elif pagina == "2. Calcular scores":
+    st.header("📊 Cálculo dos Scores")
+    df_resultado = calcular_scores(df_empresas)
+    st.dataframe(df_resultado)
+
+# --- Página 3 ---
+elif pagina == "3. Matriz ESG x Financeiro":
+    st.header("📌 Matriz ESG x Financeiro")
+    df_resultado = calcular_scores(df_empresas)
+    empresa_destaque = st.selectbox("Selecione uma empresa para destaque:", df_resultado["Empresas"].unique())
+    dados = df_resultado.set_index("Empresas")
+    score_esg = dados.loc[empresa_destaque]["Score ESG"]
+    score_fin = dados.loc[empresa_destaque]["Score Financeiro"]
+    exemplos = dados.drop(empresa_destaque).to_dict(orient="index")
+    exemplos = {k: (v["Score ESG"], v["Score Financeiro"]) for k, v in exemplos.items()}
+    plotar_matriz(score_esg, score_fin, empresa_destaque, exemplos)
