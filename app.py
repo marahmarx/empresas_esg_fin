@@ -1,24 +1,7 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
 
-# --- Página de seleção ---
-st.set_page_config(page_title="Triagem ESG e Financeira", layout="wide")
-st.sidebar.title("Navegação")
-pagina = st.sidebar.radio("Escolha a etapa:", ["1. Carregar dados", "2. Calcular scores", "3. Matriz ESG x Financeiro"])
-
-# --- 1. Carregar dados das empresas ---
-@st.cache_data
-def carregar_dados():
-    url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
-    df = pd.read_csv(url)
-    df.columns = df.columns.str.strip()
-    return df
-
-df_empresas = carregar_dados()
-
-# --- 2. Lista de indicadores com pesos e faixas ---
-indicadores = [
+lista_indicadores = [
     {"indicador": "Política Ambiental Formalizada (1 ou 0)", "peso": 1.92, "categoria": "ESG", "faixas": [(1, 1, 100), (0, 0, 50)]},
     {"indicador": "Relatórios de Sustentabilidade Auditados", "peso": 1.92, "categoria": "ESG", "faixas": [(1, 1, 100), (0, 0, 50)]},
     {"indicador": "Práticas Anticorrupção", "peso": 1.92, "categoria": "ESG", "faixas": [(1, 1, 100), (0, 0, 40)]},
@@ -43,56 +26,124 @@ indicadores = [
     {"indicador": "Margem Líquida (%)", "peso": 2.63, "categoria": "Financeiro", "faixas": [(-np.inf, 0, 0), (0, 9.99, 40), (10, 19.99, 70), (20, np.inf, 100)]},
 ]
 
-def tratar_dados(df):
-    for indicador in [i["indicador"] for i in indicadores]:
-        if indicador in df.columns:
-            df[indicador] = (
-                df[indicador]
-                .astype(str)
-                .str.replace(',', '.', regex=False)
-                .str.extract(r'([-+]?\d*\.?\d+)')[0]
-                .astype(float)
-                .fillna(0)
-            )
-    return df
 
-def calcular_pontuacao(valor, faixas):
-    for minimo, maximo, nota in faixas:
-        if minimo <= valor <= maximo:
-            return nota
-    return 0
+# Perguntas divididas por etapas
+questions_etapa1 = [
+    " Qual o segmento de atuação da empresa?",
+    " Qual o setor de atuação da empresa? (Primário, Secundário ou Terciário)",
+    "1. A empresa possui uma política ambiental formalizada? (1=Sim, 0=Não)",
+    "2. A empresa possui relatórios de sustentabilidade auditados? (1=Sim, 0=Não)",
+    "3. A empresa possui Práticas Anticorrupção? (1=Sim, 0=Não)",
+    "4. A empresa possui Comitê ESG Existente? (1=Sim, 0=Não)",
+    "5. A empresa possui Transparência Financeira? (1=Sim, 0=Não)"
+]
 
-def calcular_scores(df):
-    df = tratar_dados(df)
-    dados_empresas = []
+questions_etapa2 = [
+    "6. Qual é a emissão de carbono (CO2) da empresa em toneladas por ano?",
+    "7. Qual o percentual de resíduos reciclados ou reutilizados pela empresa?",
+    "8. Qual o percentual de eficiência energética (uso de energia renovável ou economia)?",
+    "9. Qual o percentual de diversidade de mulheres entre os funcionários?",
+    "10. Qual o percentual de diversidade de negros entre os funcionários?",
+    "11. Qual o índice de satisfação dos funcionários (0 a 100)?",
+    "12. Qual o valor de investimento em programas sociais (R$ M)?",
+    "13. Qual o Risco Ambiental do setor? existência de riscos (0 a 10)"
+]
 
-    peso_esg_total = sum(i["peso"] for i in indicadores if i["categoria"].lower() == "esg")
-    peso_fin_total = sum(i["peso"] for i in indicadores if i["categoria"].lower() == "financeiro")
+questions_etapa3 = [
+    "14. Qual a variação da ação da empresa na B3 (% YoY)?",
+    "15. Qual foi o EBITDA da empresa em 2024 (R$ Bi)?",
+    "16. Qual o EBITDA YoY (%)?",
+    "17. Qual a margem EBITDA YoY (%)?",
+    "18. Qual a posição da empresa no ranking MERCO (digite 0 se não estiver listada)?",
+    "19. Quantas participações a empresa tem em índices ESG brasileiros (ISE B3, DJSI etc.)?",
+    "20. Qual foi o lucro líquido de 2024 (R$ Bi)?",
+    "22. Qual foi o lucro líquido  YOY (%)?",
+    "23. Qual a margem de lucro líquida (%)?"
+]
 
-    for _, empresa in df.iterrows():
-        score_esg = 0
-        score_fin = 0
+# Funções de pontuação
 
-        for indicador_info in indicadores:
-            nome = indicador_info["indicador"]
-            valor = empresa.get(nome, 0)
-            nota = calcular_pontuacao(valor, indicador_info["faixas"])
-            score_ponderado = nota * indicador_info["peso"] / 100
+def calcular_score(valores, indicadores):
+    nota = 0
+    peso_total = 0
+    for valor, indicador in zip(valores, indicadores):
+        pontuacao = 0
+        for faixa in indicador["faixas"]:
+            minimo, maximo, nota_faixa = faixa
+            if minimo <= valor <= maximo:
+                pontuacao = nota_faixa
+                break
+        peso = indicador["peso"]
+        nota += pontuacao * peso
+        peso_total += peso
+    return round(nota / peso_total, 2)
 
-            if indicador_info["categoria"].lower() == "esg":
-                score_esg += score_ponderado
+def etapa_1_basica(respostas):
+    eliminacoes = sum([1 for r in respostas if r == 0])
+    return eliminacoes < 3
+
+def calcular_score_esg(valores):
+    indicadores_esg = [i for i in lista_indicadores if i["categoria"] == "ESG"]
+    return calcular_score(valores, indicadores_esg)
+
+def calcular_score_financeiro(valores):
+    indicadores_fin = [i for i in lista_indicadores if i["categoria"] == "Financeiro"]
+    return calcular_score(valores, indicadores_fin)
+
+
+# Streamlit
+st.set_page_config(page_title="Avaliação ESG + Financeira", layout="centered")
+st.title("📊 Avaliação ESG + Financeira")
+
+def etapa1():
+    st.title("Etapa 1 - Informações Básicas")
+
+    nome_empresa = st.text_input("Nome da Empresa")
+    segmento = st.text_input("Qual o segmento de atuação da empresa?")
+    setor = st.selectbox("Qual o setor de atuação da empresa? (Primário, Secundário ou Terciário)",
+                         ["Primário", "Secundário", "Terciário"])
+
+    # Perguntas binárias (indicadores ESG básicos com peso)
+    perguntas_binarias = [
+        "A empresa possui políticas de sustentabilidade?",
+        "A empresa possui políticas de diversidade?",
+        "A empresa realiza auditorias ambientais?",
+        "A empresa publica relatórios ESG?",
+        "A empresa está em conformidade com legislações ambientais?"
+    ]
+    respostas_binarias = []
+    for pergunta in perguntas_binarias:
+        resposta = st.radio(pergunta, ["Sim", "Não"], key=pergunta)
+        respostas_binarias.append(1 if resposta == "Sim" else 0)
+
+    if st.button("Avançar para Etapa 2"):
+        st.session_state["etapa1_concluida"] = True
+        st.session_state["nome_empresa"] = nome_empresa
+        st.session_state["segmento"] = segmento
+        st.session_state["setor"] = setor
+        st.session_state["respostas_binarias"] = respostas_binarias
+        st.switch_page("etapa2.py")
+
+        st.header("Etapa 2 - Indicadores ESG")
+        etapa2_resp = [st.number_input(q, min_value=0.0, format="%.2f") for q in questions_etapa2]
+
+        score_esg = calcular_score_esg(etapa2_resp)
+        st.metric("Score ESG", score_esg)
+
+        if score_esg > 50:
+            st.success("Empresa APROVADA para a Etapa 3")
+
+            st.header("Etapa 3 - Indicadores Financeiros")
+            etapa3_resp = [st.number_input(q, min_value=0.0, format="%.2f") for q in questions_etapa3]
+
+            score_fin = calcular_score_financeiro(etapa3_resp)
+            st.metric("Score Financeiro", score_fin)
+
+            if score_fin > 60:
+                st.success(f"✅ {nome} foi APROVADA na Avaliação Final!")
             else:
-                score_fin += score_ponderado
-
-        score_esg_normalizado = score_esg * (100 / peso_esg_total)
-        score_fin_normalizado = score_fin * (100 / peso_fin_total)
-        score_final = (score_esg_normalizado + score_fin_normalizado) / 2
-
-        dados_empresas.append({
-            "Empresas": empresa["Empresas"],
-            "Score ESG": score_esg_normalizado,
-            "Score Financeiro": score_fin_normalizado,
-            "Score Final": score_final
-        })
-
-    return pd.DataFrame(dados_empresas)
+                st.error(f"❌ {nome} foi REPROVADA na Etapa Financeira.")
+        else:
+            st.error(f"❌ {nome} foi REPROVADA na Etapa ESG.")
+    else:
+        st.error(f"❌ {nome} foi ELIMINADA na Triagem Básica.")
