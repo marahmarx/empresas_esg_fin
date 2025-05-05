@@ -44,57 +44,61 @@ indicadores_financeiros = [
     {"indicador": "Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
 ]
+st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
-# Etapa 1 - Coleta de dados básicos (ajustada com sim/não)
+# Etapa Unificada - Coleta de Dados
 
-    perguntas_binarias = [
-        "1. A empresa tem políticas de sustentabilidade?",
-        "2. A empresa possui certificação ambiental?",
-        "3. A empresa divulga suas metas de redução de emissão de CO2?",
-        "4. A empresa adota práticas de reciclagem?",
-        "5. A empresa investe em projetos sociais?"
-    ]
-    
-    respostas = []
-    for i, pergunta in enumerate(perguntas_binarias):
-        resposta = st.radio(pergunta, options=["Sim", "Não"], key=f"pergunta_binaria_{i}")
-        respostas.append(1 if resposta == "Sim" else 0)
+st.header("Dados Básicos (Binários)")
+perguntas_binarias = [
+    "1. A empresa tem políticas de sustentabilidade?",
+    "2. A empresa possui certificação ambiental?",
+    "3. A empresa divulga suas metas de redução de emissão de CO2?",
+    "4. A empresa adota práticas de reciclagem?",
+    "5. A empresa investe em projetos sociais?"
+]
 
-# Etapa 2 - Coleta de indicadores ESG Quantitativos
-    
-    respostas_etapa2 = []
-    for indicador in indicadores_esg:
-        st.subheader(indicador["indicador"])
-        valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", min_value=0.0, format="%.2f")
-        respostas_etapa2.append((valor, indicador["peso"], indicador["faixas"]))
+respostas_binarias = []
+for i, pergunta in enumerate(perguntas_binarias):
+    resposta = st.radio(pergunta, options=["Sim", "Não"], key=f"pergunta_binaria_{i}")
+    respostas_binarias.append(1 if resposta == "Sim" else 0)
 
-    score_esg = calcular_score_esg(respostas_etapa2)
-    st.session_state.score_esg = score_esg
-    st.metric("Score ESG", score_esg)
+st.divider()
 
-# Etapa 3 - Coleta de Indicadores Financeiros
+st.header("Indicadores ESG Quantitativos")
+respostas_esg = []
+for indicador in indicadores_esg:
+    st.subheader(indicador["indicador"])
+    valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", min_value=0.0, format="%.2f", key=f"esg_{indicador['indicador']}")
+    respostas_esg.append((valor, indicador["peso"], indicador["faixas"]))
 
-    respostas_etapa3 = []
-    for indicador in indicadores_financeiros:
-        st.subheader(indicador["indicador"])
-        valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", format="%.2f")
-        respostas_etapa3.append((valor, indicador["peso"], indicador["faixas"]))
-        
-    if st.button("Calcular Resultado Final"):
-    score_financeiro = calcular_score_financeiro(respostas_etapa3)
+score_esg = calcular_score_esg(respostas_esg)
+st.metric("Score ESG", score_esg)
+
+st.divider()
+
+st.header("Indicadores Financeiros")
+respostas_financeiros = []
+for indicador in indicadores_financeiros:
+    st.subheader(indicador["indicador"])
+    valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", format="%.2f", key=f"fin_{indicador['indicador']}")
+    respostas_financeiros.append((valor, indicador["peso"], indicador["faixas"]))
+
+if st.button("Calcular Resultado Final"):
+    score_financeiro = calcular_score_financeiro(respostas_financeiros)
     st.session_state.score_financeiro = score_financeiro
     st.session_state.score_esg = score_esg
     st.session_state.calculado = True
 
+    st.metric("Score Financeiro", score_financeiro)
 
-        if score_financeiro > 70 and score_esg > 70:
-            st.success("✅ Empresa aprovada na triagem financeira.")
-            st.balloons()
-            st.write("### Resultado final: Empresa Aprovada 🎉")
-        else:
-            st.error("❌ Empresa reprovada na triagem financeira.")
-            st.write("### Resultado final: Empresa Reprovada.")
-            
+    if score_financeiro > 70 and score_esg > 70:
+        st.success("✅ Empresa aprovada na triagem financeira.")
+        st.balloons()
+        st.write("### Resultado final: Empresa Aprovada 🎉")
+    else:
+        st.error("❌ Empresa reprovada na triagem financeira.")
+        st.write("### Resultado final: Empresa Reprovada.")
+          
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 if st.session_state.get('calculado'):
     st.header("📊 Comparativo: Matriz ESG x Financeiro")
