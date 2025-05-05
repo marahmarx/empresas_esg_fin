@@ -63,8 +63,7 @@ indicadores_financeiros = [
 ]
 
 # Etapa 1 - Coleta de dados básicos (ajustada com sim/não)
-if st.session_state.etapa_atual == 1:
-    st.header("Etapa 1 - Indicadores ESG Básicos")
+
     perguntas_binarias = [
         "1. A empresa tem políticas de sustentabilidade?",
         "2. A empresa possui certificação ambiental?",
@@ -78,20 +77,7 @@ if st.session_state.etapa_atual == 1:
         resposta = st.radio(pergunta, options=["Sim", "Não"], key=f"pergunta_binaria_{i}")
         respostas.append(1 if resposta == "Sim" else 0)
 
-    if st.button("Avançar para Etapa 2"):
-        st.session_state.respostas_binarias = respostas  # Salva corretamente no session_state
-
-        if respostas.count(0) >= 3:
-            st.error("❌ Empresa eliminada na triagem básica (Etapa 1).")
-        else:
-            st.success("✅ Empresa aprovada na triagem básica.")
-            st.session_state.aprovada_etapa1 = True
-            avancar_etapa()
-
-
 # Etapa 2 - Coleta de indicadores ESG Quantitativos
-if st.session_state.etapa_atual == 2 and st.session_state.aprovada_etapa1:
-    st.header("Etapa 2 - Indicadores ESG Quantitativos")
     
     respostas_etapa2 = []
     for indicador in indicadores_esg:
@@ -99,75 +85,71 @@ if st.session_state.etapa_atual == 2 and st.session_state.aprovada_etapa1:
         valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", min_value=0.0, format="%.2f")
         respostas_etapa2.append((valor, indicador["peso"], indicador["faixas"]))
 
-    if st.button("Avançar para Etapa 3"):
-        score_esg = calcular_score_esg(respostas_etapa2)
-        st.session_state.score_esg = score_esg
-        st.metric("Score ESG", score_esg)
+    score_esg = calcular_score_esg(respostas_etapa2)
+    st.session_state.score_esg = score_esg
+    st.metric("Score ESG", score_esg)
 
-        if score_esg <= 50:
-            st.error("❌ Empresa reprovada na Etapa ESG.")
-        else:
-            st.success("✅ Empresa aprovada na Etapa ESG.")
-            st.session_state.aprovada_etapa2 = True
-            avancar_etapa()  # Avança para a Et
 # Etapa 3 - Coleta de Indicadores Financeiros
-if st.session_state.etapa_atual == 3 and st.session_state.aprovada_etapa2:
-    st.header("Etapa 3 - Indicadores Financeiros")
 
     respostas_etapa3 = []
     for indicador in indicadores_financeiros:
         st.subheader(indicador["indicador"])
         valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", format="%.2f")
         respostas_etapa3.append((valor, indicador["peso"], indicador["faixas"]))
-
+        
     if st.button("Calcular Resultado Final"):
-        score_financeiro = calcular_score_financeiro(respostas_etapa3)
-        st.session_state.score_financeiro = score_financeiro
-        st.metric("Score Financeiro", score_financeiro)
-        st.metric("Score ESG", st.session_state.score_esg)
+    score_financeiro = calcular_score_financeiro(respostas_etapa3)
+    st.session_state.score_financeiro = score_financeiro
+    st.session_state.score_esg = score_esg
+    st.session_state.calculado = True
 
-        if score_financeiro > 50:
+
+        if score_financeiro > 70 and score_esg > 70:
             st.success("✅ Empresa aprovada na triagem financeira.")
             st.balloons()
             st.write("### Resultado final: Empresa Aprovada 🎉")
         else:
             st.error("❌ Empresa reprovada na triagem financeira.")
             st.write("### Resultado final: Empresa Reprovada.")
-
-# --- Mostrar Matriz ESG x Financeiro com empresa atual e dados da planilha ---
-if st.session_state.etapa_atual == 3 and st.session_state.aprovada_etapa2:
+            
+# Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
+if st.session_state.get('calculado'):
     st.header("📊 Comparativo: Matriz ESG x Financeiro")
 
-    # 1. Carrega os dados das empresas já avaliadas (Google Sheets)
-    url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
-    df_empresas = pd.read_csv(url)
+    try:
+        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
+        df_empresas = pd.read_csv(url)
 
-    # Garante que as colunas tenham os nomes corretos (ajuste conforme o seu Sheet)
-    df_empresas.columns = df_empresas.columns.str.strip()
-    col_esg = 'Score ESG'
-    col_fin = 'Score Financeiro'
+        # Corrige nomes de colunas (caso venham com espaços)
+        df_empresas.columns = df_empresas.columns.str.strip()
+        col_esg = 'Score ESG'
+        col_fin = 'Score Financeiro'
 
-    # 2. Adiciona a nova empresa ao dataframe (não salva no Google Sheets, apenas localmente)
-    nova_empresa = {
-        'Empresa': 'Nova Empresa',
-        col_esg: st.session_state.score_esg,
-        col_fin: st.session_state.score_financeiro
-    }
-    df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
+        # Adiciona a nova empresa (apenas localmente para exibição)
+        nova_empresa = {
+            'Empresa': 'Nova Empresa',
+            col_esg: st.session_state.score_esg,
+            col_fin: st.session_state.score_financeiro
+        }
+        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
 
-    # 3. Plotagem da matriz ESG x Financeiro
-    fig, ax = plt.subplots(figsize=(8, 6))
-    for _, row in df_empresas.iterrows():
-        if row['Empresa'] == 'Nova Empresa':
-            ax.scatter(row[col_esg], row[col_fin], color='red', s=120, label='Nova Empresa')
-            ax.annotate("Nova Empresa", (row[col_esg], row[col_fin]), textcoords="offset points", xytext=(0,10), ha='center', color='red')
-        else:
-            ax.scatter(row[col_esg], row[col_fin], color='blue', alpha=0.6)
+        # Plot
+        fig, ax = plt.subplots(figsize=(8, 6))
+        for _, row in df_empresas.iterrows():
+            if row['Empresa'] == 'Nova Empresa':
+                ax.scatter(row[col_esg], row[col_fin], color='red', s=120, label='Nova Empresa')
+                ax.annotate("Nova Empresa", (row[col_esg], row[col_fin]), textcoords="offset points", xytext=(0,10), ha='center', color='red')
+            else:
+                ax.scatter(row[col_esg], row[col_fin], color='blue', alpha=0.6)
 
-    ax.set_xlabel("Score ESG")
-    ax.set_ylabel("Score Financeiro")
-    ax.set_title("Matriz ESG x Financeiro")
-    ax.set_xlim(0, 100)
-    ax.set_ylim(0, 100)
-    ax.grid(True)
-    st.pyplot(fig)
+        ax.set_xlabel("Score ESG")
+        ax.set_ylabel("Score Financeiro")
+        ax.set_title("Matriz ESG x Financeiro")
+        ax.set_xlim(0, 100)
+        ax.set_ylim(0, 100)
+        ax.grid(True)
+        st.pyplot(fig)
+
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+
