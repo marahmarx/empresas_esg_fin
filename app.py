@@ -91,48 +91,41 @@ def calcular_score_financeiro(valores):
     return calcular_score(valores, indicadores_fin)
 
 
-# Streamlit
+# Streamlit config
 st.set_page_config(page_title="Avaliação ESG + Financeira", layout="centered")
 st.title("📊 Avaliação ESG + Financeira")
 
-def etapa1():
-    st.title("Etapa 1 - Informações Básicas")
+# ETAPA 1
+st.header("Etapa 1 - Informações Básicas")
 
-    # Entrada de nome da empresa
-    nome_empresa = st.text_input("Nome da Empresa")
+nome_empresa = st.text_input("Nome da Empresa")
+segmento = st.text_input(questions_etapa1[0])
+setor = st.selectbox(questions_etapa1[1], ["Primário", "Secundário", "Terciário"])
 
-    # Campos sem peso (informativos)
-    segmento = st.text_input("Qual o segmento de atuação da empresa?")
-    setor = st.selectbox("Qual o setor de atuação da empresa? (Primário, Secundário ou Terciário)",
-                         ["Primário", "Secundário", "Terciário"])
+perguntas_binarias = questions_etapa1[2:]
+respostas_binarias = []
+for pergunta in perguntas_binarias:
+    resposta = st.radio(pergunta, ["Sim", "Não"], key=pergunta)
+    respostas_binarias.append(1 if resposta == "Sim" else 0)
 
-    # Perguntas com peso (indicadores binários ESG)
-    perguntas_binarias = [
-        "A empresa possui políticas de sustentabilidade?",
-        "A empresa possui políticas de diversidade?",
-        "A empresa realiza auditorias ambientais?",
-        "A empresa publica relatórios ESG?",
-        "A empresa está em conformidade com legislações ambientais?"
-    ]
+if st.button("Avançar para Etapa 2"):
+    passou_etapa1 = etapa_1_basica(respostas_binarias)
 
-    respostas_binarias = []
-    for i, pergunta in enumerate(perguntas_binarias):
-        resposta = st.radio(pergunta, ["Sim", "Não"], key=f"pergunta_{i}")
-        respostas_binarias.append(1 if resposta == "Sim" else 0)
-
-    # Botão para avançar
-    if st.button("Avançar para Etapa 2"):
-        if not nome_empresa:
-            st.warning("Por favor, preencha o nome da empresa antes de continuar.")
-        else:
-            # Armazenamento no session_state
-            st.session_state["etapa1_concluida"] = True
-            st.session_state["nome_empresa"] = nome_empresa
-            st.session_state["segmento"] = segmento
-            st.session_state["setor"] = setor
-            st.session_state["respostas_binarias"] = respostas_binarias
-            st.switch_page("etapa2.py")  # Substitua se o nome real for diferente
-
+    if not nome_empresa or not segmento or not setor:
+        st.warning("⚠️ Por favor, preencha todos os campos antes de prosseguir.")
+    elif passou_etapa1:
+        st.success("✅ Empresa APROVADA na Etapa 1!")
+        # Salva no session_state
+        st.session_state["etapa1_concluida"] = True
+        st.session_state["nome_empresa"] = nome_empresa
+        st.session_state["segmento"] = segmento
+        st.session_state["setor"] = setor
+        st.session_state["respostas_binarias"] = respostas_binarias
+        # Avança para próxima página
+        st.switch_page("etapa2.py")
+    else:
+        st.error("❌ Empresa ELIMINADA na Triagem Básica (Etapa 1).")
+        
         st.header("Etapa 2 - Indicadores ESG")
         etapa2_resp = [st.number_input(q, min_value=0.0, format="%.2f") for q in questions_etapa2]
 
