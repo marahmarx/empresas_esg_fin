@@ -21,23 +21,6 @@ def calcular_score_financeiro(respostas):
                 break
     return total_score
 
-# Inicializa o estado de respostas caso não tenha sido definido
-if 'respostas_binarias' not in st.session_state:
-    st.session_state.respostas_binarias = [0] * 5  # Inicializa com 5 respostas binárias
-if 'aprovada_etapa1' not in st.session_state:
-    st.session_state.aprovada_etapa1 = False
-if 'aprovada_etapa2' not in st.session_state:
-    st.session_state.aprovada_etapa2 = False
-if 'etapa_atual' not in st.session_state:
-    st.session_state.etapa_atual = 1  # Começa na Etapa 1
-
-# Função para navegar entre as etapas
-def avancar_etapa():
-    if st.session_state.etapa_atual == 1:
-        st.session_state.etapa_atual = 2
-    elif st.session_state.etapa_atual == 2:
-        st.session_state.etapa_atual = 3
-
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 indicadores_esg = [
     {"indicador": "Emissão de CO2 (M ton)", "peso": 15, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
