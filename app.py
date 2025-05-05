@@ -40,11 +40,6 @@ def avancar_etapa():
 
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 indicadores_esg = [
-    {"indicador": "Política Ambiental Formalizada", "peso": 1.92, "faixas": [(1, 1, 100), (0, 0, 50)]},
-    {"indicador": "Relatórios de Sustentabilidade Auditados", "peso": 1.92, "faixas": [(1, 1, 100), (0, 0, 50)]},
-    {"indicador": "Práticas Anticorrupção", "peso": 1.92, "faixas": [(1, 1, 100), (0, 0, 40)]},
-    {"indicador": "Comitê ESG Existente", "peso": 1.92, "faixas": [(1, 1, 100), (0, 0, 50)]},
-    {"indicador": "Transparência Financeira", "peso": 1.92, "faixas": [(1, 1, 100), (0, 0, 40)]},
     {"indicador": "Emissão de CO2 (M ton)", "peso": 5.77, "faixas": [(0, 1000, 100), (1000.01, 5000, 70), (5000.01, np.inf, 40)]},
     {"indicador": "Gestão de Resíduos (%)", "peso": 5.77, "faixas": [(90, 100, 100), (70, 89.99, 70), (0, 69.99, 40)]},
     {"indicador": "Eficiência energética (%)", "peso": 5.77, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 40)]},
