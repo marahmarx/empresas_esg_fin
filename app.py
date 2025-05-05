@@ -15,9 +15,18 @@ if 'aprovada_etapa1' not in st.session_state:
     st.session_state.aprovada_etapa1 = False
 if 'aprovada_etapa2' not in st.session_state:
     st.session_state.aprovada_etapa2 = False
+if 'etapa_atual' not in st.session_state:
+    st.session_state.etapa_atual = 1  # Começa na Etapa 1
+
+# Função para navegar entre as etapas
+def avancar_etapa():
+    if st.session_state.etapa_atual == 1:
+        st.session_state.etapa_atual = 2
+    elif st.session_state.etapa_atual == 2:
+        st.session_state.etapa_atual = 3
 
 # Etapa 1 - Coleta de dados básicos
-if not st.session_state.aprovada_etapa1:
+if st.session_state.etapa_atual == 1:
     st.header("Etapa 1 - Indicadores ESG Básicos")
     perguntas_binarias = [
         "1. A empresa tem políticas de sustentabilidade?",
@@ -38,10 +47,10 @@ if not st.session_state.aprovada_etapa1:
         else:
             st.success("✅ Empresa aprovada na triagem básica.")
             st.session_state.aprovada_etapa1 = True  # Marca que a empresa passou para a Etapa 2
-            st.experimental_rerun()  # Força recarregar para a Etapa 2
+            avancar_etapa()  # Avança para a Etapa 2
 
 # Etapa 2 - Coleta de indicadores ESG Quantitativos (exibido após aprovação na Etapa 1)
-if st.session_state.aprovada_etapa1 and not st.session_state.aprovada_etapa2:
+if st.session_state.etapa_atual == 2 and st.session_state.aprovada_etapa1:
     st.header("Etapa 2 - Indicadores ESG Quantitativos")
     
     perguntas_etapa2 = [
@@ -67,10 +76,10 @@ if st.session_state.aprovada_etapa1 and not st.session_state.aprovada_etapa2:
         else:
             st.success("✅ Empresa aprovada na Etapa ESG.")
             st.session_state.aprovada_etapa2 = True
-            st.experimental_rerun()  # Força recarregar para a Etapa 3
+            avancar_etapa()  # Avança para a Etapa 3
 
 # Etapa 3 - Coleta de dados financeiros (após aprovação nas etapas anteriores)
-if st.session_state.aprovada_etapa2:
+if st.session_state.etapa_atual == 3 and st.session_state.aprovada_etapa2:
     st.header("Etapa 3 - Indicadores Financeiros")
 
     perguntas_etapa3 = [
