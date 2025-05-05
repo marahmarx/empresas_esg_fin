@@ -62,7 +62,7 @@ indicadores_financeiros = [
     {"indicador": "Margem Líquida (%)", "peso": 2.63, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
 ]
 
-# Etapa 1 - Coleta de dados básicos (ajustada para "Sim" e "Não")
+# Etapa 1 - Coleta de dados básicos (ajustada com sim/não)
 if st.session_state.etapa_atual == 1:
     st.header("Etapa 1 - Indicadores ESG Básicos")
     perguntas_binarias = [
@@ -72,16 +72,16 @@ if st.session_state.etapa_atual == 1:
         "4. A empresa adota práticas de reciclagem?",
         "5. A empresa investe em projetos sociais?"
     ]
+    
+    respostas = []
+    for i, pergunta in enumerate(perguntas_binarias):
+        resposta = st.radio(pergunta, options=["Sim", "Não"], key=f"pergunta_binaria_{i}")
+        respostas.append(1 if resposta == "Sim" else 0)
 
-    opcoes = {"Sim": 1, "Não": 0}
-
-    for i, p in enumerate(perguntas_binarias):
-        resposta = st.radio(p, options=list(opcoes.keys()), index=st.session_state.respostas_binarias[i])
-        st.session_state.respostas_binarias[i] = opcoes[resposta]
-
-    # Botão para avançar
     if st.button("Avançar para Etapa 2"):
-        if sum([1 for r in st.session_state.respostas_binarias if r == 0]) >= 3:
+        st.session_state.respostas_binarias = respostas  # Salva corretamente no session_state
+
+        if respostas.count(0) >= 3:
             st.error("❌ Empresa eliminada na triagem básica (Etapa 1).")
         else:
             st.success("✅ Empresa aprovada na triagem básica.")
