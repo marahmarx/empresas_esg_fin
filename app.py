@@ -40,29 +40,29 @@ def avancar_etapa():
 
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 indicadores_esg = [
-    {"indicador": "Emissão de CO2 (M ton)", "peso": 5.77, "faixas": [(0, 1000, 100), (1000.01, 5000, 70), (5000.01, np.inf, 40)]},
-    {"indicador": "Gestão de Resíduos (%)", "peso": 5.77, "faixas": [(90, 100, 100), (70, 89.99, 70), (0, 69.99, 40)]},
-    {"indicador": "Eficiência energética (%)", "peso": 5.77, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 40)]},
-    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 5.77, "faixas": [(50, 100, 100), (30, 49.99, 70), (0, 29.99, 40)]},
-    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 5.77, "faixas": [(50, 100, 100), (30, 49.99, 70), (0, 29.99, 40)]},
+    {"indicador": "Emissão de CO2 (M ton)", "peso": 5.77, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
+    {"indicador": "Gestão de Resíduos (%)", "peso": 5.77, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (0, 19.99, 10)]},
+    {"indicador": "Eficiência energética (%)", "peso": 5.77, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (0, 19.99, 10)]},
+    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 5.77, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (0, 19.99, 10)]},
+    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 5.77, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (0, 19.99, 10)]},
     {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 1.92, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 40)]},
-    {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 5.77, "faixas": [(1, np.inf, 100), (0, 0, 50)]},
-    {"indicador": "Risco Ambiental", "peso": 3.85, "faixas": [(0, 0, 100), (1, 1, 50)]},
+    {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 5.77, "faixas": [(np.inf, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
+    {"indicador": "Risco Ambiental", "peso": 3.85, "faixas": [(0, 1, 100), (2, 3, 70), (4, 6, 50), (7, 8, 30), (9, 10, 30)]},
 ]
 
 indicadores_financeiros = [
-    {"indicador": "Variação da ação YoY (%)", "peso": 7.89, "faixas": [(-np.inf, 0, 0), (0.01, 10, 40), (10.01, 20, 70), (20.01, np.inf, 100)]},
+    {"indicador": "Variação da ação YoY (%)", "peso": 7.89, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "EBITDA (R$ Bi)", "peso": 7.89, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
-    {"indicador": "EBITDA YoY (%)", "peso": 5.26, "faixas": [(-np.inf, 0, 0), (0, 9.99, 40), (10, 14.99, 70), (15, np.inf, 100)]},
-    {"indicador": "Margem EBITDA (%)", "peso": 2.63, "faixas": [(-np.inf, 0, 0), (0, 9.99, 40), (10, 19.99, 70), (20, np.inf, 100)]},
-    {"indicador": "Posição no MERCO", "peso": 5.26, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (101, np.inf, 0)]},
-    {"indicador": "Participação em Índices ESG", "peso": 5.26, "faixas": [(0, 0, 40), (1, 1, 70), (2, np.inf, 100)]},
-    {"indicador": "Lucro Líquido (R$ Bi)", "peso": 7.89, "faixas": [(-np.inf, 0, 0), (0, 9.99, 40), (10, 19.99, 70), (20, np.inf, 100)]},
-    {"indicador": "Lucro Líquido YoY (%)", "peso": 5.26, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
-    {"indicador": "Margem Líquida (%)", "peso": 2.63, "faixas": [(-np.inf, 0, 0), (0, 9.99, 40), (10, 19.99, 70), (20, np.inf, 100)]},
+    {"indicador": "EBITDA YoY (%)", "peso": 5.26, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Margem EBITDA (%)", "peso": 2.63, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Posição no MERCO", "peso": 5.26, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
+    {"indicador": "Participação em Índices ESG", "peso": 5.26, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
+    {"indicador": "Lucro Líquido (R$ Bi)", "peso": 7.89, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
+    {"indicador": "Lucro Líquido YoY (%)", "peso": 5.26, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Margem Líquida (%)", "peso": 2.63, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
 ]
 
-# Etapa 1 - Coleta de dados básicos (já existente)
+# Etapa 1 - Coleta de dados básicos (ajustada para "Sim" e "Não")
 if st.session_state.etapa_atual == 1:
     st.header("Etapa 1 - Indicadores ESG Básicos")
     perguntas_binarias = [
@@ -72,11 +72,21 @@ if st.session_state.etapa_atual == 1:
         "4. A empresa adota práticas de reciclagem?",
         "5. A empresa investe em projetos sociais?"
     ]
-    
-    # Exibe as perguntas e armazena as respostas
-    for i, p in enumerate(perguntas_binarias):
-        st.session_state.respostas_binarias[i] = st.radio(p, options=[0, 1], index=st.session_state.respostas_binarias[i])
 
+    opcoes = {"Sim": 1, "Não": 0}
+
+    for i, p in enumerate(perguntas_binarias):
+        resposta = st.radio(p, options=list(opcoes.keys()), index=st.session_state.respostas_binarias[i])
+        st.session_state.respostas_binarias[i] = opcoes[resposta]
+
+    # Botão para avançar
+    if st.button("Avançar para Etapa 2"):
+        if sum([1 for r in st.session_state.respostas_binarias if r == 0]) >= 3:
+            st.error("❌ Empresa eliminada na triagem básica (Etapa 1).")
+        else:
+            st.success("✅ Empresa aprovada na triagem básica.")
+            st.session_state.aprovada_etapa1 = True
+            avancar_etapa()
     # Botão para avançar
     if st.button("Avançar para Etapa 2"):
         if sum([1 for r in st.session_state.respostas_binarias if r == 0]) >= 3:
