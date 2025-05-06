@@ -1,4 +1,5 @@
 import streamlit as st
+from gsheets_streamlit import GSheetsConnection
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
