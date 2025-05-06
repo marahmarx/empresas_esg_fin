@@ -211,7 +211,7 @@ if st.session_state.get('calculado'):
 
         st.write("Dados carregados da planilha:", df_empresas)
         st.write("Pré-visualização dos dados:")
-        st.dataframe(df.head())  # para verificar se a coluna 'Empresa' está lá corretamente
+        st.dataframe(df_empresas.head())
 
         df_empresas = calcular_scores(df_empresas)
 
