@@ -122,8 +122,8 @@ for (valor, indicador) in zip(respostas_financeiros, indicadores_financeiros):
 csv_url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
 df = pd.read_csv(csv_url)
 
-# Adicionar a nova linha ao DataFrame
-df = df.append(nova_linha, ignore_index=True)
+# Usar pd.concat() para adicionar a nova linha ao DataFrame
+df = pd.concat([df, pd.DataFrame([nova_linha])], ignore_index=True)
 
 # Salvar o dataframe atualizado em um novo arquivo CSV
 output_csv = "/mnt/data/empresas_atualizado.csv"
@@ -137,7 +137,7 @@ st.download_button(
     mime="text/csv"
 )
 
-# Mostrar os dados atualizados na tela
+# Mostrar os dados atualizados
 st.write(df)
 
 # Função para carregar dados sem cache
