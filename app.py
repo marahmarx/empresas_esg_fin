@@ -153,17 +153,6 @@ def calcular_scores(df):
     df["Score ESG"] = esg_total
     df["Score Financeiro"] = financeiro_total
     return df
-    
-# Função para atribuir cores de fundo
-def definir_cor(score_esg, score_financeiro):
-    if score_esg > 70 and score_financeiro > 70:
-        return "green"
-    elif score_esg > 70 and score_financeiro <= 70:
-        return "lightgreen"
-    elif score_esg <= 70 and score_financeiro <= 70:
-        return "red"
-    elif score_esg <= 70 and score_financeiro > 70:
-        return "lightcoral"
         
 # Função para plotar com Plotly
 def plotar_matriz_interativa(df):
