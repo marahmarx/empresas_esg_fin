@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import plotly.express as px
 
 # Função para calcular o score ESG
 def calcular_score_esg(respostas):
@@ -95,7 +96,6 @@ if st.button("Calcular Resultado Final"):
         st.write("### Resultado final: Empresa Reprovada.")
 
 #Segunda parte 
-import plotly.express as px
 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 if st.session_state.get('calculado'):
