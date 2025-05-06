@@ -194,3 +194,45 @@ if st.session_state.get('calculado'):
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
+
+import plotly.graph_objects as go
+
+# Adiciona nomes das empresas à tabela comparativa
+df_comparacao['Nome'] = df_comparacao['Empresa']
+
+# Cria o gráfico de dispersão
+fig = px.scatter(
+    df_comparacao,
+    x='Pontuação Financeira',
+    y='Pontuação ESG',
+    text='Nome',  # Nome da empresa no ponto
+    size_max=60,
+    template='plotly_white',
+    title="Matriz ESG x Financeiro"
+)
+
+# Faixas de corte
+corte_fin = 60
+corte_esg = 50
+
+# Adiciona as áreas coloridas no fundo do gráfico
+fig.add_shape(type="rect", x0=0, x1=corte_fin, y0=0, y1=corte_esg,
+              fillcolor="red", opacity=0.2, layer="below", line_width=0)
+fig.add_shape(type="rect", x0=corte_fin, x1=100, y0=0, y1=corte_esg,
+              fillcolor="lightgreen", opacity=0.2, layer="below", line_width=0)
+fig.add_shape(type="rect", x0=0, x1=corte_fin, y0=corte_esg, y1=100,
+              fillcolor="salmon", opacity=0.2, layer="below", line_width=0)
+fig.add_shape(type="rect", x0=corte_fin, x1=100, y0=corte_esg, y1=100,
+              fillcolor="green", opacity=0.2, layer="below", line_width=0)
+
+# Atualiza layout e mostra os nomes nos pontos
+fig.update_traces(textposition='top center')
+fig.update_layout(
+    xaxis_title='Pontuação Financeira',
+    yaxis_title='Pontuação ESG',
+    xaxis=dict(range=[0, 100]),
+    yaxis=dict(range=[0, 100])
+)
+
+st.plotly_chart(fig)
+
