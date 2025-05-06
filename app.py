@@ -94,10 +94,9 @@ if st.button("Calcular Resultado Final"):
     else:
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
-
 #Segunda parte 
-
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
+
 if st.session_state.get('calculado'):
     st.header("📊 Comparativo: Matriz ESG x Financeiro")
 
@@ -110,7 +109,7 @@ if st.session_state.get('calculado'):
         col_esg = 'Score ESG'
         col_fin = 'Score Financeiro'
 
-        # Adiciona a nova empresa para exibição local
+        # Adiciona a nova empresa (apenas localmente para exibição)
         nova_empresa = {
             'Empresa': 'Nova Empresa',
             col_esg: st.session_state.score_esg,
@@ -118,29 +117,22 @@ if st.session_state.get('calculado'):
         }
         df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
 
-        # Cria uma coluna de cor para destacar a nova empresa
-        df_empresas['Cor'] = df_empresas['Empresa'].apply(lambda x: 'Nova Empresa' if x == 'Nova Empresa' else 'Outras Empresas')
+        # Plot
+        fig, ax = plt.subplots(figsize=(8, 6))
+        for _, row in df_empresas.iterrows():
+            if row['Empresa'] == 'Nova Empresa':
+                ax.scatter(row[col_esg], row[col_fin], color='red', s=120, label='Nova Empresa')
+                ax.annotate("Nova Empresa", (row[col_esg], row[col_fin]), textcoords="offset points", xytext=(0,10), ha='center', color='red')
+            else:
+                ax.scatter(row[col_esg], row[col_fin], color='blue', alpha=0.6)
 
-        fig = px.scatter(
-            df_empresas,
-            x=col_esg,
-            y=col_fin,
-            color='Cor',
-            color_discrete_map={'Nova Empresa': 'red', 'Outras Empresas': 'blue'},
-            hover_name='Empresa',
-            size=[12 if nome == 'Nova Empresa' else 8 for nome in df_empresas['Empresa']],
-            title='Matriz ESG x Financeiro',
-        )
-
-        fig.update_layout(
-            xaxis_title="Score ESG",
-            yaxis_title="Score Financeiro",
-            xaxis=dict(range=[0, 100]),
-            yaxis=dict(range=[0, 100]),
-            legend_title="Empresa"
-        )
-
-        st.plotly_chart(fig)
+        ax.set_xlabel("Score ESG")
+        ax.set_ylabel("Score Financeiro")
+        ax.set_title("Matriz ESG x Financeiro")
+        ax.set_xlim(0, 100)
+        ax.set_ylim(0, 100)
+        ax.grid(True)
+        st.pyplot(fig)
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
