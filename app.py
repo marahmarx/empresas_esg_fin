@@ -210,8 +210,6 @@ if st.session_state.get('calculado'):
         df_empresas = carregar_dados_empresas(url)
 
         st.write("Dados carregados da planilha:", df_empresas)
-        st.write("Pré-visualização dos dados:")
-        st.dataframe(df_empresas.head())
 
         df_empresas = calcular_scores(df_empresas)
 
@@ -219,7 +217,6 @@ if st.session_state.get('calculado'):
             "Empresa": nome_empresa or "Nova Empresa",
             "Score ESG": st.session_state.get("score_esg", np.nan),
             "Score Financeiro": st.session_state.get("score_financeiro", np.nan),
-            # Adicione aqui os indicadores se quiser comparar no mesmo padrão
         }
 
         if "df_empresas" not in st.session_state:
