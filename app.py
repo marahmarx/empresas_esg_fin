@@ -49,6 +49,12 @@ indicadores_financeiros = [
 ]
 st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
+# Perguntas iniciais
+st.header("Dados da Empresa")
+nome_empresa = st.text_input("Nome da empresa:")
+segmento_empresa = st.text_input("Segmento da empresa:")
+setor_empresa = st.selectbox("Setor da empresa:", ["Primário", "Secundário", "Terciário"])
+
 # Etapa Unificada - Coleta de Dados
 
 st.header("Dados Básicos")
@@ -147,7 +153,18 @@ def calcular_scores(df):
     df["Score ESG"] = esg_total
     df["Score Financeiro"] = financeiro_total
     return df
-
+    
+# Função para atribuir cores de fundo
+def definir_cor(score_esg, score_financeiro):
+    if score_esg > 70 and score_financeiro > 70:
+        return "green"
+    elif score_esg > 70 and score_financeiro <= 70:
+        return "lightgreen"
+    elif score_esg <= 70 and score_financeiro <= 70:
+        return "red"
+    elif score_esg <= 70 and score_financeiro > 70:
+        return "lightcoral"
+        
 # Função para plotar com Plotly
 def plotar_matriz_interativa(df):
     if df.empty:
@@ -195,30 +212,6 @@ if st.session_state.get('calculado'):
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
 
-import plotly.graph_objects as go
 
-# Faixas de corte
-corte_fin = 60
-corte_esg = 50
 
-# Adiciona as áreas coloridas no fundo do gráfico
-fig.add_shape(type="rect", x0=0, x1=corte_fin, y0=0, y1=corte_esg,
-              fillcolor="red", opacity=0.2, layer="below", line_width=0)
-fig.add_shape(type="rect", x0=corte_fin, x1=100, y0=0, y1=corte_esg,
-              fillcolor="lightgreen", opacity=0.2, layer="below", line_width=0)
-fig.add_shape(type="rect", x0=0, x1=corte_fin, y0=corte_esg, y1=100,
-              fillcolor="salmon", opacity=0.2, layer="below", line_width=0)
-fig.add_shape(type="rect", x0=corte_fin, x1=100, y0=corte_esg, y1=100,
-              fillcolor="green", opacity=0.2, layer="below", line_width=0)
-
-# Atualiza layout e mostra os nomes nos pontos
-fig.update_traces(textposition='top center')
-fig.update_layout(
-    xaxis_title='Pontuação Financeira',
-    yaxis_title='Pontuação ESG',
-    xaxis=dict(range=[0, 100]),
-    yaxis=dict(range=[0, 100])
-)
-
-st.plotly_chart(fig)
 
