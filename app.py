@@ -96,69 +96,43 @@ if st.button("Calcular Resultado Final"):
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
 
-# Segunda parte 
+# Segunda parte
+# Função para carregar dados da planilha via CSV
+def carregar_dados_empresas(url):
+    try:
+        df = pd.read_csv(url)
+        df.columns = df.columns.str.strip()  # Remove espaços nos nomes das colunas
+        return df
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+        return pd.DataFrame()
 
-# Carregar os dados do Google Sheets
-url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSOYq6bgoWRTHiMvLRt8z5KnnhDNhi0uYIkfqUztEoP9HIMdvQ_fEuG8-4n67_rZXKMcC3pU9CZLfAb/pub?gid=0&single=true&output=csv"
-df = pd.read_csv(url)
+# URL da planilha no formato CSV do Google Sheets
+url_planilha = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRFLHgSmC-QGbMRtns.../pub?gid=0&single=true&output=csv'
 
-# Função para atribuir nota com base nas faixas
-def atribuir_nota(valor, faixas):
-    for faixa in faixas:
-        if faixa[0] <= valor <= faixa[1]:
-            return faixa[2]
-    return 0  # Nota zero caso não se encaixe em nenhuma faixa
+# Carregar dados
+df_empresas = carregar_dados_empresas(url_planilha)
 
-# Indicadores ESG
-indicadores_esg = [
-    {"indicador": "Emissão de CO2 (M ton)", "peso": 15, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
-    {"indicador": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
-    {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
-    {"indicador": "Risco Ambiental", "peso": 5, "faixas": [(0, 1, 100), (2, 3, 70), (4, 6, 50), (7, 8, 30), (9, 10, 10)]},
-]
+# Verificar se scores estão disponíveis
+if not df_empresas.empty and 'Score ESG' in df_empresas.columns and 'Score Financeiro' in df_empresas.columns:
+    st.subheader("Matriz ESG x Financeiro")
+    st.write("Relação entre os scores ESG e Financeiro das empresas.")
 
-# Indicadores Financeiros
-indicadores_financeiros = [
-    {"indicador": "Variação da ação YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
-    {"indicador": "EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Margem EBITDA (%)", "peso": 5.5 , "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
-    {"indicador": "Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
-    {"indicador": "Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
-    {"indicador": "Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-]
+    # Exibir matriz de dispersão
+    plt.scatter(df_empresas["Score Financeiro"], df_empresas["Score ESG"], s=100, c="skyblue", edgecolors='black')
+else:
+    st.warning("Scores ESG ou Financeiro não estão disponíveis na planilha.")
 
-# Calcular notas ESG e Financeiras
-def calcular_score(linha, indicadores):
-    score = 0
-    for item in indicadores:
-        valor = linha[item["indicador"]]
-        nota = atribuir_nota(valor, item["faixas"])
-        score += nota * item["peso"]
-    return score / sum(item["peso"] for item in indicadores)
+fig, ax = plt.subplots(figsize=(12, 8))
+ax.scatter(df_empresas["Score Financeiro"], df_empresas["Score ESG"], s=100, c="skyblue", edgecolors='black')
 
-df["score_esg"] = df.apply(lambda row: calcular_score(row, indicadores_esg), axis=1)
-df["score_financeiro"] = df.apply(lambda row: calcular_score(row, indicadores_financeiros), axis=1)
+if 'Empresas' in df_empresas.columns:
+    for i, row in df_empresas.iterrows():
+        ax.text(row["Score Financeiro"] + 0.5, row["Score ESG"] + 0.5, row["Empresas"], fontsize=9)
 
-# Plotar gráfico
-plt.figure(figsize=(12, 8))
-plt.scatter(df["score_financeiro"], df["score_esg"], s=100, c="skyblue", edgecolors='black')
+ax.set_xlabel("Score Financeiro")
+ax.set_ylabel("Score ESG")
+ax.set_title("Comparação ESG vs Financeiro das Empresas")
+ax.grid(True)
 
-# Adicionando nomes das empresas
-for i, row in df.iterrows():
-    plt.text(row["score_financeiro"] + 0.5, row["score_esg"] + 0.5, row["Empresas"], fontsize=9)
-
-plt.xlabel("Score Financeiro")
-plt.ylabel("Score ESG")
-plt.title("Comparação ESG vs Financeiro das Empresas")
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-
+st.pyplot(fig)
