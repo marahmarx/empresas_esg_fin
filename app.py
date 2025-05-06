@@ -126,15 +126,15 @@ df = pd.read_csv(csv_url)
 df = pd.concat([df, pd.DataFrame([nova_linha])], ignore_index=True)
 
 # Salvar o dataframe atualizado em um novo arquivo CSV
-output_csv = "/mnt/data/empresas_atualizado.csv"
+
 import os
 
-# Cria o diretório se ele não existir
+output_csv = "resultado.csv"  # ou "dados/resultado.csv"
+
 dir_path = os.path.dirname(output_csv)
 if dir_path:
     os.makedirs(dir_path, exist_ok=True)
 
-# Salva o DataFrame
 df.to_csv(output_csv, index=False)
 
 # Permitir o download do novo arquivo
