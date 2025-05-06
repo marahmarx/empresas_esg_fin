@@ -199,7 +199,7 @@ import plotly.graph_objects as go
 
 # Adiciona nomes das empresas à tabela comparativa
 
-df_comparacao['Nome'] = df_coluns['Empresas']
+df_comparacao['Nome'] = df_empresas['Empresas']
 st.write(df_comparacao)
 # Cria o gráfico de dispersão
 fig = px.scatter(
