@@ -196,3 +196,16 @@ if st.session_state.get('calculado'):
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
+        fig = px.scatter(
+        df,
+        x='Score ESG',
+        y='Score Financeiro',
+        color='Cor',
+        hover_data=['Empresa'],
+        title='Matriz ESG x Financeiro',
+        labels={'Score ESG': 'Score ESG', 'Score Financeiro': 'Score Financeiro'},
+    )
+    fig.update_traces(marker=dict(size=12, opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
+    fig.update_layout(showlegend=False)
+    st.plotly_chart(fig, use_container_width=True)
+
