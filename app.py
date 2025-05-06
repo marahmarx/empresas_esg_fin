@@ -130,7 +130,9 @@ output_csv = "/mnt/data/empresas_atualizado.csv"
 import os
 
 # Cria o diretório se ele não existir
-os.makedirs(os.path.dirname(output_csv), exist_ok=True)
+dir_path = os.path.dirname(output_csv)
+if dir_path:
+    os.makedirs(dir_path, exist_ok=True)
 
 # Salva o DataFrame
 df.to_csv(output_csv, index=False)
