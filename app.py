@@ -109,11 +109,38 @@ def carregar_dados_empresas(url):
         st.error(f"Erro ao carregar os dados da planilha: {e}")
         return pd.DataFrame()
 
-# Função para calcular os scores (exemplo fictício)
+# Função para calcular os scores
 def calcular_scores(df):
-    # Cálculos fictícios para o Score ESG e Score Financeiro (substitua com o cálculo real)
-    df['Score ESG'] = df['Alguma Coluna ESG'].apply(lambda x: (x / 100) * 50)  # Exemplo fictício de cálculo
-    df['Score Financeiro'] = df['Alguma Coluna Financeira'].apply(lambda x: (x / 100) * 50)  # Exemplo fictício
+    # Cálculo do Score ESG (exemplo, adapte conforme sua necessidade)
+    df['Score ESG'] = (
+        df['Política Ambiental Formalizada (1 ou 0)'] * 5 +
+        df['Relatórios de Sustentabilidade Auditados'] * 5 +
+        df['Práticas Anticorrupção'] * 5 +
+        df['Comitê ESG Existente'] * 5 +
+        df['Transparência Financeira'] * 5 +
+        df['Emissão de CO ( M ton)'] * 10 +  # A coluna "Emissão de CO" pode precisar ser invertida
+        df['Gestão de Resíduos (%)'] * 10 +
+        df['Eficiência energética (%)'] * 10 +
+        df['Diversidade e Inclusão Mulheres (%)'] * 12.5 +
+        df['Diversidade e Inclusão Pessoas Negras (%)'] * 12.5 +
+        df['Índice de Satisfação dos Funcionários (%)'] * 5 +
+        df['Investimento em Programas Sociais (R$ M)'] * 10 +
+        df['Risco Ambiental - existência de riscos (0 a 10)'] * 5  # Valores negativos para risco
+    ) / 100  # Dividido por 100 para normalizar o valor
+
+    # Cálculo do Score Financeiro (exemplo, adapte conforme sua necessidade)
+    df['Score Financeiro'] = (
+        df['Variação da ação YoY (%)'] * 5 +
+        df['EBITDA  (R$ Bi)'] * 15 +
+        df['EBITDA YoY (%)'] * 10 +
+        df['Margem ebitda (%)'] * 10 +
+        df['Posição no MERCO'] * 10 +
+        df['Participação em Índices ESG (quantidade)'] * 5 +
+        df['Lucro Líquido (R$ Bi)'] * 15 +
+        df['Lucro Líquido YoY (%)'] * 10 +
+        df['Margem Líquida (%)'] * 10
+    ) / 100  # Dividido por 100 para normalizar o valor
+
     return df
 
 # Função para plotar com Plotly
@@ -169,4 +196,3 @@ if st.session_state.get('calculado'):
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
-
