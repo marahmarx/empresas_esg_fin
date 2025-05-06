@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.express as px
 
 # Função para calcular o score ESG
 def calcular_score_esg(respostas):
@@ -94,45 +95,47 @@ if st.button("Calcular Resultado Final"):
     else:
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
+
 #Segunda parte 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
+# Função para carregar dados com cache
+@st.cache_data(ttl=600)
+url = https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv
+def carregar_dados_empresas(url):
+    df = pd.read_csv(url)
+    df.columns = df.columns.str.strip()
+    return df
+
+# Função para plotar com Plotly
+def plotar_matriz_interativa(df):
+    df['Cor'] = df['Empresa'].apply(lambda x: 'red' if x == 'Nova Empresa' else 'blue')
+    fig = px.scatter(df, x='Score ESG', y='Score Financeiro',
+                     text='Empresa', color='Cor',
+                     color_discrete_map={'red': 'red', 'blue': 'blue'},
+                     size=[15 if x == 'Nova Empresa' else 8 for x in df['Empresa']],
+                     title="Matriz ESG x Financeiro")
+
+    fig.update_traces(textposition='top center', showlegend=False)
+    fig.update_layout(xaxis=dict(range=[0, 100]), yaxis=dict(range=[0, 100]))
+    return fig
+
+# Parte principal da interface
 if st.session_state.get('calculado'):
     st.header("📊 Comparativo: Matriz ESG x Financeiro")
 
     try:
         url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
-        df_empresas = pd.read_csv(url)
+        df_empresas = carregar_dados_empresas(url)
 
-        # Corrige nomes de colunas (caso venham com espaços)
-        df_empresas.columns = df_empresas.columns.str.strip()
-        col_esg = 'Score ESG'
-        col_fin = 'Score Financeiro'
-
-        # Adiciona a nova empresa (apenas localmente para exibição)
         nova_empresa = {
             'Empresa': 'Nova Empresa',
-            col_esg: st.session_state.score_esg,
-            col_fin: st.session_state.score_financeiro
+            'Score ESG': st.session_state.score_esg,
+            'Score Financeiro': st.session_state.score_financeiro
         }
         df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
 
-        # Plot
-        fig, ax = plt.subplots(figsize=(8, 6))
-        for _, row in df_empresas.iterrows():
-            if row['Empresa'] == 'Nova Empresa':
-                ax.scatter(row[col_esg], row[col_fin], color='red', s=120, label='Nova Empresa')
-                ax.annotate("Nova Empresa", (row[col_esg], row[col_fin]), textcoords="offset points", xytext=(0,10), ha='center', color='red')
-            else:
-                ax.scatter(row[col_esg], row[col_fin], color='blue', alpha=0.6)
-
-        ax.set_xlabel("Score ESG")
-        ax.set_ylabel("Score Financeiro")
-        ax.set_title("Matriz ESG x Financeiro")
-        ax.set_xlim(0, 100)
-        ax.set_ylim(0, 100)
-        ax.grid(True)
-        st.pyplot(fig)
+        st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
