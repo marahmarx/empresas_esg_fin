@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-import plotly.express as px
+import matplotlib.pyplot as plt
 
 # Função para calcular o score ESG
 def calcular_score_esg(respostas):
