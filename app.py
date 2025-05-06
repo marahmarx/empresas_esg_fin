@@ -197,21 +197,6 @@ if st.session_state.get('calculado'):
 
 import plotly.graph_objects as go
 
-# Adiciona nomes das empresas à tabela comparativa
-
-df_comparacao['Nome'] = df_columns['Empresas']
-st.write(df_comparacao)
-# Cria o gráfico de dispersão
-fig = px.scatter(
-    df_comparacao,
-    x='Pontuação Financeira',
-    y='Pontuação ESG',
-    text='Nome',  # Nome da empresa no ponto
-    size_max=60,
-    template='plotly_white',
-    title="Matriz ESG x Financeiro"
-)
-
 # Faixas de corte
 corte_fin = 60
 corte_esg = 50
