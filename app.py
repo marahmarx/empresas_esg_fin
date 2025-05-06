@@ -201,6 +201,7 @@ def plotar_matriz_interativa(df):
 
 
 # Parte principal da interface
+
 if st.session_state.get('calculado'):
     st.header("📊 Comparativo: Matriz ESG x Financeiro")
 
@@ -214,22 +215,14 @@ if st.session_state.get('calculado'):
         df_empresas = calcular_scores(df_empresas)
 
         nova_empresa = {
-            "Empresa": nome_empresa or "Nova Empresa",
-            "Score ESG": st.session_state.get("score_esg", np.nan),
-            "Score Financeiro": st.session_state.get("score_financeiro", np.nan),
+            'Empresa': 'Nova Empresa',
+            'Score ESG': st.session_state.score_esg,
+            'Score Financeiro': st.session_state.score_financeiro
         }
+        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
 
-        if "df_empresas" not in st.session_state:
-            st.session_state.df_empresas = carregar_dados_empresas(url="seu_arquivo.csv")
-
-        df_comparado = st.session_state.df_empresas.copy()
-        df_comparado = calcular_scores(df_comparado)
-        df_comparado = df_comparado.append(nova_empresa, ignore_index=True)
-
-        plotar_matriz_interativa(df_comparado)
+        st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
 
     except Exception as e:
-        st.error(f"Ocorreu um erro ao tentar adicionar nova empresa: {e}")
-
-
-
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+ 
