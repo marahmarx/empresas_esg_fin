@@ -113,7 +113,7 @@ def carregar_dados_empresas(url):
         df.columns = df.columns.str.strip()  # Remover espaços nas colunas
         
         # Converter as colunas para numérico (forçando erros a se tornarem NaN)
-        for coluna in df.columns:
+        for coluna in df.columns[3:]:
             df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
         
         return df
@@ -171,7 +171,6 @@ def plotar_matriz_interativa(df):
         x='Score ESG',
         y='Score Financeiro',
         text='Empresa',  # texto sobre os pontos
-        color=df['Empresa'].apply(lambda x: 'Nova Empresa' if x == 'Nova Empresa' else 'Empresas Existentes'),
         color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
         title="Matriz ESG x Financeiro",
         height=600
