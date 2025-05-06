@@ -160,21 +160,39 @@ def plotar_matriz_interativa(df):
         st.error("Dados não carregados corretamente!")
         return
 
-    df['Cor'] = df['Empresa'].apply(lambda x: 'red' if x == 'Nova Empresa' else 'blue')
-
-    if 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
-        st.error("As colunas 'Score ESG' ou 'Score Financeiro' não foram encontradas nos dados.")
+    if 'Empresa' not in df.columns or 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
+        st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
         return
 
     fig = px.scatter(df, x='Score ESG', y='Score Financeiro',
-                     text='Empresa', color='Cor',
-                     color_discrete_map={'red': 'red', 'blue': 'blue'},
-                     size=[15 if x == 'Nova Empresa' else 8 for x in df['Empresa']],
+                     text='Empresa',
+                     size=[15 if nome == 'Nova Empresa' else 8 for nome in df['Empresa']],
+                     color_discrete_sequence=['blue'],
                      title="Matriz ESG x Financeiro")
 
     fig.update_traces(textposition='top center', showlegend=False)
-    fig.update_layout(xaxis=dict(range=[0, 100]), yaxis=dict(range=[0, 100]))
+
+    # Definindo faixas de cor (como shapes no layout)
+    shapes = [
+        # Quadrante vermelho (baixo ESG, baixo Financeiro)
+        dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
+        # Quadrante vermelho claro (bom ESG, baixo Financeiro)
+        dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 100, 100, 0.1)", line=dict(width=0)),
+        # Quadrante verde claro (bom Financeiro, baixo ESG)
+        dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(144, 238, 144, 0.1)", line=dict(width=0)),
+        # Quadrante verde (bom ESG e bom Financeiro)
+        dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(0, 255, 0, 0.1)", line=dict(width=0)),
+    ]
+
+    fig.update_layout(
+        shapes=shapes,
+        xaxis=dict(title="Score ESG", range=[0, 100]),
+        yaxis=dict(title="Score Financeiro", range=[0, 100]),
+        height=600
+    )
+
     return fig
+
 
 # Parte principal da interface
 if st.session_state.get('calculado'):
