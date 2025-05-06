@@ -1,5 +1,5 @@
 streamlit
-gsheets-streamlit
+gsheets_streamlit
 pandas
 numpy
 matplotlib>=3.7.0
