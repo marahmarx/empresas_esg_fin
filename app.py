@@ -95,20 +95,33 @@ if st.button("Calcular Resultado Final"):
     else:
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
-
-#Segunda parte 
+# Segunda parte 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
-# Função para carregar dados com cache
-@st.cache_data(ttl=600)
+# Função para carregar dados sem cache
 def carregar_dados_empresas(url):
-    df = pd.read_csv(url)
-    df.columns = df.columns.str.strip()
-    return df
+    try:
+        df = pd.read_csv(url)
+        df.columns = df.columns.str.strip()  # Remover espaços nas colunas
+        return df
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+        return pd.DataFrame()
 
 # Função para plotar com Plotly
 def plotar_matriz_interativa(df):
+    # Verifica se os dados estão corretos
+    if df.empty:
+        st.error("Dados não carregados corretamente!")
+        return
+
     df['Cor'] = df['Empresa'].apply(lambda x: 'red' if x == 'Nova Empresa' else 'blue')
+    
+    # Verifica se as colunas existem
+    if 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
+        st.error("As colunas 'Score ESG' ou 'Score Financeiro' não foram encontradas nos dados.")
+        return
+    
     fig = px.scatter(df, x='Score ESG', y='Score Financeiro',
                      text='Empresa', color='Cor',
                      color_discrete_map={'red': 'red', 'blue': 'blue'},
@@ -125,8 +138,14 @@ if st.session_state.get('calculado'):
 
     try:
         url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
+        
+        # Carrega os dados da planilha
         df_empresas = carregar_dados_empresas(url)
-
+        
+        # Exibe os dados carregados para diagnóstico
+        st.write("Dados carregados da planilha:", df_empresas)
+        
+        # Adiciona a nova empresa
         nova_empresa = {
             'Empresa': 'Nova Empresa',
             'Score ESG': st.session_state.score_esg,
@@ -134,6 +153,7 @@ if st.session_state.get('calculado'):
         }
         df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
 
+        # Exibe a matriz interativa
         st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
 
     except Exception as e:
