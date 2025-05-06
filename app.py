@@ -96,103 +96,68 @@ if st.button("Calcular Resultado Final"):
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
 
-# Segunda parte 
-# Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
-
-# Função para carregar dados sem cache
-def carregar_dados_empresas(url):
-    try:
-        df = pd.read_csv(url)
-        df.columns = df.columns.str.strip()  # Remover espaços nas colunas
-        return df
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
-        return pd.DataFrame()
-
-# Função para calcular os scores
 def calcular_scores(df):
-    # Cálculo do Score ESG (exemplo, adapte conforme sua necessidade)
+    # Lista de colunas utilizadas nos scores
+    colunas_esg = [
+        'Política Ambiental Formalizada (1 ou 0)',
+        'Relatórios de Sustentabilidade Auditados',
+        'Práticas Anticorrupção',
+        'Comitê ESG Existente',
+        'Transparência Financeira',
+        'Emissão de CO ( M ton)',
+        'Gestão de Resíduos (%)',
+        'Eficiência energética (%)',
+        'Diversidade e Inclusão Mulheres (%)',
+        'Diversidade e Inclusão Pessoas Negras (%)',
+        'Índice de Satisfação dos Funcionários (%)',
+        'Investimento em Programas Sociais (R$ M)',
+        'Risco Ambiental - existência de riscos (0 a 10)'
+    ]
+
+    colunas_financeiras = [
+        'Variação da ação YoY (%)',
+        'EBITDA  (R$ Bi)',
+        'EBITDA YoY (%)',
+        'Margem ebitda (%)',
+        'Posição no MERCO',
+        'Participação em Índices ESG (quantidade)',
+        'Lucro Líquido (R$ Bi)',
+        'Lucro Líquido YoY (%)',
+        'Margem Líquida (%)'
+    ]
+
+    # Converte todas as colunas relevantes para numéricas (float), forçando erros como NaN
+    for coluna in colunas_esg + colunas_financeiras:
+        df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
+
+    # Score ESG
     df['Score ESG'] = (
-        df['Política Ambiental Formalizada (1 ou 0)'] * 5 +
-        df['Relatórios de Sustentabilidade Auditados'] * 5 +
-        df['Práticas Anticorrupção'] * 5 +
-        df['Comitê ESG Existente'] * 5 +
+        df['Política Ambiental Formalizada (1 ou 0)'] * 10 +
+        df['Relatórios de Sustentabilidade Auditados'] * 10 +
+        df['Práticas Anticorrupção'] * 10 +
+        df['Comitê ESG Existente'] * 10 +
         df['Transparência Financeira'] * 5 +
-        df['Emissão de CO ( M ton)'] * 10 +  # A coluna "Emissão de CO" pode precisar ser invertida
-        df['Gestão de Resíduos (%)'] * 10 +
-        df['Eficiência energética (%)'] * 10 +
-        df['Diversidade e Inclusão Mulheres (%)'] * 12.5 +
-        df['Diversidade e Inclusão Pessoas Negras (%)'] * 12.5 +
+        (100 - df['Emissão de CO ( M ton)']) * 5 +  # Invertido: quanto menor, melhor
+        df['Gestão de Resíduos (%)'] * 5 +
+        df['Eficiência energética (%)'] * 5 +
+        df['Diversidade e Inclusão Mulheres (%)'] * 5 +
+        df['Diversidade e Inclusão Pessoas Negras (%)'] * 5 +
         df['Índice de Satisfação dos Funcionários (%)'] * 5 +
         df['Investimento em Programas Sociais (R$ M)'] * 10 +
-        df['Risco Ambiental - existência de riscos (0 a 10)'] * 5  # Valores negativos para risco
-    ) / 100  # Dividido por 100 para normalizar o valor
+        (10 - df['Risco Ambiental - existência de riscos (0 a 10)']) * 5  # Risco invertido
+    ) / 100
 
-    # Cálculo do Score Financeiro (exemplo, adapte conforme sua necessidade)
+    # Score Financeiro
     df['Score Financeiro'] = (
         df['Variação da ação YoY (%)'] * 5 +
         df['EBITDA  (R$ Bi)'] * 15 +
         df['EBITDA YoY (%)'] * 10 +
         df['Margem ebitda (%)'] * 10 +
         df['Posição no MERCO'] * 10 +
-        df['Participação em Índices ESG (quantidade)'] * 5 +
-        df['Lucro Líquido (R$ Bi)'] * 15 +
+        df['Participação em Índices ESG (quantidade)'] * 10 +
+        df['Lucro Líquido (R$ Bi)'] * 10 +
         df['Lucro Líquido YoY (%)'] * 10 +
         df['Margem Líquida (%)'] * 10
-    ) / 100  # Dividido por 100 para normalizar o valor
+    ) / 100
 
     return df
-
-# Função para plotar com Plotly
-def plotar_matriz_interativa(df):
-    # Verifica se os dados estão corretos
-    if df.empty:
-        st.error("Dados não carregados corretamente!")
-        return
-
-    df['Cor'] = df['Empresa'].apply(lambda x: 'red' if x == 'Nova Empresa' else 'blue')
-    
-    # Verifica se as colunas existem
-    if 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
-        st.error("As colunas 'Score ESG' ou 'Score Financeiro' não foram encontradas nos dados.")
-        return
-    
-    fig = px.scatter(df, x='Score ESG', y='Score Financeiro',
-                     text='Empresa', color='Cor',
-                     color_discrete_map={'red': 'red', 'blue': 'blue'},
-                     size=[15 if x == 'Nova Empresa' else 8 for x in df['Empresa']],
-                     title="Matriz ESG x Financeiro")
-
-    fig.update_traces(textposition='top center', showlegend=False)
-    fig.update_layout(xaxis=dict(range=[0, 100]), yaxis=dict(range=[0, 100]))
-    return fig
-
-# Parte principal da interface
-if st.session_state.get('calculado'):
-    st.header("📊 Comparativo: Matriz ESG x Financeiro")
-
-    try:
-        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
-        
-        # Carrega os dados da planilha
-        df_empresas = carregar_dados_empresas(url)
-        
-        # Exibe os dados carregados para diagnóstico
-        st.write("Dados carregados da planilha:", df_empresas)
-        
-        # Calcula os scores
-        df_empresas = calcular_scores(df_empresas)
-
-        # Adiciona a nova empresa com os scores calculados
-        nova_empresa = {
-            'Empresa': 'Nova Empresa',
-            'Score ESG': st.session_state.score_esg,
-            'Score Financeiro': st.session_state.score_financeiro
-        }
-        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
-
-        # Exibe a matriz interativa
-        st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
-
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
