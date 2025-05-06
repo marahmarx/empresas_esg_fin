@@ -95,6 +95,7 @@ if st.button("Calcular Resultado Final"):
     else:
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
+
 # Segunda parte 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
@@ -107,6 +108,13 @@ def carregar_dados_empresas(url):
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
         return pd.DataFrame()
+
+# Função para calcular os scores (exemplo fictício)
+def calcular_scores(df):
+    # Cálculos fictícios para o Score ESG e Score Financeiro (substitua com o cálculo real)
+    df['Score ESG'] = df['Alguma Coluna ESG'].apply(lambda x: (x / 100) * 50)  # Exemplo fictício de cálculo
+    df['Score Financeiro'] = df['Alguma Coluna Financeira'].apply(lambda x: (x / 100) * 50)  # Exemplo fictício
+    return df
 
 # Função para plotar com Plotly
 def plotar_matriz_interativa(df):
@@ -145,7 +153,10 @@ if st.session_state.get('calculado'):
         # Exibe os dados carregados para diagnóstico
         st.write("Dados carregados da planilha:", df_empresas)
         
-        # Adiciona a nova empresa
+        # Calcula os scores
+        df_empresas = calcular_scores(df_empresas)
+
+        # Adiciona a nova empresa com os scores calculados
         nova_empresa = {
             'Empresa': 'Nova Empresa',
             'Score ESG': st.session_state.score_esg,
@@ -158,3 +169,4 @@ if st.session_state.get('calculado'):
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
+
