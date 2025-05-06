@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
+from gsheets_streamlit import GSheetsConnection
 
 # Função para calcular o score ESG
 def calcular_score_esg(respostas):
@@ -47,43 +48,50 @@ indicadores_financeiros = [
     {"indicador": "Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
 ]
-st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
-# Perguntas iniciais
-st.header("Dados da Empresa")
-nome_empresa = st.text_input("Nome da empresa:")
-segmento_empresa = st.text_input("Segmento da empresa:")
-setor_empresa = st.selectbox("Setor da empresa:", ["Primário", "Secundário", "Terciário"])
+st.header("Etapa Unificada - Coleta de Dados")
 
-# Etapa Unificada - Coleta de Dados
+# Dados da empresa
+nome_empresa = st.text_input("Nome da Empresa")
+segmento = st.text_input("Segmento de Atuação")
+setor = st.selectbox("Setor Econômico", ["Primário", "Secundário", "Terciário"])
 
-st.header("Dados Básicos")
+# Indicadores ESG Binários (5)
 perguntas_binarias = [
-    "1. A empresa tem políticas de sustentabilidade?",
-    "2. A empresa possui certificação ambiental?",
-    "3. A empresa divulga suas metas de redução de emissão de CO2?",
-    "4. A empresa adota práticas de reciclagem?",
-    "5. A empresa investe em projetos sociais?"
+    "A empresa tem políticas de sustentabilidade?",
+    "A empresa possui certificação ambiental?",
+    "A empresa divulga suas metas de redução de emissão de CO2?",
+    "A empresa adota práticas de reciclagem?",
+    "A empresa investe em projetos sociais?"
 ]
 
-respostas_binarias = []
-for i, pergunta in enumerate(perguntas_binarias):
-    resposta = st.radio(pergunta, options=["Sim", "Não"], key=f"pergunta_binaria_{i}")
-    respostas_binarias.append(1 if resposta == "Sim" else 0)
+respostas_indicadores = {}
+for i, pergunta in enumerate(perguntas_binarias, start=1):
+    resposta = st.radio(f"Indicador_{i}: {pergunta}", options=["Sim", "Não"], key=f"bin_{i}")
+    respostas_indicadores[f"Indicador_{i}"] = 1 if resposta == "Sim" else 0
 
+# Indicadores ESG Quantitativos (8)
 st.header("Indicadores ESG Quantitativos")
-respostas_esg = []
-for indicador in indicadores_esg:
-    st.subheader(indicador["indicador"])
-    valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", min_value=0.0, format="%.2f", key=f"esg_{indicador['indicador']}")
-    respostas_esg.append((valor, indicador["peso"], indicador["faixas"]))
+for i, indicador in enumerate(indicadores_esg, start=6):  # Começa do 6
+    texto = indicador["indicador"]
+    valor = st.number_input(
+        f"Indicador_{i}: {texto}",
+        min_value=0.0,
+        format="%.2f",
+        key=f"esg_{i}"
+    )
+    respostas_indicadores[f"Indicador_{i}"] = valor
 
+# Indicadores Financeiros (11)
 st.header("Indicadores Financeiros")
-respostas_financeiros = []
-for indicador in indicadores_financeiros:
-    st.subheader(indicador["indicador"])
-    valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", format="%.2f", key=f"fin_{indicador['indicador']}")
-    respostas_financeiros.append((valor, indicador["peso"], indicador["faixas"]))
+for i, indicador in enumerate(indicadores_financeiros, start=14):  # Começa do 14
+    texto = indicador["indicador"]
+    valor = st.number_input(
+        f"Indicador_{i}: {texto}",
+        format="%.2f",
+        key=f"fin_{i}"
+    )
+    respostas_indicadores[f"Indicador_{i}"] = valor
 
 if st.button("Calcular Resultado Final"):
     score_financeiro = calcular_score_financeiro(respostas_financeiros)
@@ -110,32 +118,23 @@ nova_linha = {
     "Setor": setor_empresa,
 }
 
-# Adiciona os valores dos indicadores ESG
-for (valor, indicador) in zip(respostas_esg, indicadores_esg):
-    nova_linha[indicador["indicador"]] = valor
+# Adiciona os 24 indicadores nomeados
+nova_linha.update(respostas_indicadores)
 
-# Adiciona os valores dos indicadores financeiros
-for (valor, indicador) in zip(respostas_financeiros, indicadores_financeiros):
-    nova_linha[indicador["indicador"]] = valor
+# Conecta ao Google Sheets público (você já deve ter configurado esse nome de conexão no Streamlit Cloud)
+conn = st.connection("gsheets", type=GSheetsConnection)
 
-# Carregar o CSV existente (supondo que ele já tenha sido carregado previamente)
-csv_url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
-df = pd.read_csv(csv_url)
+# Lê os dados existentes na planilha
+existing_df = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv", ttl=0)
 
-# Usar pd.concat() para adicionar a nova linha ao DataFrame
-df = pd.concat([df, pd.DataFrame([nova_linha])], ignore_index=True)
+# Adiciona a nova linha
+new_df = pd.DataFrame([new_row])
+updated_df = pd.concat([existing_df, new_df], ignore_index=True)
 
-# Salvar o dataframe atualizado em um novo arquivo CSV
+# Escreve de volta para a planilha
+conn.update(worksheet="Página1", data=updated_df)
 
-import os
-
-output_csv = "resultado.csv"  # ou "dados/resultado.csv"
-
-dir_path = os.path.dirname(output_csv)
-if dir_path:
-    os.makedirs(dir_path, exist_ok=True)
-
-df.to_csv(output_csv, index=False)
+st.success("Dados da empresa adicionados com sucesso à planilha!")
 
 # Permitir o download do novo arquivo
 st.download_button(
