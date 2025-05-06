@@ -215,23 +215,24 @@ if st.session_state.get('calculado'):
 
         df_empresas = calcular_scores(df_empresas)
 
-nova_empresa = {
-    "Empresa": nome_empresa or "Nova Empresa",
-    "Score ESG": st.session_state.get("score_esg", np.nan),
-    "Score Financeiro": st.session_state.get("score_financeiro", np.nan),
-    # Adicione aqui os indicadores se quiser comparar no mesmo padrão
-}
+        nova_empresa = {
+            "Empresa": nome_empresa or "Nova Empresa",
+            "Score ESG": st.session_state.get("score_esg", np.nan),
+            "Score Financeiro": st.session_state.get("score_financeiro", np.nan),
+            # Adicione aqui os indicadores se quiser comparar no mesmo padrão
+        }
 
-if "df_empresas" not in st.session_state:
-    st.session_state.df_empresas = carregar_dados_empresas(url="seu_arquivo.csv")
+        if "df_empresas" not in st.session_state:
+            st.session_state.df_empresas = carregar_dados_empresas(url="seu_arquivo.csv")
 
-df_comparado = st.session_state.df_empresas.copy()
-df_comparado = calcular_scores(df_comparado)
-df_comparado = df_comparado.append(nova_empresa, ignore_index=True)
+        df_comparado = st.session_state.df_empresas.copy()
+        df_comparado = calcular_scores(df_comparado)
+        df_comparado = df_comparado.append(nova_empresa, ignore_index=True)
 
-plotar_matriz_interativa(df_comparado)
+        plotar_matriz_interativa(df_comparado)
 
-except Exception as e:
-    st.error(f"Ocorreu um erro ao tentar adicionar nova empresa: {e}")
+    except Exception as e:
+        st.error(f"Ocorreu um erro ao tentar adicionar nova empresa: {e}")
+
 
 
