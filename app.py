@@ -105,6 +105,11 @@ def carregar_dados_empresas(url):
     try:
         df = pd.read_csv(url)
         df.columns = df.columns.str.strip()  # Remover espaços nas colunas
+        
+        # Converter as colunas para numérico (forçando erros a se tornarem NaN)
+        for coluna in df.columns:
+            df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
+        
         return df
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
