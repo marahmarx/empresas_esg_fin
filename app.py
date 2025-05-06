@@ -120,11 +120,6 @@ def carregar_dados_empresas(url):
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
         return pd.DataFrame()
-        
-st.write("Pré-visualização dos dados:")
-st.dataframe(df.head())  # para verificar se a coluna 'Empresa' está lá corretamente
-df = df.rename(columns={"Nome da empresa": "Empresa"})  # antes do cálculo dos scores
-
 
 # Função para aplicar faixas de pontuação
 def aplicar_faixas(valor, faixas):
@@ -191,11 +186,13 @@ def plotar_matriz_interativa(df):
 
     # Faixas visuais
     shapes = [
-        dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
-        dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 100, 100, 0.1)", line=dict(width=0)),
-        dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(144, 238, 144, 0.1)", line=dict(width=0)),
-        dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(0, 255, 0, 0.1)", line=dict(width=0)),
-    ]
+    dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),           # Baixo ESG e Financeiro
+    dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),        # ESG alto, Financeiro baixo
+    dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),      # ESG baixo, Financeiro alto
+    dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),   # ESG alto e Financeiro alto
+]
+fig.update_layout(shapes=shapes)
+
 
     fig.update_layout(
         shapes=shapes,
@@ -218,6 +215,8 @@ if st.session_state.get('calculado'):
         df_empresas = carregar_dados_empresas(url)
 
         st.write("Dados carregados da planilha:", df_empresas)
+        st.write("Pré-visualização dos dados:")
+        st.dataframe(df.head())  # para verificar se a coluna 'Empresa' está lá corretamente
 
         df_empresas = calcular_scores(df_empresas)
 
