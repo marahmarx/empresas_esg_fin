@@ -1,6 +1,6 @@
-streamlit
-gsheets-streamlit
-pandas
-numpy
-matplotlib>=3.7.0
-plotly
+streamlit==1.32.2
+gsheets-streamlit==0.0.10
+pandas==2.2.2
+numpy==1.26.4
+matplotlib==3.7.1
+plotly==5.20.0
