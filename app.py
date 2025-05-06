@@ -97,7 +97,6 @@ if st.button("Calcular Resultado Final"):
         st.write("### Resultado final: Empresa Reprovada.")
 
 # Segunda parte 
-# Segunda parte 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
 # Função para carregar dados sem cache
@@ -197,4 +196,3 @@ if st.session_state.get('calculado'):
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
-
