@@ -215,21 +215,20 @@ if st.session_state.get('calculado'):
 
         df_empresas = calcular_scores(df_empresas)
 
-        # Adicionar a nova empresa apenas para exibição local
-    nova_linha = {
-        "Empresa": nome_empresa,
-        "Segmento": segmento_empresa,
-        "Setor": setor_empresa,
-        "Score ESG": st.session_state.score_esg,
-        "Score Financeiro": st.session_state.score_financeiro
-    }
-    df = pd.concat([df, pd.DataFrame([nova_linha])], ignore_index=True)
+nova_empresa = {
+    "Empresa": nome_empresa or "Nova Empresa",
+    "Score ESG": st.session_state.get("score_esg", np.nan),
+    "Score Financeiro": st.session_state.get("score_financeiro", np.nan),
+    # Adicione aqui os indicadores se quiser comparar no mesmo padrão
+}
 
-    df = calcular_scores(df)
-    plotar_matriz_interativa(df)
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
+if "df_empresas" not in st.session_state:
+    st.session_state.df_empresas = carregar_dados_empresas(url="seu_arquivo.csv")
 
+df_comparado = st.session_state.df_empresas.copy()
+df_comparado = calcular_scores(df_comparado)
+df_comparado = df_comparado.append(nova_empresa, ignore_index=True)
 
+plotar_matriz_interativa(df_comparado)
 
 
