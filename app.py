@@ -170,8 +170,9 @@ def plotar_matriz_interativa(df):
         df,
         x='Score ESG',
         y='Score Financeiro',
-        text='Empresa',  
-        color_discrete_map={'red' if 'Nova Empresa' else 'blue'},
+        text='Empresa',
+        color='Tipo',
+        color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'}
         title="Matriz ESG x Financeiro",
         height=600
     )
