@@ -170,8 +170,8 @@ def plotar_matriz_interativa(df):
         df,
         x='Score ESG',
         y='Score Financeiro',
-        text='Empresa',  # texto sobre os pontos
-        color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
+        text='Empresa',  
+        color_discrete_map={'red' if 'Nova Empresa' else 'blue'},
         title="Matriz ESG x Financeiro",
         height=600
     )
@@ -198,7 +198,7 @@ def plotar_matriz_interativa(df):
 
     st.plotly_chart(fig, use_container_width=True)
 
-
+#Terceira Parte
 # Parte principal da interface
 
 if st.session_state.get('calculado'):
