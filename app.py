@@ -1,5 +1,4 @@
 import streamlit as st
-from gsheets-streamlit import GSheetsConnection
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -105,12 +104,6 @@ if st.button("Calcular Resultado Final"):
 
 # Segunda parte
 
-# Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
-from gsheets_streamlit import GSheetsConnection
-
-# Conexão com a planilha pública via gsheets-streamlit
-conn = st.connection("gsheets", type=GSheetsConnection)
-
 # Cria o novo registro com as 3 primeiras colunas textuais e os dados ESG + Financeiro
 nova_linha = {
     "Empresa": nome_empresa,
@@ -126,12 +119,20 @@ for (valor, indicador) in zip(respostas_esg, indicadores_esg):
 for (valor, indicador) in zip(respostas_financeiros, indicadores_financeiros):
     nova_linha[indicador["indicador"]] = valor[0]
 
-# Envia a nova linha para o final da planilha
-try:
-    conn.insert(row=nova_linha, worksheet="Página1")  # substitua "Página1" se o nome for diferente
-    st.success("✅ Dados salvos na planilha com sucesso.")
-except Exception as e:
-    st.error(f"Erro ao salvar na planilha: {e}")
+# Salvar o dataframe atualizado em um novo arquivo CSV
+output_csv = "/mnt/data/empresas_atualizado.csv"
+df.to_csv(output_csv, index=False)
+
+# Permitir o download do novo arquivo
+st.download_button(
+    label="Baixar CSV Atualizado",
+    data=open(output_csv, "rb").read(),
+    file_name="empresas_atualizado.csv",
+    mime="text/csv"
+)
+
+# Mostrar os dados atualizados na tela
+st.write(df)
 
 # Função para carregar dados sem cache
 def carregar_dados_empresas(url):
