@@ -101,7 +101,6 @@ if st.button("Calcular Resultado Final"):
 
 # Função para carregar dados com cache
 @st.cache_data(ttl=600)
-url = https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv
 def carregar_dados_empresas(url):
     df = pd.read_csv(url)
     df.columns = df.columns.str.strip()
