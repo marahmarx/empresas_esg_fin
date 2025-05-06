@@ -97,6 +97,7 @@ if st.button("Calcular Resultado Final"):
         st.write("### Resultado final: Empresa Reprovada.")
 
 # Segunda parte 
+# Segunda parte 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
 # Função para carregar dados sem cache
@@ -166,3 +167,34 @@ def plotar_matriz_interativa(df):
     fig.update_traces(textposition='top center', showlegend=False)
     fig.update_layout(xaxis=dict(range=[0, 100]), yaxis=dict(range=[0, 100]))
     return fig
+
+# Parte principal da interface
+if st.session_state.get('calculado'):
+    st.header("📊 Comparativo: Matriz ESG x Financeiro")
+
+    try:
+        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
+        
+        # Carrega os dados da planilha
+        df_empresas = carregar_dados_empresas(url)
+        
+        # Exibe os dados carregados para diagnóstico
+        st.write("Dados carregados da planilha:", df_empresas)
+        
+        # Calcula os scores
+        df_empresas = calcular_scores(df_empresas)
+
+        # Adiciona a nova empresa com os scores calculados
+        nova_empresa = {
+            'Empresa': 'Nova Empresa',
+            'Score ESG': st.session_state.score_esg,
+            'Score Financeiro': st.session_state.score_financeiro
+        }
+        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
+
+        # Exibe a matriz interativa
+        st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+
