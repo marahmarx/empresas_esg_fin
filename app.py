@@ -160,8 +160,8 @@ def plotar_matriz_interativa(df):
         st.error("Dados não carregados corretamente!")
         return
 
-    if 'Empresas' not in df.columns or 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
-        st.error("As colunas necessárias ('Empresas', 'Score ESG', 'Score Financeiro') não estão presentes.")
+    if 'Empresa' not in df.columns or 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
+        st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
         return
 
     fig = px.scatter(df, x='Score ESG', y='Score Financeiro',
@@ -208,7 +208,7 @@ if st.session_state.get('calculado'):
         df_empresas = calcular_scores(df_empresas)
 
         nova_empresa = {
-            'Empresas': 'Nova Empresa',
+            'Empresa': 'Nova Empresa',
             'Score ESG': st.session_state.score_esg,
             'Score Financeiro': st.session_state.score_financeiro
         }
