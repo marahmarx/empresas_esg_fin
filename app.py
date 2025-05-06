@@ -120,6 +120,11 @@ def carregar_dados_empresas(url):
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
         return pd.DataFrame()
+        
+st.write("Pré-visualização dos dados:")
+st.dataframe(df.head())  # para verificar se a coluna 'Empresa' está lá corretamente
+df = df.rename(columns={"Nome da empresa": "Empresa"})  # antes do cálculo dos scores
+
 
 # Função para aplicar faixas de pontuação
 def aplicar_faixas(valor, faixas):
@@ -155,6 +160,8 @@ def calcular_scores(df):
     return df
         
 # Função para plotar com Plotly
+import plotly.graph_objects as go
+
 def plotar_matriz_interativa(df):
     if df.empty:
         st.error("Dados não carregados corretamente!")
@@ -164,23 +171,29 @@ def plotar_matriz_interativa(df):
         st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
         return
 
-    fig = px.scatter(df, x='Score ESG', y='Score Financeiro',
-                     text='Empresa',
-                     size=[15 if nome == 'Nova Empresa' else 8 for nome in df['Empresa']],
-                     color_discrete_sequence=['red' if nome == 'Nova Empresa' else 'blue' for nome in df['Empresa']],
-                     title="Matriz ESG x Financeiro")
+    fig = px.scatter(
+        df,
+        x='Score ESG',
+        y='Score Financeiro',
+        text='Empresa',  # texto sobre os pontos
+        color=df['Empresa'].apply(lambda x: 'Nova Empresa' if x == 'Nova Empresa' else 'Empresas Existentes'),
+        color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
+        title="Matriz ESG x Financeiro",
+        height=600
+    )
 
-    fig.update_traces(textposition='top center', showlegend=False)
+    # Mostrar os nomes das empresas sobre os pontos
+    fig.update_traces(
+        textposition='top center',
+        mode='markers+text',  # ESSENCIAL para mostrar os nomes
+        marker=dict(size=12)
+    )
 
-    # Definindo faixas de cor (como shapes no layout)
+    # Faixas visuais
     shapes = [
-        # Quadrante vermelho (baixo ESG, baixo Financeiro)
         dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
-        # Quadrante vermelho claro (bom ESG, baixo Financeiro)
         dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 100, 100, 0.1)", line=dict(width=0)),
-        # Quadrante verde claro (bom Financeiro, baixo ESG)
         dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(144, 238, 144, 0.1)", line=dict(width=0)),
-        # Quadrante verde (bom ESG e bom Financeiro)
         dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(0, 255, 0, 0.1)", line=dict(width=0)),
     ]
 
@@ -188,10 +201,11 @@ def plotar_matriz_interativa(df):
         shapes=shapes,
         xaxis=dict(title="Score ESG", range=[0, 100]),
         yaxis=dict(title="Score Financeiro", range=[0, 100]),
-        height=600
+        showlegend=False
     )
 
-    return fig
+    st.plotly_chart(fig, use_container_width=True)
+
 
 
 # Parte principal da interface
