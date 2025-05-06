@@ -231,4 +231,7 @@ df_comparado = df_comparado.append(nova_empresa, ignore_index=True)
 
 plotar_matriz_interativa(df_comparado)
 
+except Exception as e:
+    st.error(f"Ocorreu um erro ao tentar adicionar nova empresa: {e}")
+
 
