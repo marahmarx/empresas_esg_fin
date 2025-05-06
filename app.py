@@ -146,16 +146,16 @@ def calcular_scores(df):
 
     # Score ESG
     df['Score ESG'] = (
-        df['Política Ambiental Formalizada (1 ou 0)'] * 10 +
-        df['Relatórios de Sustentabilidade Auditados'] * 10 +
-        df['Práticas Anticorrupção'] * 10 +
-        df['Comitê ESG Existente'] * 10 +
-        df['Transparência Financeira'] * 5 +
-        (100 - df['Emissão de CO ( M ton)']) * 5 +  # Invertido: quanto menor, melhor
-        df['Gestão de Resíduos (%)'] * 5 +
-        df['Eficiência energética (%)'] * 5 +
-        df['Diversidade e Inclusão Mulheres (%)'] * 5 +
-        df['Diversidade e Inclusão Pessoas Negras (%)'] * 5 +
+        df['Política Ambiental Formalizada (1 ou 0)'] * 1 +
+        df['Relatórios de Sustentabilidade Auditados'] * 1 +
+        df['Práticas Anticorrupção'] * 1 +
+        df['Comitê ESG Existente'] * 1 +
+        df['Transparência Financeira'] * 1 +
+        (100 - df['Emissão de CO ( M ton)']) * 15 +  # Invertido: quanto menor, melhor
+        df['Gestão de Resíduos (%)'] * 15 +
+        df['Eficiência energética (%)'] * 15 +
+        df['Diversidade e Inclusão Mulheres (%)'] * 15 +
+        df['Diversidade e Inclusão Pessoas Negras (%)'] * 15 +
         df['Índice de Satisfação dos Funcionários (%)'] * 5 +
         df['Investimento em Programas Sociais (R$ M)'] * 10 +
         (10 - df['Risco Ambiental - existência de riscos (0 a 10)']) * 5  # Risco invertido
@@ -163,15 +163,15 @@ def calcular_scores(df):
 
     # Score Financeiro
     df['Score Financeiro'] = (
-        df['Variação da ação YoY (%)'] * 5 +
+        df['Variação da ação YoY (%)'] * 15 +
         df['EBITDA  (R$ Bi)'] * 15 +
-        df['EBITDA YoY (%)'] * 10 +
-        df['Margem ebitda (%)'] * 10 +
+        df['EBITDA YoY (%)'] * 12.5 +
+        df['Margem ebitda (%)'] * 5 +
         df['Posição no MERCO'] * 10 +
         df['Participação em Índices ESG (quantidade)'] * 10 +
-        df['Lucro Líquido (R$ Bi)'] * 10 +
-        df['Lucro Líquido YoY (%)'] * 10 +
-        df['Margem Líquida (%)'] * 10
+        df['Lucro Líquido (R$ Bi)'] * 15 +
+        df['Lucro Líquido YoY (%)'] * 12.5 +
+        df['Margem Líquida (%)'] * 5
     ) / 100
 
     return df
