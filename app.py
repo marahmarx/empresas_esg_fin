@@ -1,3 +1,5 @@
+código correto:
+
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -105,6 +107,32 @@ if st.button("Calcular Resultado Final"):
 # Segunda parte
 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
+from gsheets_streamlit import GSheetsConnection
+
+# Conexão com a planilha pública via gsheets-streamlit
+conn = st.connection("gsheets", type=GSheetsConnection)
+
+# Cria o novo registro com as 3 primeiras colunas textuais e os dados ESG + Financeiro
+nova_linha = {
+    "Empresa": nome_empresa,
+    "Segmento": segmento_empresa,
+    "Setor": setor_empresa,
+}
+
+# Adiciona os valores dos indicadores ESG
+for (valor, indicador) in zip(respostas_esg, indicadores_esg):
+    nova_linha[indicador["indicador"]] = valor[0]
+
+# Adiciona os valores dos indicadores financeiros
+for (valor, indicador) in zip(respostas_financeiros, indicadores_financeiros):
+    nova_linha[indicador["indicador"]] = valor[0]
+
+# Envia a nova linha para o final da planilha
+try:
+    conn.insert(row=nova_linha, worksheet="Página1")  # substitua "Página1" se o nome for diferente
+    st.success("✅ Dados salvos na planilha com sucesso.")
+except Exception as e:
+    st.error(f"Erro ao salvar na planilha: {e}")
 
 # Função para carregar dados sem cache
 def carregar_dados_empresas(url):
