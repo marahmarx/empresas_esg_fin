@@ -191,13 +191,10 @@ def plotar_matriz_interativa(df):
     dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),      # ESG baixo, Financeiro alto
     dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),   # ESG alto e Financeiro alto
 ]
-fig.update_layout(shapes=shapes)
-
-
-    fig.update_layout(
+fig.update_layout(
         shapes=shapes,
-        xaxis=dict(title="Score ESG", range=[0, 100]),
-        yaxis=dict(title="Score Financeiro", range=[0, 100]),
+        xaxis=dict(range=[0, 100], title='Score ESG'),
+        yaxis=dict(range=[0, 100], title='Score Financeiro'),
         showlegend=False
     )
 
@@ -220,15 +217,18 @@ if st.session_state.get('calculado'):
 
         df_empresas = calcular_scores(df_empresas)
 
-        nova_empresa = {
-            'Empresa': 'Nova Empresa',
-            'Score ESG': st.session_state.score_esg,
-            'Score Financeiro': st.session_state.score_financeiro
-        }
-        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
+        # Adicionar a nova empresa apenas para exibição local
+    nova_linha = {
+        "Empresa": nome_empresa,
+        "Segmento": segmento_empresa,
+        "Setor": setor_empresa,
+        "Score ESG": st.session_state.score_esg,
+        "Score Financeiro": st.session_state.score_financeiro
+    }
+    df = pd.concat([df, pd.DataFrame([nova_linha])], ignore_index=True)
 
-        st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
-
+    df = calcular_scores(df)
+    plotar_matriz_interativa(df)
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
 
