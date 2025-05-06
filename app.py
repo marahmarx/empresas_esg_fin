@@ -166,14 +166,16 @@ def plotar_matriz_interativa(df):
         st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
         return
         
-    fig = px.bar(df, 
-                 x='Empresa',
-                 y='Lucro', 
-                 color='Tipo', 
-                 color_discrete_map={'Nova': 'red', 'Existente': 'blue'},
-                 title="Matriz ESG x Financeiro",
-                 height=600
-    )
+    fig = px.scatter(
+            df,
+            x='Score ESG',
+            y='Score Financeiro',
+            text='Empresa',
+            color='Tipo',
+            color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
+            title="Matriz ESG x Financeiro",
+            height=600
+        )
 
     # Mostrar os nomes das empresas sobre os pontos
     fig.update_traces(
