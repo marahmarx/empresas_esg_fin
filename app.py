@@ -167,7 +167,7 @@ def plotar_matriz_interativa(df):
     fig = px.scatter(df, x='Score ESG', y='Score Financeiro',
                      text='Empresa',
                      size=[15 if nome == 'Nova Empresa' else 8 for nome in df['Empresa']],
-                     color_discrete_sequence=['blue'],
+                     color_discrete_sequence=['red' if nome == 'Nova Empresa' else 'blue' for nome in df['Empresa']],
                      title="Matriz ESG x Financeiro")
 
     fig.update_traces(textposition='top center', showlegend=False)
