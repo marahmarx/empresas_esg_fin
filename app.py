@@ -97,137 +97,68 @@ if st.button("Calcular Resultado Final"):
         st.write("### Resultado final: Empresa Reprovada.")
 
 # Segunda parte 
-# Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
-# Função para carregar dados sem cache
-def carregar_dados_empresas(url):
-    try:
-        df = pd.read_csv(url)
-        df.columns = df.columns.str.strip()  # Remover espaços nas colunas
-        return df
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
-        return pd.DataFrame()
+# Carregar os dados do Google Sheets
+url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSOYq6bgoWRTHiMvLRt8z5KnnhDNhi0uYIkfqUztEoP9HIMdvQ_fEuG8-4n67_rZXKMcC3pU9CZLfAb/pub?gid=0&single=true&output=csv"
+df = pd.read_csv(url)
 
-# Função para calcular os scores
-def calcular_scores(df):
-    # Lista de colunas utilizadas nos scores
-    colunas_esg = [
-        'Política Ambiental Formalizada (1 ou 0)',
-        'Relatórios de Sustentabilidade Auditados',
-        'Práticas Anticorrupção',
-        'Comitê ESG Existente',
-        'Transparência Financeira',
-        'Emissão de CO ( M ton)',
-        'Gestão de Resíduos (%)',
-        'Eficiência energética (%)',
-        'Diversidade e Inclusão Mulheres (%)',
-        'Diversidade e Inclusão Pessoas Negras (%)',
-        'Índice de Satisfação dos Funcionários (%)',
-        'Investimento em Programas Sociais (R$ M)',
-        'Risco Ambiental - existência de riscos (0 a 10)'
-    ]
+# Função para atribuir nota com base nas faixas
+def atribuir_nota(valor, faixas):
+    for faixa in faixas:
+        if faixa[0] <= valor <= faixa[1]:
+            return faixa[2]
+    return 0  # Nota zero caso não se encaixe em nenhuma faixa
 
-    colunas_financeiras = [
-        'Variação da ação YoY (%)',
-        'EBITDA  (R$ Bi)',
-        'EBITDA YoY (%)',
-        'Margem ebitda (%)',
-        'Posição no MERCO',
-        'Participação em Índices ESG (quantidade)',
-        'Lucro Líquido (R$ Bi)',
-        'Lucro Líquido YoY (%)',
-        'Margem Líquida (%)'
-    ]
+# Indicadores ESG
+indicadores_esg = [
+    {"indicador": "Emissão de CO2 (M ton)", "peso": 15, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
+    {"indicador": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
+    {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
+    {"indicador": "Risco Ambiental", "peso": 5, "faixas": [(0, 1, 100), (2, 3, 70), (4, 6, 50), (7, 8, 30), (9, 10, 10)]},
+]
 
-    # Converte todas as colunas relevantes para numéricas (float), forçando erros como NaN
-    for coluna in colunas_esg + colunas_financeiras:
-        df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
+# Indicadores Financeiros
+indicadores_financeiros = [
+    {"indicador": "Variação da ação YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
+    {"indicador": "EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Margem EBITDA (%)", "peso": 5.5 , "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
+    {"indicador": "Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
+    {"indicador": "Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
+    {"indicador": "Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+]
 
-    # Score ESG
-    df['Score ESG'] = (
-        df['Política Ambiental Formalizada (1 ou 0)'] * 1 +
-        df['Relatórios de Sustentabilidade Auditados'] * 1 +
-        df['Práticas Anticorrupção'] * 1 +
-        df['Comitê ESG Existente'] * 1 +
-        df['Transparência Financeira'] * 1 +
-        (100 - df['Emissão de CO ( M ton)']) * 15 +  # Invertido: quanto menor, melhor
-        df['Gestão de Resíduos (%)'] * 15 +
-        df['Eficiência energética (%)'] * 15 +
-        df['Diversidade e Inclusão Mulheres (%)'] * 15 +
-        df['Diversidade e Inclusão Pessoas Negras (%)'] * 15 +
-        df['Índice de Satisfação dos Funcionários (%)'] * 5 +
-        df['Investimento em Programas Sociais (R$ M)'] * 10 +
-        (10 - df['Risco Ambiental - existência de riscos (0 a 10)']) * 5  # Risco invertido
-    ) / 100
+# Calcular notas ESG e Financeiras
+def calcular_score(linha, indicadores):
+    score = 0
+    for item in indicadores:
+        valor = linha[item["indicador"]]
+        nota = atribuir_nota(valor, item["faixas"])
+        score += nota * item["peso"]
+    return score / sum(item["peso"] for item in indicadores)
 
-    # Score Financeiro
-    df['Score Financeiro'] = (
-        df['Variação da ação YoY (%)'] * 15 +
-        df['EBITDA  (R$ Bi)'] * 15 +
-        df['EBITDA YoY (%)'] * 12.5 +
-        df['Margem ebitda (%)'] * 5 +
-        df['Posição no MERCO'] * 10 +
-        df['Participação em Índices ESG (quantidade)'] * 10 +
-        df['Lucro Líquido (R$ Bi)'] * 15 +
-        df['Lucro Líquido YoY (%)'] * 12.5 +
-        df['Margem Líquida (%)'] * 5
-    ) / 100
+df["score_esg"] = df.apply(lambda row: calcular_score(row, indicadores_esg), axis=1)
+df["score_financeiro"] = df.apply(lambda row: calcular_score(row, indicadores_financeiros), axis=1)
 
-    return df
+# Plotar gráfico
+plt.figure(figsize=(12, 8))
+plt.scatter(df["score_financeiro"], df["score_esg"], s=100, c="skyblue", edgecolors='black')
 
+# Adicionando nomes das empresas
+for i, row in df.iterrows():
+    plt.text(row["score_financeiro"] + 0.5, row["score_esg"] + 0.5, row["Empresas"], fontsize=9)
 
-# Função para plotar com Plotly
-def plotar_matriz_interativa(df):
-    # Verifica se os dados estão corretos
-    if df.empty:
-        st.error("Dados não carregados corretamente!")
-        return
+plt.xlabel("Score Financeiro")
+plt.ylabel("Score ESG")
+plt.title("Comparação ESG vs Financeiro das Empresas")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
 
-    df['Cor'] = df['Empresa'].apply(lambda x: 'red' if x == 'Nova Empresa' else 'blue')
-    
-    # Verifica se as colunas existem
-    if 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
-        st.error("As colunas 'Score ESG' ou 'Score Financeiro' não foram encontradas nos dados.")
-        return
-    
-    fig = px.scatter(df, x='Score ESG', y='Score Financeiro',
-                     text='Empresa', color='Cor',
-                     color_discrete_map={'red': 'red', 'blue': 'blue'},
-                     size=[15 if x == 'Nova Empresa' else 8 for x in df['Empresa']],
-                     title="Matriz ESG x Financeiro")
-
-    fig.update_traces(textposition='top center', showlegend=False)
-    fig.update_layout(xaxis=dict(range=[0, 100]), yaxis=dict(range=[0, 100]))
-    return fig
-
-# Parte principal da interface
-if st.session_state.get('calculado'):
-    st.header("📊 Comparativo: Matriz ESG x Financeiro")
-
-    try:
-        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
-        
-        # Carrega os dados da planilha
-        df_empresas = carregar_dados_empresas(url)
-        
-        # Exibe os dados carregados para diagnóstico
-        st.write("Dados carregados da planilha:", df_empresas)
-        
-        # Calcula os scores
-        df_empresas = calcular_scores(df_empresas)
-
-        # Adiciona a nova empresa com os scores calculados
-        nova_empresa = {
-            'Empresa': 'Nova Empresa',
-            'Score ESG': st.session_state.score_esg,
-            'Score Financeiro': st.session_state.score_financeiro
-        }
-        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
-
-        # Exibe a matriz interativa
-        st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
-
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
 
