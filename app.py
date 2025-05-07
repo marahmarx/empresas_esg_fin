@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
+import gspread from oauth2client.service_account 
+import ServiceAccountCredentials
 
 # Função para calcular o score ESG
 def calcular_score_esg(respostas):
@@ -23,6 +25,24 @@ def calcular_score_financeiro(respostas):
                 total_score += faixa[2] * peso / 100
                 break
     return total_score
+    
+#Enviar para a planilha
+def enviar_para_google_sheets(dados_empresa, sheet_url, aba_nome="Página1"):
+    try:
+        # Autenticar com as credenciais do secret
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        credentials = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
+        client = gspread.authorize(credentials)
+
+        # Abrir a planilha e a aba desejada
+        planilha = client.open_by_url(sheet_url)
+        aba = planilha.worksheet(aba_nome)
+
+        # Adicionar nova linha
+        aba.append_row(dados_empresa, value_input_option="USER_ENTERED")
+        st.success("Empresa adicionada ao Google Sheets com sucesso!")
+    except Exception as e:
+        st.error(f"Erro ao salvar no Google Sheets: {e}")
 
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 indicadores_esg = [
@@ -104,22 +124,23 @@ if st.button("Calcular Resultado Final"):
 
 # Segunda parte
 
-# Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
+# Dados a serem enviados ao Google Sheets
+dados_empresa = [
+    nome_empresa,
+    segmento_empresa,
+    setor_empresa,
+    *respostas_binarias,
+    *[r[0] for r in respostas_esg],
+    *[r[0] for r in respostas_financeiros],
+    score_esg,
+    score_financeiro,
+    status
+]
 
-# Função para carregar dados sem cache
-def carregar_dados_empresas(url):
-    try:
-        df = pd.read_csv(url)
-        df.columns = df.columns.str.strip()  # Remover espaços nas colunas
-        
-        # Converter as colunas para numérico (forçando erros a se tornarem NaN)
-        for coluna in df.columns[3:]:
-            df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
-        
-        return df
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
-        return pd.DataFrame()
+# Chamar função com o link da planilha
+url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv" 
+enviar_para_google_sheets(dados_empresa, url)
+
 
 # Função para aplicar faixas de pontuação
 def aplicar_faixas(valor, faixas):
@@ -205,7 +226,6 @@ if st.session_state.get('calculado'):
     st.header("📊 Comparativo: Matriz ESG x Financeiro")
 
     try:
-        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
 
         df_empresas = carregar_dados_empresas(url)
 
