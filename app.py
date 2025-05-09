@@ -3,8 +3,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
-import gspread from oauth2client.service_account 
-import ServiceAccountCredentials
+from oauth2client.service_account import ServiceAccountCredentials
+import gspread
+
 
 # Função para calcular o score ESG
 def calcular_score_esg(respostas):
