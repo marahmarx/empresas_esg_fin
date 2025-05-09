@@ -189,18 +189,20 @@ def plotar_matriz_interativa(df):
         return
 
     # Define categoria para cor
-df['Categoria'] = df['Empresa'].apply(lambda x: 'Nova Empresa' if x == 'Nova Empresa' else 'Empresas Existentes')
+    df['Categoria'] = df['Empresa'].apply(lambda x: 'Nova Empresa' if x == 'Nova Empresa' else 'Empresas Existentes')
 
     fig = px.scatter(
-    df,
-    x='Score ESG',
-    y='Score Financeiro',
-    text='Empresa',
-    color='Categoria',
-    color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
-    title="Matriz ESG x Financeiro",
-    height=600
-)
+        df,
+        x='Score ESG',
+        y='Score Financeiro',
+        text='Empresa',
+        color='Categoria',
+        color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
+        title="Matriz ESG x Financeiro",
+        height=600
+    )
+
+    st.plotly_chart(fig)
 
 
     # Mostrar os nomes das empresas sobre os pontos
