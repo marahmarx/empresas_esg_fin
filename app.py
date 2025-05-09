@@ -187,15 +187,20 @@ def plotar_matriz_interativa(df):
         st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
         return
 
+    # Define categoria para cor
+df['Categoria'] = df['Empresa'].apply(lambda x: 'Nova Empresa' if x == 'Nova Empresa' else 'Empresas Existentes')
+
     fig = px.scatter(
-        df,
-        x='Score ESG',
-        y='Score Financeiro',
-        text='Empresa',
-        color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
-        title="Matriz ESG x Financeiro",
-        height=600
-    )
+    df,
+    x='Score ESG',
+    y='Score Financeiro',
+    text='Empresa',
+    color='Categoria',
+    color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
+    title="Matriz ESG x Financeiro",
+    height=600
+)
+
 
     # Mostrar os nomes das empresas sobre os pontos
     fig.update_traces(
@@ -226,13 +231,13 @@ if st.session_state.get('calculado'):
     st.header("📊 Comparativo: Matriz ESG x Financeiro")
 
     try:
-
         df_empresas = carregar_dados_empresas(url)
 
         st.write("Dados carregados da planilha:", df_empresas)
 
         df_empresas = calcular_scores(df_empresas)
 
+        # Adiciona a empresa recém-calculada (do usuário)
         nova_empresa = {
             'Empresa': 'Nova Empresa',
             'Score ESG': st.session_state.score_esg,
@@ -240,7 +245,8 @@ if st.session_state.get('calculado'):
         }
         df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
 
-        st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
+        # Apenas chama a função que já faz o st.plotly_chart
+        plotar_matriz_interativa(df_empresas)
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
