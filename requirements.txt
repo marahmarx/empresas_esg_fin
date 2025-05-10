@@ -5,7 +5,7 @@ gspread
 google-auth
 pandas
 matplotlib
-plotly
+
 
 
 
