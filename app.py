@@ -8,7 +8,12 @@ from gsheets_streamlit import GSheetsConnection
 import gspread
 
 conn = st.connection("gsheets", type=GSheetsConnection)
-worksheet = conn.read(spreadsheet="URL ou ID", worksheet="Página 1")
+worksheet = conn.read(
+    spreadsheet="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv",
+    worksheet="Página1"
+)
+
+
 
 # Função para calcular o score ESG
 def calcular_score_esg(respostas):
@@ -120,9 +125,14 @@ if st.button("Calcular Resultado Final"):
     st.metric("Score Financeiro", score_financeiro)
 
     if score_financeiro > 70 and score_esg > 70:
-        st.success("✅ Empresa aprovada na triagem financeira.")
-        st.balloons()
-        st.write("### Resultado final: Empresa Aprovada 🎉")
+    st.success("✅ Empresa aprovada na triagem financeira.")
+    st.balloons()
+    st.write("### Resultado final: Empresa Aprovada 🎉")
+
+    # Agora envia ao Sheets
+    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv" 
+    enviar_para_google_sheets(dados_empresa, url)
+
     else:
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
@@ -135,14 +145,10 @@ dados_empresa = [
     segmento_empresa,
     setor_empresa,
     *respostas_binarias,
-    *[r[0] for r in respostas_esg],
-    *[r[0] for r in respostas_financeiros],
+    *[i["indicador"] for i in indicadores_esg],
+    *[i["indicador"] for i in indicadores_financeiros],
 ]
-
-# Chamar função com o link da planilha
-url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv" 
-enviar_para_google_sheets(dados_empresa, url)
-
+df.columns = colunas[:len(df.columns)]
 
 # Função para aplicar faixas de pontuação
 def aplicar_faixas(valor, faixas):
