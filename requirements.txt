@@ -1,10 +1,10 @@
 streamlit==1.32.2
-rich==13.7.1
 gsheets-streamlit
+gspread
+google-auth
 pandas
 matplotlib
 plotly==5.20.0
-gspread
-google-auth
+rich==13.7.1
 
 
