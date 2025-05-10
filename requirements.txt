@@ -1,6 +1,5 @@
 rich==13.7.1
 streamlit==1.32.2
-gsheets-streamlit
 gspread
 google-auth
 pandas
