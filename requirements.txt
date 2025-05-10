@@ -6,5 +6,5 @@ plotly==5.20.0
 gspread
 google-auth
 rich<14
-
+gsheets_streamlit
 
