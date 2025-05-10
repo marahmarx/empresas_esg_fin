@@ -7,13 +7,12 @@ from google.oauth2.service_account import Credentials
 from gsheets_streamlit import GSheetsConnection
 import gspread
 
+# Conexão com o Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
 worksheet = conn.read(
     spreadsheet="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv",
     worksheet="Página1"
 )
-
-
 
 # Função para calcular o score ESG
 def calcular_score_esg(respostas):
@@ -35,7 +34,7 @@ def calcular_score_financeiro(respostas):
                 break
     return total_score
 
-# Enviar para a planilha
+# Enviar para o Google Sheets
 def enviar_para_google_sheets(dados_empresa, sheet_url, aba_nome="Página1"):
     try:
         scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -108,29 +107,35 @@ for indicador in indicadores_esg:
     valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", min_value=0.0, format="%.2f", key=f"esg_{indicador['indicador']}")
     respostas_esg.append((valor, indicador["peso"], indicador["faixas"]))
 
+# Cálculo do score ESG
+score_esg = calcular_score_esg(respostas_esg)
+
 st.header("Indicadores Financeiros")
-respostas_financeiros = []
+respostas_financeiras = []
 for indicador in indicadores_financeiros:
     st.subheader(indicador["indicador"])
-    valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", format="%.2f", key=f"fin_{indicador['indicador']}")
-    respostas_financeiros.append((valor, indicador["peso"], indicador["faixas"]))
+    valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", min_value=0.0, format="%.2f", key=f"fin_{indicador['indicador']}")
+    respostas_financeiras.append((valor, indicador["peso"], indicador["faixas"]))
 
-if st.button("Calcular Resultado Final"):
-    score_financeiro = calcular_score_financeiro(respostas_financeiros)
-    score_esg = calcular_score_esg(respostas_esg)
-    st.session_state.score_financeiro = score_financeiro
-    st.session_state.score_esg = score_esg
-    st.session_state.calculado = True
-    st.metric("Score ESG", score_esg)
-    st.metric("Score Financeiro", score_financeiro)
+# Cálculo do score financeiro
+score_financeiro = calcular_score_financeiro(respostas_financeiras)
 
-    if score_financeiro > 70 and score_esg > 70:
+# Verificação final
+if score_financeiro > 70 and score_esg > 70:
     st.success("✅ Empresa aprovada na triagem financeira.")
     st.balloons()
     st.write("### Resultado final: Empresa Aprovada 🎉")
-
-    # Agora envia ao Sheets
-    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv" 
+    
+    # Dados a serem enviados ao Google Sheets
+    dados_empresa = [
+        nome_empresa,
+        segmento_empresa,
+        setor_empresa,
+        *respostas_binarias,
+        score_esg,
+        score_financeiro,
+    ]
+    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
     enviar_para_google_sheets(dados_empresa, url)
 
     else:
