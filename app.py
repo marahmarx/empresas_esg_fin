@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 from google.oauth2.service_account import Credentials
 from gsheets_streamlit import GSheetsConnection
+import gspread
 
 conn = st.connection("gsheets", type=GSheetsConnection)
 worksheet = conn.read(spreadsheet="URL ou ID", worksheet="Página 1")
