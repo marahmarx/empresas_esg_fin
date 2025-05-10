@@ -3,28 +3,71 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
+from google.oauth2.service_account import Credentials
+from gsheets_streamlit import GSheetsConnection
+import gspread
 
-# Função para calcular o score ESG
+# Conexão com o Google Sheets
+conn = st.connection("gsheets", type=GSheetsConnection)
+df = conn.read(
+    spreadsheet="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv",
+    worksheet="Página1"
+)
+
+# Função para calcular score ESG
 def calcular_score_esg(respostas):
     total_score = 0
-    for i, (valor, peso, faixas) in enumerate(respostas):
+    for valor, peso, faixas in respostas:
         for faixa in faixas:
             if faixa[0] <= valor <= faixa[1]:
                 total_score += faixa[2] * peso / 100
                 break
     return total_score
 
-# Função para calcular o score financeiro
+# Função para calcular score financeiro
 def calcular_score_financeiro(respostas):
     total_score = 0
-    for i, (valor, peso, faixas) in enumerate(respostas):
+    for valor, peso, faixas in respostas:
         for faixa in faixas:
             if faixa[0] <= valor <= faixa[1]:
                 total_score += faixa[2] * peso / 100
                 break
     return total_score
 
-# Lista de indicadores com pesos e faixas (os mesmos da sua definição)
+# Enviar dados ao Google Sheets
+def enviar_para_google_sheets(dados_empresa, sheet_url, aba_nome="Página1"):
+    try:
+        scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+        credentials = Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"],
+            scopes=scope
+        )
+        client = gspread.authorize(credentials)
+        planilha = client.open_by_url(sheet_url)
+        aba = planilha.worksheet(aba_nome)
+        aba.append_row(dados_empresa, value_input_option="USER_ENTERED")
+        st.success("Empresa adicionada ao Google Sheets com sucesso!")
+    except Exception as e:
+        st.error(f"Erro ao salvar no Google Sheets: {e}")
+
+# Plotar matriz ESG x Financeiro
+def plotar_matriz_interativa(df):
+    fig = px.scatter(
+        df,
+        x="Score Financeiro",
+        y="Score ESG",
+        text="Empresa",
+        color="Segmento",
+        size_max=60,
+        title="Matriz ESG x Financeiro",
+        width=800,
+        height=600
+    )
+    fig.update_traces(textposition='top center')
+    fig.update_layout(xaxis=dict(range=[0, 100]), yaxis=dict(range=[0, 100]))
+    st.plotly_chart(fig)
+
+# Indicadores ESG
 indicadores_esg = [
     {"indicador": "Emissão de CO2 (M ton)", "peso": 15, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
     {"indicador": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
@@ -32,75 +75,83 @@ indicadores_esg = [
     {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
-    {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(np.inf, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
+    {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(0, 0.99, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
     {"indicador": "Risco Ambiental", "peso": 5, "faixas": [(0, 1, 100), (2, 3, 70), (4, 6, 50), (7, 8, 30), (9, 10, 10)]},
 ]
 
+# Indicadores Financeiros
 indicadores_financeiros = [
     {"indicador": "Variação da ação YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
     {"indicador": "EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Margem EBITDA (%)", "peso": 5.5 , "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
+    {"indicador": "Margem EBITDA (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (101, np.inf, 0)]},
     {"indicador": "Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
     {"indicador": "Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
-    {"indicador": "Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Lucro Líquido YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Margem Líquida (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
 ]
+
+# Título
 st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
-# Perguntas iniciais
-st.header("Dados da Empresa")
+# Etapa 1 - Informações Básicas
+st.header("Etapa 1: Informações Básicas")
 nome_empresa = st.text_input("Nome da empresa:")
 segmento_empresa = st.text_input("Segmento da empresa:")
 setor_empresa = st.selectbox("Setor da empresa:", ["Primário", "Secundário", "Terciário"])
 
-# Etapa Unificada - Coleta de Dados
-
-st.header("Dados Básicos")
+# Etapa 1 - Perguntas Sim/Não
+st.subheader("Indicadores Básicos ESG")
 perguntas_binarias = [
-    "1. A empresa tem políticas de sustentabilidade?",
-    "2. A empresa possui certificação ambiental?",
-    "3. A empresa divulga suas metas de redução de emissão de CO2?",
-    "4. A empresa adota práticas de reciclagem?",
-    "5. A empresa investe em projetos sociais?"
+    "A empresa tem políticas de sustentabilidade?",
+    "Possui certificação ambiental?",
+    "Divulga metas de emissão de CO2?",
+    "Adota práticas de reciclagem?",
+    "Investimentos em projetos sociais?"
 ]
-
 respostas_binarias = []
 for i, pergunta in enumerate(perguntas_binarias):
-    resposta = st.radio(pergunta, options=["Sim", "Não"], key=f"pergunta_binaria_{i}")
+    resposta = st.radio(pergunta, ["Sim", "Não"], key=f"binaria_{i}")
     respostas_binarias.append(1 if resposta == "Sim" else 0)
 
-st.header("Indicadores ESG Quantitativos")
+# Etapa 2 - ESG Quantitativo
+st.header("Etapa 2: Indicadores ESG")
 respostas_esg = []
 for indicador in indicadores_esg:
-    st.subheader(indicador["indicador"])
-    valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", min_value=0.0, format="%.2f", key=f"esg_{indicador['indicador']}")
+    valor = st.number_input(f"{indicador['indicador']}:", min_value=0.0, format="%.2f", key=f"esg_{indicador['indicador']}")
     respostas_esg.append((valor, indicador["peso"], indicador["faixas"]))
 
-st.header("Indicadores Financeiros")
-respostas_financeiros = []
+# Etapa 3 - Financeiro
+st.header("Etapa 3: Indicadores Financeiros")
+respostas_financeiras = []
 for indicador in indicadores_financeiros:
-    st.subheader(indicador["indicador"])
-    valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", format="%.2f", key=f"fin_{indicador['indicador']}")
-    respostas_financeiros.append((valor, indicador["peso"], indicador["faixas"]))
+    valor = st.number_input(f"{indicador['indicador']}:", format="%.2f", key=f"fin_{indicador['indicador']}")
+    respostas_financeiras.append((valor, indicador["peso"], indicador["faixas"]))
 
-if st.button("Calcular Resultado Final"):
-    score_financeiro = calcular_score_financeiro(respostas_financeiros)
-    score_esg = calcular_score_esg(respostas_esg)
-    st.session_state.score_financeiro = score_financeiro
-    st.session_state.score_esg = score_esg
-    st.session_state.calculado = True
-    st.metric("Score ESG", score_esg)
-    st.metric("Score Financeiro", score_financeiro)
+# Cálculo dos scores
+score_esg = calcular_score_esg(respostas_esg)
+score_fin = calcular_score_financeiro(respostas_financeiras)
 
-    if score_financeiro > 70 and score_esg > 70:
-        st.success("✅ Empresa aprovada na triagem financeira.")
-        st.balloons()
-        st.write("### Resultado final: Empresa Aprovada 🎉")
-    else:
-        st.error("❌ Empresa reprovada na triagem financeira.")
-        st.write("### Resultado final: Empresa Reprovada.")
+st.metric("Score ESG", f"{score_esg:.2f}")
+st.metric("Score Financeiro", f"{score_fin:.2f}")
+
+# Aprovação e envio
+if score_esg > 70 and score_fin > 70:
+    st.success("✅ Empresa aprovada na triagem.")
+    if st.button("Salvar empresa aprovada"):
+        dados_empresa = [
+            nome_empresa,
+            segmento_empresa,
+            setor_empresa,
+            *respostas_binarias,
+            round(score_esg, 2),
+            round(score_fin, 2)
+        ]
+        url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+        enviar_para_google_sheets(dados_empresa, url)
+else:
+    st.warning("❌ Empresa não aprovada com base nos scores.")
 
 # Segunda parte
 
