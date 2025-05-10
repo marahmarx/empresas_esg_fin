@@ -1,18 +1,10 @@
+código correto:
+
 import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
-from google.oauth2.service_account import Credentials
-from gsheets_streamlit import GSheetsConnection
-import gspread
-
-# Conexão com o Google Sheets
-conn = st.connection("gsheets", type=GSheetsConnection)
-worksheet = conn.read(
-    spreadsheet="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv",
-    worksheet="Página1"
-)
 
 # Função para calcular o score ESG
 def calcular_score_esg(respostas):
@@ -34,23 +26,7 @@ def calcular_score_financeiro(respostas):
                 break
     return total_score
 
-# Enviar para o Google Sheets
-def enviar_para_google_sheets(dados_empresa, sheet_url, aba_nome="Página1"):
-    try:
-        scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-        credentials = Credentials.from_service_account_info(
-            st.secrets["gcp_service_account"],
-            scopes=scope
-        )
-        client = gspread.authorize(credentials)
-        planilha = client.open_by_url(sheet_url)
-        aba = planilha.worksheet(aba_nome)
-        aba.append_row(dados_empresa, value_input_option="USER_ENTERED")
-        st.success("Empresa adicionada ao Google Sheets com sucesso!")
-    except Exception as e:
-        st.error(f"Erro ao salvar no Google Sheets: {e}")
-
-# Indicadores ESG e Financeiros
+# Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 indicadores_esg = [
     {"indicador": "Emissão de CO2 (M ton)", "peso": 15, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
     {"indicador": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
@@ -58,7 +34,7 @@ indicadores_esg = [
     {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
-    {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(0, 0.99, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
+    {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(np.inf, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
     {"indicador": "Risco Ambiental", "peso": 5, "faixas": [(0, 1, 100), (2, 3, 70), (4, 6, 50), (7, 8, 30), (9, 10, 10)]},
 ]
 
@@ -66,16 +42,13 @@ indicadores_financeiros = [
     {"indicador": "Variação da ação YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
     {"indicador": "EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Margem EBITDA (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (101, np.inf, 0)]},
+    {"indicador": "Margem EBITDA (%)", "peso": 5.5 , "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
     {"indicador": "Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
     {"indicador": "Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
-    {"indicador": "Lucro Líquido YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Margem Líquida (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
 ]
-
-# Funções de análise e visualização continuam conforme já inserido antes (sem alterações)
-
 st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
 # Perguntas iniciais
@@ -107,53 +80,48 @@ for indicador in indicadores_esg:
     valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", min_value=0.0, format="%.2f", key=f"esg_{indicador['indicador']}")
     respostas_esg.append((valor, indicador["peso"], indicador["faixas"]))
 
-# Cálculo do score ESG
-score_esg = calcular_score_esg(respostas_esg)
-
 st.header("Indicadores Financeiros")
-respostas_financeiras = []
+respostas_financeiros = []
 for indicador in indicadores_financeiros:
     st.subheader(indicador["indicador"])
-    valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", min_value=0.0, format="%.2f", key=f"fin_{indicador['indicador']}")
-    respostas_financeiras.append((valor, indicador["peso"], indicador["faixas"]))
+    valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", format="%.2f", key=f"fin_{indicador['indicador']}")
+    respostas_financeiros.append((valor, indicador["peso"], indicador["faixas"]))
 
-# Cálculo do score financeiro
-score_financeiro = calcular_score_financeiro(respostas_financeiras)
+if st.button("Calcular Resultado Final"):
+    score_financeiro = calcular_score_financeiro(respostas_financeiros)
+    score_esg = calcular_score_esg(respostas_esg)
+    st.session_state.score_financeiro = score_financeiro
+    st.session_state.score_esg = score_esg
+    st.session_state.calculado = True
+    st.metric("Score ESG", score_esg)
+    st.metric("Score Financeiro", score_financeiro)
 
-# Verificação final
-if score_financeiro > 70 and score_esg > 70:
-    st.success("✅ Empresa aprovada na triagem financeira.")
-    st.balloons()
-    st.write("### Resultado final: Empresa Aprovada 🎉")
-    
-    # Dados a serem enviados ao Google Sheets
-    dados_empresa = [
-        nome_empresa,
-        segmento_empresa,
-        setor_empresa,
-        *respostas_binarias,
-        score_esg,
-        score_financeiro,
-    ]
-    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
-    enviar_para_google_sheets(dados_empresa, url)
-
+    if score_financeiro > 70 and score_esg > 70:
+        st.success("✅ Empresa aprovada na triagem financeira.")
+        st.balloons()
+        st.write("### Resultado final: Empresa Aprovada 🎉")
     else:
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
 
 # Segunda parte
 
-# Dados a serem enviados ao Google Sheets
-dados_empresa = [
-    nome_empresa,
-    segmento_empresa,
-    setor_empresa,
-    *respostas_binarias,
-    *[i["indicador"] for i in indicadores_esg],
-    *[i["indicador"] for i in indicadores_financeiros],
-]
-df.columns = colunas[:len(df.columns)]
+# Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
+
+# Função para carregar dados sem cache
+def carregar_dados_empresas(url):
+    try:
+        df = pd.read_csv(url)
+        df.columns = df.columns.str.strip()  # Remover espaços nas colunas
+        
+        # Converter as colunas para numérico (forçando erros a se tornarem NaN)
+        for coluna in df.columns[3:]:
+            df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
+        
+        return df
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+        return pd.DataFrame()
 
 # Função para aplicar faixas de pontuação
 def aplicar_faixas(valor, faixas):
@@ -200,22 +168,15 @@ def plotar_matriz_interativa(df):
         st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
         return
 
-    # Define categoria para cor
-    df['Categoria'] = df['Empresa'].apply(lambda x: 'Nova Empresa' if x == 'Nova Empresa' else 'Empresas Existentes')
-
     fig = px.scatter(
         df,
         x='Score ESG',
         y='Score Financeiro',
         text='Empresa',
-        color='Categoria',
         color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
         title="Matriz ESG x Financeiro",
         height=600
     )
-
-    st.plotly_chart(fig)
-
 
     # Mostrar os nomes das empresas sobre os pontos
     fig.update_traces(
@@ -246,13 +207,14 @@ if st.session_state.get('calculado'):
     st.header("📊 Comparativo: Matriz ESG x Financeiro")
 
     try:
+        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
+
         df_empresas = carregar_dados_empresas(url)
 
         st.write("Dados carregados da planilha:", df_empresas)
 
         df_empresas = calcular_scores(df_empresas)
 
-        # Adiciona a empresa recém-calculada (do usuário)
         nova_empresa = {
             'Empresa': 'Nova Empresa',
             'Score ESG': st.session_state.score_esg,
@@ -260,8 +222,7 @@ if st.session_state.get('calculado'):
         }
         df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
 
-        # Apenas chama a função que já faz o st.plotly_chart
-        plotar_matriz_interativa(df_empresas)
+        st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
