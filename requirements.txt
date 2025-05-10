@@ -3,4 +3,8 @@ pandas==2.2.2
 numpy==1.26.4
 matplotlib==3.7.1
 plotly==5.20.0
-gspread google-auth 
+gspread
+google-auth
+rich<14
+
+
