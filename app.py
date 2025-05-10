@@ -123,27 +123,6 @@ if st.button("Calcular Resultado Final"):
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
 
-# Após calcular os scores:
-if "calculado" in st.session_state and st.session_state.calculado:
-    score_esg = st.session_state.score_esg
-    score_financeiro = st.session_state.score_financeiro
-    status = "Aprovada" if score_financeiro > 70 and score_esg > 70 else "Eliminada"
-
-    dados_empresa = [
-        nome_empresa,
-        segmento_empresa,
-        setor_empresa,
-        *respostas_binarias,
-        *[r[0] for r in respostas_esg],
-        *[r[0] for r in respostas_financeiros],
-        score_esg,
-        score_financeiro,
-        status
-    ]
-
-    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
-    enviar_para_google_sheets(dados_empresa, url)
-
 # Segunda parte
 
 # Dados a serem enviados ao Google Sheets
@@ -154,9 +133,6 @@ dados_empresa = [
     *respostas_binarias,
     *[r[0] for r in respostas_esg],
     *[r[0] for r in respostas_financeiros],
-    score_esg,
-    score_financeiro,
-    status
 ]
 
 # Chamar função com o link da planilha
