@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
-from oauth2client.service_account import ServiceAccountCredentials
-import gspread
+from google.oauth2.service_account import Credentials
+
 
 # Função para calcular o score ESG
 def calcular_score_esg(respostas):
@@ -29,8 +29,11 @@ def calcular_score_financeiro(respostas):
 # Enviar para a planilha
 def enviar_para_google_sheets(dados_empresa, sheet_url, aba_nome="Página1"):
     try:
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        credentials = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
+        scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+        credentials = Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"],
+            scopes=scope
+        )
         client = gspread.authorize(credentials)
         planilha = client.open_by_url(sheet_url)
         aba = planilha.worksheet(aba_nome)
