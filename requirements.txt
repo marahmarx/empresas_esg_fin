@@ -4,6 +4,5 @@ pandas
 matplotlib
 plotly
 gspread
-google-auth
-gsheets-streamlit
+gspread oauth2client
 google-auth-oauthlib
