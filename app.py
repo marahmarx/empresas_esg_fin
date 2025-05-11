@@ -7,12 +7,15 @@ from google.oauth2.service_account import Credentials
 from gsheets_streamlit import GSheetsConnection
 import gspread
 
-# Conexão com o Google Sheets
+# Estabelece a conexão com o Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
+
+# Lê os dados da planilha
 df = conn.read(
     spreadsheet="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv",
-    worksheet="Página1"
+    worksheet="Página1"  # ou o nome da aba da planilha
 )
+
 
 # Função para calcular score ESG
 def calcular_score_esg(respostas):
