@@ -3,6 +3,7 @@ numpy==1.24.4
 pandas==2.2.2
 matplotlib==3.8.4
 plotly==5.21.0
-google-auth
+google-auth==2.29.0
+gspread==6.1.0
 git+https://github.com/streamlit/gsheets-streamlit.git
-gspread
+
