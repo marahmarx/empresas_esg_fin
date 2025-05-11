@@ -13,7 +13,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 # Lê os dados da planilha
 df = conn.read(
     spreadsheet="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv",
-    worksheet="Página1"  # ou o nome da aba da planilha
+    worksheet="Indicadores"  
 )
 
 
@@ -38,7 +38,7 @@ def calcular_score_financeiro(respostas):
     return total_score
 
 # Enviar dados ao Google Sheets
-def enviar_para_google_sheets(dados_empresa, sheet_url, aba_nome="Página1"):
+def enviar_para_google_sheets(dados_empresa, sheet_url, aba_nome="Indicadores"):
     try:
         scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
         credentials = Credentials.from_service_account_info(
