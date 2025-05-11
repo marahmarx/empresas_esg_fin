@@ -4,5 +4,6 @@ pandas
 matplotlib
 plotly
 gspread
-gspread oauth2client
+gspread 
+oauth2client
 google-auth-oauthlib
