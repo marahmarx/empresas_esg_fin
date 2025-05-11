@@ -9,11 +9,8 @@ import gspread
 
 # Estabelece a conexão com o Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
+df = conn.read()
 
-# Lê os dados da planilha
-df = conn.read(
-    spreadsheet="https://docs.google.com/spreadsheets/d/13ST7q-Td6Wi9_cTZP6JatvMGo-4lHrYoW5xGeAPnonM/edit?hl=pt-br&gid=0#gid=0",
-    worksheet="Indicadores"  
 )
 
 
