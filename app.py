@@ -4,14 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
 from google.oauth2.service_account import Credentials
-from gsheets_streamlit import GSheetsConnection
 import gspread
-
-# Estabelece a conexão com o Google Sheets
-conn = st.connection("gsheets", type=GSheetsConnection)
-df = conn.read()
-
-)
+from oauth2client.service_account import ServiceAccountCredentials
 
 
 # Função para calcular score ESG
@@ -35,20 +29,15 @@ def calcular_score_financeiro(respostas):
     return total_score
 
 # Enviar dados ao Google Sheets
-def enviar_para_google_sheets(dados_empresa, sheet_url, aba_nome="Indicadores"):
-    try:
-        scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-        credentials = Credentials.from_service_account_info(
-            st.secrets["gcp_service_account"],
-            scopes=scope
-        )
-        client = gspread.authorize(credentials)
-        planilha = client.open_by_url(sheet_url)
-        aba = planilha.worksheet(aba_nome)
-        aba.append_row(dados_empresa, value_input_option="USER_ENTERED")
-        st.success("Empresa adicionada ao Google Sheets com sucesso!")
-    except Exception as e:
-        st.error(f"Erro ao salvar no Google Sheets: {e}")
+# Autenticação
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+credentials = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+gc = gspread.authorize(credentials)
+
+# Acessar planilha
+sheet = gc.open_by_url("https://docs.google.com/spreadsheets/d/13ST7q-Td6Wi9_cTZP6JatvMGo-4lHrYoW5xGeAPnonM/edit?hl=pt-br&gid=0#gid=0")
+worksheet = sheet.sheet1
+
 
 # Plotar matriz ESG x Financeiro
 def plotar_matriz_interativa(df):
