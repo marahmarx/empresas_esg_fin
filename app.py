@@ -12,7 +12,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 
 # Lê os dados da planilha
 df = conn.read(
-    spreadsheet="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv",
+    spreadsheet="https://docs.google.com/spreadsheets/d/13ST7q-Td6Wi9_cTZP6JatvMGo-4lHrYoW5xGeAPnonM/edit?hl=pt-br&gid=0#gid=0",
     worksheet="Indicadores"  
 )
 
@@ -151,7 +151,7 @@ if score_esg > 70 and score_fin > 70:
             round(score_esg, 2),
             round(score_fin, 2)
         ]
-        url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+        url = "https://docs.google.com/spreadsheets/d/13ST7q-Td6Wi9_cTZP6JatvMGo-4lHrYoW5xGeAPnonM/edit?hl=pt-br&gid=0#gid=0"
         enviar_para_google_sheets(dados_empresa, url)
 else:
     st.warning("❌ Empresa não aprovada com base nos scores.")
