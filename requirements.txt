@@ -1,5 +1,9 @@
 streamlit
+numpy
 pandas
 matplotlib
+plotly
+gspread
+google-auth
 gsheets-streamlit
-
+google-auth-oauthlib
