@@ -120,21 +120,32 @@ perguntas_binarias = [
 respostas_binarias = [1 if st.radio(pergunta, ["Sim", "Não"], key=f"binaria_{i}") == "Sim" else 0
                       for i, pergunta in enumerate(perguntas_binarias)]
 
-# Etapa 2
+# Etapa 2: Indicadores ESG
 st.header("Etapa 2: Indicadores ESG")
-respostas_esg = [(st.number_input(indicador['indicador'], min_value=0.0, format="%.2f", key=f"esg_{i}"),
-                  indicador['peso'], indicador['faixas'])
-                 for i, indicador in enumerate(indicadores_esg)]
+respostas_esg = [
+    (
+        st.number_input(indicador['indicador'], min_value=0.0, format="%.2f", key=f"esg_{i}"),
+        indicador['peso'],
+        indicador['faixas']
+    )
+    for i, indicador in enumerate(indicadores_esg)
+]
 
-# Etapa 3
+# Etapa 3: Indicadores Financeiros
 st.header("Etapa 3: Indicadores Financeiros")
-respostas_fin = [(st.number_input(indicador['indicador'], format="%.2f", key=f"fin_{i}"),
-                  indicador['peso'], indicador['faixas'])
-                 for i, indicador in enumerate(indicadores_financeiros)]
+respostas_fin = [
+    (
+        st.number_input(indicador['indicador'], format="%.2f", key=f"fin_{i}"),
+        indicador['peso'],
+        indicador['faixas']
+    )
+    for i, indicador in enumerate(indicadores_financeiros)
+]
 
-# Scores
-score_esg = calcular_score(respostas_esg)
-score_fin = calcular_score(respostas_fin)
+# Cálculo dos Scores
+score_esg = calcular_score_esg(respostas_esg)
+score_fin = calcular_score_financeiro(respostas_fin)
+
 
 st.metric("Score ESG", f"{score_esg:.2f}")
 st.metric("Score Financeiro", f"{score_fin:.2f}")
