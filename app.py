@@ -165,7 +165,7 @@ if score_esg > 70 and score_fin > 70:
             setor_empresa,
             *respostas_binarias_valores,
             *respostas_esg,
-            *respostas_financeiras
+            *respostas_fin
         ]
 
         # Link da planilha
