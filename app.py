@@ -149,8 +149,7 @@ score_fin = calcular_score_financeiro(respostas_fin)
 
 st.metric("Score ESG", f"{score_esg:.2f}")
 st.metric("Score Financeiro", f"{score_fin:.2f}")
-print(df_empresas.columns)
-print(df_empresas.head())
+
 
 # Aprovação
 if score_esg > 70 and score_fin > 70:
@@ -184,7 +183,8 @@ st.header("Matriz ESG x Financeiro (Comparativo)")
 # Carrega os dados da planilha
 url_csv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
 df_empresas = carregar_dados_empresas(url_csv)
-
+print(df_empresas.columns)
+print(df_empresas.head())
 # Aqui você já tem os scores salvos, então só precisa plotar a matriz
 plotar_matriz_comparativa(df_empresas)
 
