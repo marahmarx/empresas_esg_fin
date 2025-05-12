@@ -72,30 +72,53 @@ indicadores_financeiros = [
     {"indicador": "Margem Líquida (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
 ]
 
-# Plotar matriz interativa com dados de empresas existentes e nova empresa
+#Plotar matriz
 def plotar_matriz_comparativa(df):
     if df.empty:
         st.warning("Nenhuma empresa disponível para plotagem.")
         return
 
     try:
-        fig = px.scatter(
-            df,
-            x="Score ESG",
-            y="Score Financeiro",
-            color="Segmento de Atuação",
-            hover_name="Empresa",
+        fig = go.Figure()
+
+        # Adiciona os pontos das empresas
+        segmentos = df["Segmento de Atuação"].unique()
+        for segmento in segmentos:
+            dados_segmento = df[df["Segmento de Atuação"] == segmento]
+            fig.add_trace(go.Scatter(
+                x=dados_segmento["Score ESG"],
+                y=dados_segmento["Score Financeiro"],
+                mode='markers',
+                name=segmento,
+                text=dados_segmento["Empresa"],
+                marker=dict(size=10),
+                hovertemplate='<b>%{text}</b><br>Score ESG: %{x}<br>Score Financeiro: %{y}<extra></extra>'
+            ))
+
+        # Adiciona linha de corte diagonal (exemplo visual)
+        fig.add_trace(go.Scatter(
+            x=[0, 100],
+            y=[0, 100],
+            mode='lines',
+            line=dict(color='gray', dash='dash'),
+            name='Linha de equilíbrio ESG x Financeiro',
+            hoverinfo='skip'
+        ))
+
+        fig.update_layout(
             title="Matriz ESG x Financeiro",
-            labels={
-                "Score ESG": "Score ESG",
-                "Score Financeiro": "Score Financeiro"
-            },
+            xaxis=dict(title='Score ESG', range=[0, 100]),
+            yaxis=dict(title='Score Financeiro', range=[0, 100]),
             width=800,
-            height=600
+            height=600,
+            legend_title="Segmento de Atuação"
         )
+
         st.plotly_chart(fig)
+
     except Exception as e:
         st.error(f"Erro ao gerar gráfico: {e}")
+
 
 
 # Streamlit App
