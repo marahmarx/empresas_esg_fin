@@ -149,6 +149,8 @@ score_fin = calcular_score_financeiro(respostas_fin)
 
 st.metric("Score ESG", f"{score_esg:.2f}")
 st.metric("Score Financeiro", f"{score_fin:.2f}")
+print(df_empresas.columns)
+print(df_empresas.head())
 
 # Aprovação
 if score_esg > 70 and score_fin > 70:
