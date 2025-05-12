@@ -73,48 +73,46 @@ indicadores_financeiros = [
 ]
 
 #Plotar matriz
-def plotar_matriz_comparativa(df):
-    if df.empty:
-        st.warning("Nenhuma empresa disponível para plotagem.")
-        return
-
+def plotar_matriz_interativa(url_planilha):
     try:
-        fig = go.Figure()
+        df = pd.read_csv(url_planilha)
 
-        # Adiciona os pontos das empresas
-        segmentos = df["Segmento de Atuação"].unique()
-        for segmento in segmentos:
-            dados_segmento = df[df["Segmento de Atuação"] == segmento]
-            fig.add_trace(go.Scatter(
-                x=dados_segmento["Score ESG"],
-                y=dados_segmento["Score Financeiro"],
-                mode='markers',
-                name=segmento,
-                text=dados_segmento["Empresa"],
-                marker=dict(size=10),
-                hovertemplate='<b>%{text}</b><br>Score ESG: %{x}<br>Score Financeiro: %{y}<extra></extra>'
-            ))
+        if df.empty:
+            st.error("Planilha vazia ou mal carregada.")
+            return
 
-        # Adiciona linha de corte diagonal (exemplo visual)
-        fig.add_trace(go.Scatter(
-            x=[0, 100],
-            y=[0, 100],
-            mode='lines',
-            line=dict(color='gray', dash='dash'),
-            name='Linha de equilíbrio ESG x Financeiro',
-            hoverinfo='skip'
-        ))
+        if 'Empresa' not in df.columns or 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
+            st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
+            return
 
-        fig.update_layout(
+        fig = px.scatter(
+            df,
+            x='Score ESG',
+            y='Score Financeiro',
+            text='Empresa',
             title="Matriz ESG x Financeiro",
-            xaxis=dict(title='Score ESG', range=[0, 100]),
-            yaxis=dict(title='Score Financeiro', range=[0, 100]),
-            width=800,
-            height=600,
-            legend_title="Segmento de Atuação"
+            height=600
         )
 
-        st.plotly_chart(fig)
+        fig.update_traces(
+            textposition='top center',
+            mode='markers+text',
+            marker=dict(size=12)
+        )
+
+        # Áreas visuais da matriz
+        shapes = [
+            dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
+            dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),
+            dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),
+            dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),
+        ]
+
+        fig.update_layout(shapes=shapes)
+        fig.update_xaxes(range=[0, 100])
+        fig.update_yaxes(range=[0, 100])
+
+        st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
         st.error(f"Erro ao gerar gráfico: {e}")
