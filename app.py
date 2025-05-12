@@ -158,13 +158,14 @@ if score_esg > 70 and score_fin > 70:
         respostas_binarias_valores = [int(r) for r in respostas_binarias]
 
         # Monta os dados para salvar (nome, segmento, setor, respostas binárias, score ESG, score financeiro)
+        
         dados_empresa = [
             nome_empresa,
             segmento_empresa,
             setor_empresa,
             *respostas_binarias_valores,
-            round(score_esg, 2),
-            round(score_fin, 2)
+            *respostas_esg,
+            *respostas_financeiras
         ]
 
         # Link da planilha
@@ -183,5 +184,6 @@ url_csv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6B
 df_empresas = carregar_dados_empresas(url_csv)
 
 # Aqui você já tem os scores salvos, então só precisa plotar a matriz
-plotar_matriz_esg_financeiro(df_empresas)
+plotar_matriz_comparativa(df_empresas)
+
 
