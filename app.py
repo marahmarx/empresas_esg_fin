@@ -78,17 +78,12 @@ def plotar_matriz_comparativa(df):
         st.warning("Nenhuma empresa disponível para plotagem.")
         return
 
-    required_columns = {"Score ESG", "Score Financeiro", "Empresa"}
-    if not required_columns.issubset(df.columns):
-        st.error(f"Colunas necessárias ausentes: {required_columns - set(df.columns)}")
-        return
-
     try:
         fig = px.scatter(
             df,
             x="Score ESG",
             y="Score Financeiro",
-            color="Segmento",  # ou outro campo se desejar
+            color="Segmento de Atuação",
             hover_name="Empresa",
             title="Matriz ESG x Financeiro",
             labels={
