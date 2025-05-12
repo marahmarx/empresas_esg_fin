@@ -196,17 +196,6 @@ def plotar_matriz_interativa(url_sheets):
         st.error(f"Erro ao gerar gráfico: {e}")
 
 
-# Visualização da matriz completa
-st.header("Matriz ESG x Financeiro (Comparativo)")
-
-# Carrega os dados da planilha
-url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
-df_empresas = carregar_dados_empresas(url_sheets)
-
-st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
-
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
 
 
 
