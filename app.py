@@ -73,31 +73,35 @@ indicadores_financeiros = [
 ]
 
 # Plotar matriz interativa com dados de empresas existentes e nova empresa
-
-def plotar_matriz_comparativa(df, nova_empresa=None):
+def plotar_matriz_comparativa(df):
     if df.empty:
-        st.error("Dados não carregados corretamente!")
+        st.warning("Nenhuma empresa disponível para plotagem.")
         return
-    fig = px.scatter(
-        df,
-        x='Score ESG',
-        y='Score Financeiro',
-        text='Empresa',
-        color='Segmento',
-        title="Matriz ESG x Financeiro",
-        height=600
-    )
-    if nova_empresa:
-        fig.add_trace(go.Scatter(
-            x=[nova_empresa['Score ESG']],
-            y=[nova_empresa['Score Financeiro']],
-            mode='markers+text',
-            marker=dict(color='red', size=12),
-            text=[nova_empresa['Empresa']],
-            name='Nova Empresa'
-        ))
-    fig.update_layout(xaxis=dict(range=[0, 100]), yaxis=dict(range=[0, 100]))
-    st.plotly_chart(fig)
+
+    required_columns = {"Score ESG", "Score Financeiro", "Empresa"}
+    if not required_columns.issubset(df.columns):
+        st.error(f"Colunas necessárias ausentes: {required_columns - set(df.columns)}")
+        return
+
+    try:
+        fig = px.scatter(
+            df,
+            x="Score ESG",
+            y="Score Financeiro",
+            color="Segmento",  # ou outro campo se desejar
+            hover_name="Empresa",
+            title="Matriz ESG x Financeiro",
+            labels={
+                "Score ESG": "Score ESG",
+                "Score Financeiro": "Score Financeiro"
+            },
+            width=800,
+            height=600
+        )
+        st.plotly_chart(fig)
+    except Exception as e:
+        st.error(f"Erro ao gerar gráfico: {e}")
+
 
 # Streamlit App
 
