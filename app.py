@@ -29,15 +29,24 @@ def calcular_score_financeiro(respostas):
     return total_score
 
 # Enviar dados ao Google Sheets
-# Autenticação
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+
+scope = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
+
+credentials = Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"],
+    scopes=scope
+)
 gc = gspread.authorize(credentials)
 
-# Acessar planilha
-sheet = gc.open_by_url("https://docs.google.com/spreadsheets/d/13ST7q-Td6Wi9_cTZP6JatvMGo-4lHrYoW5xGeAPnonM/edit?hl=pt-br&gid=0#gid=0")
-worksheet = sheet.sheet1
 
+# Função para enviar dados
+def enviar_para_google_sheets(dados_empresa, url):
+    sh = gc.open_by_url(url)
+    worksheet = sh.sheet1  # ou use .worksheet("Indicadores") se quiser a aba específica
+    worksheet.append_row(dados_empresa)
 
 # Plotar matriz ESG x Financeiro
 def plotar_matriz_interativa(df):
