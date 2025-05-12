@@ -72,53 +72,6 @@ indicadores_financeiros = [
     {"indicador": "Margem Líquida (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
 ]
 
-#Plotar matriz
-def plotar_matriz_interativa(url_planilha):
-    try:
-        df = pd.read_csv(url_planilha)
-
-        if df.empty:
-            st.error("Planilha vazia ou mal carregada.")
-            return
-
-        if 'Empresa' not in df.columns or 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
-            st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
-            return
-
-        fig = px.scatter(
-            df,
-            x='Score ESG',
-            y='Score Financeiro',
-            text='Empresa',
-            title="Matriz ESG x Financeiro",
-            height=600
-        )
-
-        fig.update_traces(
-            textposition='top center',
-            mode='markers+text',
-            marker=dict(size=12)
-        )
-
-        # Áreas visuais da matriz
-        shapes = [
-            dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
-            dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),
-            dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),
-            dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),
-        ]
-
-        fig.update_layout(shapes=shapes)
-        fig.update_xaxes(range=[0, 100])
-        fig.update_yaxes(range=[0, 100])
-
-        st.plotly_chart(fig, use_container_width=True)
-
-    except Exception as e:
-        st.error(f"Erro ao gerar gráfico: {e}")
-
-
-
 # Streamlit App
 
 st.title("Triagem ESG e Financeira - Avaliação da Empresa")
@@ -196,6 +149,52 @@ if score_esg > 70 and score_fin > 70:
         enviar_para_google_sheets(dados_empresa, url_sheets)
 else:
     st.warning("❌ Empresa não aprovada com base nos scores.")
+
+#Plotar matriz
+def plotar_matriz_interativa(url_planilha):
+    try:
+        df = pd.read_csv(url_planilha)
+
+        if df.empty:
+            st.error("Planilha vazia ou mal carregada.")
+            return
+
+        if 'Empresa' not in df.columns or 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
+            st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
+            return
+
+        fig = px.scatter(
+            df,
+            x='Score ESG',
+            y='Score Financeiro',
+            text='Empresa',
+            title="Matriz ESG x Financeiro",
+            height=600
+        )
+
+        fig.update_traces(
+            textposition='top center',
+            mode='markers+text',
+            marker=dict(size=12)
+        )
+
+        # Áreas visuais da matriz
+        shapes = [
+            dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
+            dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),
+            dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),
+            dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),
+        ]
+
+        fig.update_layout(shapes=shapes)
+        fig.update_xaxes(range=[0, 100])
+        fig.update_yaxes(range=[0, 100])
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Erro ao gerar gráfico: {e}")
+
 
 # Visualização da matriz completa
 st.header("Matriz ESG x Financeiro (Comparativo)")
