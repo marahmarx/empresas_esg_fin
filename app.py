@@ -154,18 +154,34 @@ st.metric("Score Financeiro", f"{score_fin:.2f}")
 if score_esg > 70 and score_fin > 70:
     st.success("✅ Empresa aprovada na triagem.")
     if st.button("Salvar empresa aprovada"):
-        dados_empresa = [nome_empresa, segmento_empresa, setor_empresa, *respostas_binarias, round(score_esg, 2), round(score_fin, 2)]
+        # Extrai apenas os valores das respostas binárias (True/False ou 0/1)
+        respostas_binarias_valores = [int(r) for r in respostas_binarias]
+
+        # Monta os dados para salvar (nome, segmento, setor, respostas binárias, score ESG, score financeiro)
+        dados_empresa = [
+            nome_empresa,
+            segmento_empresa,
+            setor_empresa,
+            *respostas_binarias_valores,
+            round(score_esg, 2),
+            round(score_fin, 2)
+        ]
+
+        # Link da planilha
         url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+
+        # Envia os dados
         enviar_para_google_sheets(dados_empresa, url_sheets)
 else:
     st.warning("❌ Empresa não aprovada com base nos scores.")
 
 # Visualização da matriz completa
 st.header("Matriz ESG x Financeiro (Comparativo)")
+
+# Carrega os dados da planilha
 url_csv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
 df_empresas = carregar_dados_empresas(url_csv)
-df_empresas = calcular_scores(df_empresas)
 
-# Exibe matriz
-nova_empresa = {"Empresa": nome_empresa, "Score ESG": score_esg, "Score Financeiro": score_fin} if nome_empresa else None
-plotar_matriz_comparativa(df_empresas, nova_empresa)
+# Aqui você já tem os scores salvos, então só precisa plotar a matriz
+plotar_matriz_esg_financeiro(df_empresas)
+
