@@ -151,9 +151,9 @@ else:
     st.warning("❌ Empresa não aprovada com base nos scores.")
 
 #Plotar matriz
-def plotar_matriz_interativa(url_planilha):
+def plotar_matriz_interativa(url_sheets):
     try:
-        df = pd.read_csv(url_planilha)
+        df = pd.read_csv(url_sheets)
 
         if df.empty:
             st.error("Planilha vazia ou mal carregada.")
@@ -200,8 +200,8 @@ def plotar_matriz_interativa(url_planilha):
 st.header("Matriz ESG x Financeiro (Comparativo)")
 
 # Carrega os dados da planilha
-url_csv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
-df_empresas = carregar_dados_empresas(url_csv)
+url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+df_empresas = carregar_dados_empresas(url_sheets)
 
 st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
 
