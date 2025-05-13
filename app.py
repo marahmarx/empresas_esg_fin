@@ -195,8 +195,8 @@ if st.button("Calcular Scores"):
     # Mostrar a matriz ESG x Financeiro
     plotar_matriz_interativa(url_sheets)
 
-    # Botão para salvar empresa
-    if st.button("Salvar Empresa"):
+# Botão para salvar empresa
+if st.button("Salvar Empresa"):
         respostas_binarias_valores = [int(r) for r in respostas_binarias]
         respostas_esg_valores = [r[0] for r in respostas_esg]
         respostas_fin_valores = [r[0] for r in respostas_fin]
@@ -212,6 +212,8 @@ if st.button("Calcular Scores"):
 
         enviar_para_google_sheets(dados_empresa, url_sheets)
         st.success("✅ Dados da empresa salvos com sucesso.")
+
+    
 
 
     
