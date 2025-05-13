@@ -117,21 +117,7 @@ respostas_fin = [
     for i, indicador in enumerate(indicadores_financeiros)
 ]
 
-# Botão para calcular os scores e mostrar resultados
-if st.button("Calcular Scores"):
-    score_esg = calcular_score_esg(respostas_esg)
-    score_fin = calcular_score_financeiro(respostas_fin)
-
-    st.metric("Score ESG", f"{score_esg:.2f}")
-    st.metric("Score Financeiro", f"{score_fin:.2f}")
-
-    # Mostrar status de aprovação
-    if score_esg > 70 and score_fin > 70:
-        st.success("✅ Empresa aprovada na triagem.")
-    else:
-        st.warning("⚠️ Empresa não aprovada na triagem.")
-
-    #Plotar matriz
+#Plotar matriz
     def plotar_matriz_interativa(url_sheets):
         df = carregar_dados_empresas(url_sheets)
     
@@ -176,6 +162,23 @@ if st.button("Calcular Scores"):
     
         except Exception as e:
             st.error(f"Erro ao processar dados para a matriz: {e}")
+            
+# Botão para calcular os scores e mostrar resultados
+if st.button("Calcular Scores"):
+    score_esg = calcular_score_esg(respostas_esg)
+    score_fin = calcular_score_financeiro(respostas_fin)
+
+    st.metric("Score ESG", f"{score_esg:.2f}")
+    st.metric("Score Financeiro", f"{score_fin:.2f}")
+
+    # Mostrar status de aprovação
+    if score_esg > 70 and score_fin > 70:
+        st.success("✅ Empresa aprovada na triagem.")
+    else:
+        st.warning("⚠️ Empresa não aprovada na triagem.")
+
+    # Mostrar a matriz ESG x Financeiro
+    plotar_matriz_interativa(url_sheets)
 
     # Botão para salvar empresa
     if st.button("Salvar Empresa"):
@@ -194,6 +197,11 @@ if st.button("Calcular Scores"):
 
         enviar_para_google_sheets(dados_empresa, url_sheets)
         st.success("✅ Dados da empresa salvos com sucesso.")
+
+
+    
+
+    
 
 
 
