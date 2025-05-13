@@ -127,43 +127,54 @@ st.metric("Score Financeiro", f"{score_fin:.2f}")
 # Aprovação
 if score_esg > 70 and score_fin > 70:
     st.success("✅ Empresa aprovada na triagem.")
-    if st.button("Salvar empresa aprovada"):
-        # Extrai apenas os valores das respostas binárias (True/False ou 0/1)
-        respostas_binarias_valores = [int(r) for r in respostas_binarias]
+    if st.button("Salvar Empresa"):
+    # Extrai os valores das respostas
+    respostas_binarias_valores = [int(r) for r in respostas_binarias]
+    respostas_esg_valores = [r[0] for r in respostas_esg]
+    respostas_fin_valores = [r[0] for r in respostas_fin]
 
-        # Monta os dados para salvar (nome, segmento, setor, respostas binárias, score ESG, score financeiro)
-        
-        dados_empresa = [
-            nome_empresa,
-            segmento_empresa,
-            setor_empresa,
-            *respostas_binarias_valores,
-            *respostas_esg,
-            *respostas_fin
-        ]
+    # Organiza os dados na ordem da planilha
+    dados_empresa = [
+        nome_empresa,
+        segmento_empresa,
+        setor_empresa,
+        *respostas_binarias_valores,
+        *respostas_esg_valores,
+        *respostas_fin_valores
+    ]
 
-        # Link da planilha
-        url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+    # Envia para a planilha
+    url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+    enviar_para_google_sheets(dados_empresa, url_sheets)
 
-        # Envia os dados
-        enviar_para_google_sheets(dados_empresa, url_sheets)
 else:
     st.warning("❌ Empresa não aprovada com base nos scores.")
 
 #Plotar matriz
-import plotly.express as px
-
 def plotar_matriz_interativa(url_sheets):
+    df = carregar_dados_empresas(url_sheets)
+
+    if df.empty:
+        st.warning("Planilha vazia ou mal carregada.")
+        return
+
     try:
-        df = pd.read_csv(url_sheets)
+        # Assume que as colunas estão na mesma ordem da planilha
+        df['Score ESG'] = df.iloc[:, 8:16].apply(
+            lambda linha: calcular_score_esg([
+                (linha[i], indicadores_esg[i]['peso'], indicadores_esg[i]['faixas'])
+                for i in range(len(indicadores_esg))
+            ]),
+            axis=1
+        )
 
-        if df.empty:
-            st.error("Planilha vazia ou mal carregada.")
-            return
-
-        if 'Empresa' not in df.columns or 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
-            st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
-            return
+        df['Score Financeiro'] = df.iloc[:, 16:].apply(
+            lambda linha: calcular_score_financeiro([
+                (linha[i], indicadores_financeiros[i]['peso'], indicadores_financeiros[i]['faixas'])
+                for i in range(len(indicadores_financeiros))
+            ]),
+            axis=1
+        )
 
         fig = px.scatter(
             df,
@@ -180,26 +191,11 @@ def plotar_matriz_interativa(url_sheets):
             marker=dict(size=12)
         )
 
-        # Define as áreas coloridas
-        shapes = [
-            dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
-            dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),
-            dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),
-            dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),
-        ]
-
-        fig.update_layout(shapes=shapes)
-        fig.update_xaxes(range=[0, 100])
-        fig.update_yaxes(range=[0, 100])
-
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig)
 
     except Exception as e:
-        st.error(f"Erro ao gerar gráfico: {e}")
-        
-# Chamada para exibir a matriz com todas as empresas
-st.header("Matriz ESG x Financeiro")
-plotar_matriz_interativa(url_sheets)
+        st.error(f"Erro ao processar dados para a matriz: {e}")
+
 
 
 
