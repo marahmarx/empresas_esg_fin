@@ -197,21 +197,25 @@ if st.button("Calcular Scores"):
 
 # Botão para salvar empresa
 if st.button("Salvar Empresa"):
-        respostas_binarias_valores = [int(r) for r in respostas_binarias]
-        respostas_esg_valores = [r[0] for r in respostas_esg]
-        respostas_fin_valores = [r[0] for r in respostas_fin]
+    # Montar os dados da empresa em uma única lista
+    dados_empresa = [
+        nome_empresa,
+        segmento_empresa,
+        setor_empresa,
+        *respostas_binarias,
+        *[res[0] for res in respostas_esg],
+        *[res[0] for res in respostas_fin]
+    ]
 
-        dados_empresa = [
-            nome_empresa,
-            segmento_empresa,
-            setor_empresa,
-            *respostas_binarias_valores,
-            *respostas_esg_valores,
-            *respostas_fin_valores
-        ]
-
+    try:
         enviar_para_google_sheets(dados_empresa, url_sheets)
-        st.success("✅ Dados da empresa salvos com sucesso.")
+        st.success("Empresa salva com sucesso!")
+        st.session_state["empresa_salva"] = True
+    except Exception as e:
+        st.error(f"Erro ao salvar dados: {e}")
+        st.session_state["empresa_salva"] = False
+
+
 
     
 
