@@ -191,6 +191,9 @@ def plotar_matriz_interativa(url_sheets):
         fig.update_yaxes(range=[0, 100])
 
         st.plotly_chart(fig, use_container_width=True)
+        st.header("Matriz ESG x Financeiro")
+        plotar_matriz_interativa("https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv")
+
 
     except Exception as e:
         st.error(f"Erro ao gerar gráfico: {e}")
