@@ -132,50 +132,50 @@ if st.button("Calcular Scores"):
         st.warning("⚠️ Empresa não aprovada na triagem.")
 
     #Plotar matriz
-def plotar_matriz_interativa(url_sheets):
-    df = carregar_dados_empresas(url_sheets)
-
-    if df.empty:
-        st.warning("Planilha vazia ou mal carregada.")
-        return
-
-    try:
-        # Assume que as colunas estão na mesma ordem da planilha
-        df['Score ESG'] = df.iloc[:, 8:16].apply(
-            lambda linha: calcular_score_esg([
-                (linha[i], indicadores_esg[i]['peso'], indicadores_esg[i]['faixas'])
-                for i in range(len(indicadores_esg))
-            ]),
-            axis=1
-        )
-
-        df['Score Financeiro'] = df.iloc[:, 16:].apply(
-            lambda linha: calcular_score_financeiro([
-                (linha[i], indicadores_financeiros[i]['peso'], indicadores_financeiros[i]['faixas'])
-                for i in range(len(indicadores_financeiros))
-            ]),
-            axis=1
-        )
-
-        fig = px.scatter(
-            df,
-            x='Score ESG',
-            y='Score Financeiro',
-            text='Empresa',
-            title="Matriz ESG x Financeiro",
-            height=600
-        )
-
-        fig.update_traces(
-            textposition='top center',
-            mode='markers+text',
-            marker=dict(size=12)
-        )
-
-        st.plotly_chart(fig)
-
-    except Exception as e:
-        st.error(f"Erro ao processar dados para a matriz: {e}")
+    def plotar_matriz_interativa(url_sheets):
+        df = carregar_dados_empresas(url_sheets)
+    
+        if df.empty:
+            st.warning("Planilha vazia ou mal carregada.")
+            return
+    
+        try:
+            # Assume que as colunas estão na mesma ordem da planilha
+            df['Score ESG'] = df.iloc[:, 8:16].apply(
+                lambda linha: calcular_score_esg([
+                    (linha[i], indicadores_esg[i]['peso'], indicadores_esg[i]['faixas'])
+                    for i in range(len(indicadores_esg))
+                ]),
+                axis=1
+            )
+    
+            df['Score Financeiro'] = df.iloc[:, 16:].apply(
+                lambda linha: calcular_score_financeiro([
+                    (linha[i], indicadores_financeiros[i]['peso'], indicadores_financeiros[i]['faixas'])
+                    for i in range(len(indicadores_financeiros))
+                ]),
+                axis=1
+            )
+    
+            fig = px.scatter(
+                df,
+                x='Score ESG',
+                y='Score Financeiro',
+                text='Empresa',
+                title="Matriz ESG x Financeiro",
+                height=600
+            )
+    
+            fig.update_traces(
+                textposition='top center',
+                mode='markers+text',
+                marker=dict(size=12)
+            )
+    
+            st.plotly_chart(fig)
+    
+        except Exception as e:
+            st.error(f"Erro ao processar dados para a matriz: {e}")
 
     # Botão para salvar empresa
     if st.button("Salvar Empresa"):
