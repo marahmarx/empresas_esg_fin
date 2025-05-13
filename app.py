@@ -151,6 +151,8 @@ else:
     st.warning("❌ Empresa não aprovada com base nos scores.")
 
 #Plotar matriz
+import plotly.express as px
+
 def plotar_matriz_interativa(url_sheets):
     try:
         df = pd.read_csv(url_sheets)
@@ -178,7 +180,7 @@ def plotar_matriz_interativa(url_sheets):
             marker=dict(size=12)
         )
 
-        # Áreas visuais da matriz
+        # Define as áreas coloridas
         shapes = [
             dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
             dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),
@@ -191,12 +193,14 @@ def plotar_matriz_interativa(url_sheets):
         fig.update_yaxes(range=[0, 100])
 
         st.plotly_chart(fig, use_container_width=True)
-st.header("Matriz ESG x Financeiro")
-plotar_matriz_interativa("https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv")
-
 
     except Exception as e:
         st.error(f"Erro ao gerar gráfico: {e}")
+        
+# Chamada para exibir a matriz com todas as empresas
+st.header("Matriz ESG x Financeiro")
+plotar_matriz_interativa(url_sheets)
+
 
 
 
