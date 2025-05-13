@@ -121,12 +121,6 @@ respostas_fin = [
 score_esg = calcular_score_esg(respostas_esg)
 score_fin = calcular_score_financeiro(respostas_fin)
 
-
-st.metric("Score ESG", f"{score_esg:.2f}")
-st.metric("Score Financeiro", f"{score_fin:.2f}")
-
-
-# Aprovação
 # Botão para calcular os scores e mostrar resultados
 if st.button("Calcular Scores"):
     score_esg = calcular_score_esg(respostas_esg)
