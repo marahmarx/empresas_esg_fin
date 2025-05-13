@@ -26,25 +26,18 @@ def calcular_score_financeiro(respostas):
                 break
     return total_score
 
+
+url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+
 # Enviar dados ao Google Sheets
-def enviar_para_google_sheets(dados_empresa, url):
+def enviar_para_google_sheets(dados_empresa, url_sheets):
     scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
     gc = gspread.authorize(creds)
-    sh = gc.open_by_url(url)
+    sh = gc.open_by_url(url_sheets)
     worksheet = sh.sheet1
     worksheet.append_row(dados_empresa)
 
-import json
-
-# Lê o segredo e cria um dicionário com as credenciais
-service_account_info = json.loads(st.secrets["gcp_service_account"].to_dict())
-creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
-
-
-
-
-url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
 
 # Função para carregar dados de empresas existentes
 def carregar_dados_empresas(url):
