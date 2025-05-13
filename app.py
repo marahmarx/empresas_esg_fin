@@ -118,7 +118,7 @@ respostas_fin = [
 ]
 
 #Plotar matriz
-    def plotar_matriz_interativa(url_sheets):
+def plotar_matriz_interativa(url_sheets):
         df = carregar_dados_empresas(url_sheets)
     
         if df.empty:
@@ -161,7 +161,7 @@ respostas_fin = [
             st.plotly_chart(fig)
     
         except Exception as e:
-            st.error(f"Erro ao processar dados para a matriz: {e}")
+            st.error(f"Erro ao processar dados para a matriz: {e}")    
             
 # Botão para calcular os scores e mostrar resultados
 if st.button("Calcular Scores"):
