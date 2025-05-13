@@ -131,25 +131,7 @@ if st.button("Calcular Scores"):
     else:
         st.warning("⚠️ Empresa não aprovada na triagem.")
 
-    # Botão para salvar empresa
-    if st.button("Salvar Empresa"):
-        respostas_binarias_valores = [int(r) for r in respostas_binarias]
-        respostas_esg_valores = [r[0] for r in respostas_esg]
-        respostas_fin_valores = [r[0] for r in respostas_fin]
-
-        dados_empresa = [
-            nome_empresa,
-            segmento_empresa,
-            setor_empresa,
-            *respostas_binarias_valores,
-            *respostas_esg_valores,
-            *respostas_fin_valores
-        ]
-
-        enviar_para_google_sheets(dados_empresa, url_sheets)
-        st.success("✅ Dados da empresa salvos com sucesso.")
-
-#Plotar matriz
+    #Plotar matriz
 def plotar_matriz_interativa(url_sheets):
     df = carregar_dados_empresas(url_sheets)
 
@@ -194,6 +176,26 @@ def plotar_matriz_interativa(url_sheets):
 
     except Exception as e:
         st.error(f"Erro ao processar dados para a matriz: {e}")
+
+    # Botão para salvar empresa
+    if st.button("Salvar Empresa"):
+        respostas_binarias_valores = [int(r) for r in respostas_binarias]
+        respostas_esg_valores = [r[0] for r in respostas_esg]
+        respostas_fin_valores = [r[0] for r in respostas_fin]
+
+        dados_empresa = [
+            nome_empresa,
+            segmento_empresa,
+            setor_empresa,
+            *respostas_binarias_valores,
+            *respostas_esg_valores,
+            *respostas_fin_valores
+        ]
+
+        enviar_para_google_sheets(dados_empresa, url_sheets)
+        st.success("✅ Dados da empresa salvos com sucesso.")
+
+
 
 
 
