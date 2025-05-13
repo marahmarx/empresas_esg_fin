@@ -117,10 +117,6 @@ respostas_fin = [
     for i, indicador in enumerate(indicadores_financeiros)
 ]
 
-# Cálculo dos Scores
-score_esg = calcular_score_esg(respostas_esg)
-score_fin = calcular_score_financeiro(respostas_fin)
-
 # Botão para calcular os scores e mostrar resultados
 if st.button("Calcular Scores"):
     score_esg = calcular_score_esg(respostas_esg)
