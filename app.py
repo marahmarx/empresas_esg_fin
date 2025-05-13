@@ -157,8 +157,23 @@ def plotar_matriz_interativa(url_sheets):
                 mode='markers+text',
                 marker=dict(size=12)
             )
+            
+            # Faixas visuais
+            shapes = [
+            dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),           # Baixo ESG e Financeiro
+            dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),        # ESG alto, Financeiro baixo
+            dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),      # ESG baixo, Financeiro alto
+            dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),   # ESG alto e Financeiro alto
+            ]
+            fig.update_layout(shapes=shapes)
+        
+            # Define limites dos eixos
+            fig.update_xaxes(range=[0, 100])
+            fig.update_yaxes(range=[0, 100])
+        
+            st.plotly_chart(fig, use_container_width=True)
     
-            st.plotly_chart(fig)
+     
     
         except Exception as e:
             st.error(f"Erro ao processar dados para a matriz: {e}")    
