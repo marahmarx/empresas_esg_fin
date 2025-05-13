@@ -29,14 +29,6 @@ def calcular_score_financeiro(respostas):
 
 
 url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
-import json
-
-with open("credentials.json") as f:
-    creds = json.load(f)
-
-creds["private_key"] = creds["private_key"].replace("\n", "\\n")
-
-print(creds["private_key"])
 
 # Escopo necessário para acessar Google Sheets e Google Drive
 scope = [
