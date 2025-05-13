@@ -127,8 +127,6 @@ st.metric("Score Financeiro", f"{score_fin:.2f}")
 # Aprovação
 if score_esg > 70 and score_fin > 70:
     st.success("✅ Empresa aprovada na triagem.")
-    if score_esg > 70 and score_fin > 70:
-    st.success("✅ Empresa aprovada na triagem.")
     
     if st.button("Salvar Empresa"):
         # Extrai os valores das respostas
@@ -149,6 +147,7 @@ if score_esg > 70 and score_fin > 70:
         # Envia para a planilha
         url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
         enviar_para_google_sheets(dados_empresa, url_sheets)
+
 
 #Plotar matriz
 def plotar_matriz_interativa(url_sheets):
