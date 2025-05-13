@@ -125,28 +125,31 @@ st.metric("Score Financeiro", f"{score_fin:.2f}")
 
 
 # Aprovação
+# Mostrar status de aprovação
 if score_esg > 70 and score_fin > 70:
     st.success("✅ Empresa aprovada na triagem.")
-    
-    if st.button("Salvar Empresa"):
-        # Extrai os valores das respostas
-        respostas_binarias_valores = [int(r) for r in respostas_binarias]
-        respostas_esg_valores = [r[0] for r in respostas_esg]
-        respostas_fin_valores = [r[0] for r in respostas_fin]
+else:
+    st.warning("⚠️ Empresa não aprovada na triagem.")
 
-        # Organiza os dados na ordem da planilha
-        dados_empresa = [
-            nome_empresa,
-            segmento_empresa,
-            setor_empresa,
-            *respostas_binarias_valores,
-            *respostas_esg_valores,
-            *respostas_fin_valores
-        ]
+# Botão para salvar a empresa, mesmo que não tenha sido aprovada
+if st.button("Salvar Empresa"):
+    respostas_binarias_valores = [int(r) for r in respostas_binarias]
+    respostas_esg_valores = [r[0] for r in respostas_esg]
+    respostas_fin_valores = [r[0] for r in respostas_fin]
 
-        # Envia para a planilha
-        url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
-        enviar_para_google_sheets(dados_empresa, url_sheets)
+    dados_empresa = [
+        nome_empresa,
+        segmento_empresa,
+        setor_empresa,
+        *respostas_binarias_valores,
+        *respostas_esg_valores,
+        *respostas_fin_valores
+    ]
+
+    url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+    enviar_para_google_sheets(dados_empresa, url_sheets)
+    st.success("✅ Dados da empresa salvos com sucesso.")
+
 
 
 #Plotar matriz
