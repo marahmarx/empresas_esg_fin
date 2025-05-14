@@ -5,7 +5,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-import json
 
 # Função para calcular score ESG
 def calcular_score_esg(respostas):
@@ -29,16 +28,6 @@ def calcular_score_financeiro(respostas):
 
 
 url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
-
-# Escopo necessário para acessar Google Sheets e Google Drive
-scope = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
-
-# Carrega o dicionário com as credenciais a partir do secrets
-service_account_info = st.secrets["gcp_service_account"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
 
 # Autentica com gspread
 gc = gspread.authorize(creds)
@@ -208,24 +197,7 @@ if st.button("Calcular Scores"):
     plotar_matriz_interativa(url_sheets)
 
 # Botão para salvar empresa
-if st.button("Salvar Empresa"):
-    # Montar os dados da empresa em uma única lista
-    dados_empresa = [
-        nome_empresa,
-        segmento_empresa,
-        setor_empresa,
-        *respostas_binarias,
-        *[res[0] for res in respostas_esg],
-        *[res[0] for res in respostas_fin]
-    ]
 
-    try:
-        enviar_para_google_sheets(dados_empresa, url_sheets)
-        st.success("Empresa salva com sucesso!")
-        st.session_state["empresa_salva"] = True
-    except Exception as e:
-        st.error(f"Erro ao salvar dados: {e}")
-        st.session_state["empresa_salva"] = False
 
 
 
