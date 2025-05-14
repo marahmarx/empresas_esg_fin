@@ -111,7 +111,7 @@ respostas_fin = [
 
 #Plotar matriz
 def plotar_matriz_interativa(url_sheets):
-        df_planilha = carregar_dados_empresas(url_sheets)
+        df_empresas = carregar_dados_empresas(url_sheets)
         nova_empresa = {
             'Empresa': 'Nova Empresa',
             'Score ESG': st.session_state.score_esg,
