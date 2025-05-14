@@ -249,36 +249,34 @@ def plotar_radar(df_resultados, nome_empresa):
     plt.show()
 
 # Simulação: Impacto da melhora de ESG no financeiro
-def plotar_impacto_melhoria_esg(score_esg_atual, score_financeiro_atual, nome_empresa):
-    # Baseado em estudos (ex: Harvard/NYU), empresas com +15 pts em ESG podem ter +5-10 pts financeiros
+def plotar_impacto_melhoria_esg(score_esg, score_fin, nome_empresa):
     melhoria_esg = np.arange(0, 21, 5)  # até 20 pontos de melhoria
-    melhoria_financeira_estim = [score_financeiro_atual + (x * 0.4) for x in melhoria_esg]  # +0.4 por ponto ESG
+    melhoria_financeira_estim = [score_fin + (x * 0.4) for x in melhoria_esg]  # +0.4 por ponto ESG
 
     plt.figure(figsize=(10, 6))
-    plt.plot(score_esg_atual + melhoria_esg, melhoria_financeira_estim, marker='o', color='green')
-    plt.axvline(x=score_esg_atual, color='red', linestyle='--', label='ESG Atual')
-    plt.axhline(y=score_financeiro_atual, color='blue', linestyle='--', label='Financeiro Atual')
+    plt.plot(score_esg + melhoria_esg, melhoria_financeira_estim, marker='o', color='green')
+    plt.axvline(x=score_esg, color='red', linestyle='--', label='ESG Atual')
+    plt.axhline(y=score_fin, color='blue', linestyle='--', label='Financeiro Atual')
 
-    for x, y in zip(score_esg_atual + melhoria_esg, melhoria_financeira_estim):
+    for x, y in zip(score_esg + melhoria_esg, melhoria_financeira_estim):
         plt.text(x, y + 0.5, f"{y:.1f}", ha='center', fontsize=8)
 
     plt.title(f'Estimativa de Melhoria no Desempenho Financeiro com ESG - {nome_empresa}', fontsize=14, weight='bold')
-    plt.xlabel('Score ESG Simulado')
-    plt.ylabel('Score Financeiro Projetado')
+    plt.xlabel('Score ESG ')
+    plt.ylabel('Score Financeiro ')
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.legend()
     plt.tight_layout()
     plt.show()
 
+respostas = (respostas_binarias, respostas_esg, respostas_financeiros)
 
 # Exemplo de uso:
-# Suponha que temos os dados da empresa analisada
-respostas_teste = [4800, 85, 72, 1, 1, 28, 20, 60, 3, 1, 1, 0, 1, 15, 55, 12, 25, 2, 18, 32, 12]
-df_resultados, total, score_esg, score_fin = avaliar_empresa("Empresa Teste", respostas_teste)
+df_resultados, total, score_esg, score_fin = avaliar_empresa("Empresa", respostas)
 
 # Plota gráficos complementares
-plotar_radar(df_resultados, "Empresa Teste")
-plotar_estimativa_melhorias(score_esg, score_fin, "Empresa Teste")
+plotar_radar(df_resultados, "Empresa")
+plotar_estimativa_melhorias(score_esg, score_fin, "Empresa")
 
 
 import matplotlib.pyplot as plt
