@@ -114,8 +114,8 @@ def plotar_matriz_interativa(url_sheets):
         df_empresas = carregar_dados_empresas(url_sheets)
         nova_empresa = {
             'Empresa': 'Nova Empresa',
-            'Score ESG': st.session_state.score_esg,
-            'Score Financeiro': st.session_state.score_financeiro
+            'Score ESG': score_esg,
+            'Score Financeiro': score_financeiro
         }
         df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
 
@@ -190,7 +190,10 @@ if st.button("Calcular Scores"):
         st.warning("⚠️ Empresa não aprovada na triagem.")
 
     # Mostrar a matriz ESG x Financeiro
-    plotar_matriz_interativa(url_sheets)
+    st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
 
 
 
