@@ -29,9 +29,6 @@ def calcular_score_financeiro(respostas):
 
 url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
 
-# Autentica com gspread
-gc = gspread.authorize(creds)
-
 # Abre a planilha pelo link
 sh = gc.open_by_url(url_sheets)
 worksheet = sh.sheet1
