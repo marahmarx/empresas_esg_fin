@@ -112,10 +112,12 @@ respostas_fin = [
 #Plotar matriz
 def plotar_matriz_interativa(url_sheets):
         df_planilha = carregar_dados_empresas(url_sheets)
-        df_nova_empresa = criar_df_nova_empresa()
-
-        # Concatenar nova empresa ao DataFrame
-        df = pd.concat([df_planilha, df_nova_empresa], ignore_index=True)
+        nova_empresa = {
+            'Empresa': 'Nova Empresa',
+            'Score ESG': st.session_state.score_esg,
+            'Score Financeiro': st.session_state.score_financeiro
+        }
+        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
 
     
         if df.empty:
