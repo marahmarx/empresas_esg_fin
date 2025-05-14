@@ -29,12 +29,6 @@ def calcular_score_financeiro(respostas):
 
 url_sheets = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
 
-# Abre a planilha pelo link
-sh = gc.open_by_url(url_sheets)
-worksheet = sh.sheet1
-worksheet.append_row(dados_empresa)
-
-
 # Função para carregar dados de empresas existentes
 def carregar_dados_empresas(url):
     try:
