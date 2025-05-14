@@ -102,8 +102,6 @@ if st.button("Calcular Resultado Final"):
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
 
-# Segunda parte
-
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
 # Função para carregar dados sem cache
@@ -198,7 +196,6 @@ def plotar_matriz_interativa(df):
 
     st.plotly_chart(fig, use_container_width=True)
 
-#Terceira Parte
 # Parte principal da interface
 
 if st.session_state.get('calculado'):
@@ -226,9 +223,6 @@ if st.session_state.get('calculado'):
         st.error(f"Erro ao carregar os dados da planilha: {e}")
         
 #Segunda parte do código - recomendações para a empresa
-
-quero criar uma página com esses dados:
-# Continuação do seu código:
 
 # Gráfico de radar dos indicadores ESG e Financeiros
 
