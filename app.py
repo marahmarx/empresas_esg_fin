@@ -23,7 +23,23 @@ def calcular_score_financeiro(respostas):
                 total_score += faixa[2] * peso / 100
                 break
     return total_score
-
+# Função para plotar a matriz ESG x Financeiro
+def plotar_matriz_interativa(df):
+    fig = px.scatter(
+        df,
+        x="Score ESG",
+        y="Score Financeiro",
+        text=df["Empresa"],
+        color="Segmento",
+        hover_data=["Setor"],
+        title="Matriz ESG x Financeiro",
+        width=800,
+        height=600
+    )
+    fig.update_traces(textposition="top center")
+    fig.update_layout(xaxis_title="Score ESG", yaxis_title="Score Financeiro")
+    st.plotly_chart(fig)
+    
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 indicadores_esg = [
     {"indicador": "Emissão de CO2 (M ton)", "peso": 15, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
@@ -86,29 +102,25 @@ for indicador in indicadores_financeiros:
     respostas_financeiros.append((valor, indicador["peso"], indicador["faixas"]))
 
 if st.button("Calcular Resultado Final"):
-    score_financeiro = calcular_score_financeiro(respostas_financeiros)
     score_esg = calcular_score_esg(respostas_esg)
-    st.session_state.score_financeiro = score_financeiro
-    st.session_state.score_esg = score_esg
-    st.session_state.calculado = True
+    score_financeiro = calcular_score_financeiro(respostas_financeiros)
+
     st.metric("Score ESG", score_esg)
     st.metric("Score Financeiro", score_financeiro)
 
-    if score_financeiro > 70 and score_esg > 70:
-        st.success("✅ Empresa aprovada na triagem financeira.")
+    if score_esg > 70 and score_financeiro > 70:
+        st.success("✅ Empresa aprovada na triagem.")
         st.balloons()
         st.write("### Resultado final: Empresa Aprovada 🎉")
     else:
-        st.error("❌ Empresa reprovada na triagem financeira.")
+        st.error("❌ Empresa reprovada na triagem.")
         st.write("### Resultado final: Empresa Reprovada.")
 
-    # URL do seu Google Sheets (em formato CSV)
     url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
-
     df_empresas = carregar_dados_empresas(url)
-    df_com_scores = calcular_scores(df_empresas)
-    plotar_matriz_interativa(df_com_scores)
-
+    if not df_empresas.empty:
+        df_com_scores = calcular_scores(df_empresas)
+        plotar_matriz_interativa(df_com_scores)
 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
@@ -160,48 +172,6 @@ def calcular_scores(df):
     df["Score Financeiro"] = financeiro_total
     return df
         
-# Função para plotar com Plotly
-import plotly.graph_objects as go
-
-def plotar_matriz_interativa(df):
-    if df.empty:
-        st.error("Dados não carregados corretamente!")
-        return
-
-    if 'Nome da Empresa' not in df.columns:
-        st.error("Coluna 'Nome da Empresa' não encontrada na base.")
-        return
-
-    if 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
-        st.error("Scores não calculados corretamente.")
-        return
-
-    fig = px.scatter(
-        df,
-        x="Score ESG",
-        y="Score Financeiro",
-        text="Nome da Empresa",
-        size_max=60,
-        color_discrete_sequence=["#1f77b4"],
-        title="Matriz ESG x Financeiro"
-    )
-
-    # Adiciona linhas de corte (limiar de aprovação, por exemplo, 70)
-    fig.add_shape(type="line", x0=70, x1=70, y0=0, y1=100, line=dict(dash="dash", color="red"))
-    fig.add_shape(type="line", x0=0, x1=100, y0=70, y1=70, line=dict(dash="dash", color="red"))
-
-    fig.update_traces(textposition='top center')
-    fig.update_layout(
-        xaxis_title="Score ESG",
-        yaxis_title="Score Financeiro",
-        xaxis=dict(range=[0, 100]),
-        yaxis=dict(range=[0, 100]),
-        height=600
-    )
-
-    st.plotly_chart(fig)
-
-
 # Parte principal da interface
 
 if st.session_state.get('calculado'):
