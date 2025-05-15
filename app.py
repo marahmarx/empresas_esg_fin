@@ -102,6 +102,14 @@ if st.button("Calcular Resultado Final"):
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
 
+# URL do seu Google Sheets (em formato CSV)
+url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+
+df_empresas = carregar_dados_empresas(url)
+df_com_scores = calcular_scores(df_empresas)
+plotar_matriz_interativa(df_com_scores)
+
+
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
 # Função para carregar dados sem cache
@@ -160,41 +168,39 @@ def plotar_matriz_interativa(df):
         st.error("Dados não carregados corretamente!")
         return
 
-    if 'Empresa' not in df.columns or 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
-        st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
+    if 'Nome da Empresa' not in df.columns:
+        st.error("Coluna 'Nome da Empresa' não encontrada na base.")
+        return
+
+    if 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
+        st.error("Scores não calculados corretamente.")
         return
 
     fig = px.scatter(
         df,
-        x='Score ESG',
-        y='Score Financeiro',
-        text='Empresa',
-        color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
-        title="Matriz ESG x Financeiro",
+        x="Score ESG",
+        y="Score Financeiro",
+        text="Nome da Empresa",
+        size_max=60,
+        color_discrete_sequence=["#1f77b4"],
+        title="Matriz ESG x Financeiro"
+    )
+
+    # Adiciona linhas de corte (limiar de aprovação, por exemplo, 70)
+    fig.add_shape(type="line", x0=70, x1=70, y0=0, y1=100, line=dict(dash="dash", color="red"))
+    fig.add_shape(type="line", x0=0, x1=100, y0=70, y1=70, line=dict(dash="dash", color="red"))
+
+    fig.update_traces(textposition='top center')
+    fig.update_layout(
+        xaxis_title="Score ESG",
+        yaxis_title="Score Financeiro",
+        xaxis=dict(range=[0, 100]),
+        yaxis=dict(range=[0, 100]),
         height=600
     )
 
-    # Mostrar os nomes das empresas sobre os pontos
-    fig.update_traces(
-        textposition='top center',
-        mode='markers+text',  # ESSENCIAL para mostrar os nomes
-        marker=dict(size=12)
-    )
+    st.plotly_chart(fig)
 
-    # Faixas visuais
-    shapes = [
-    dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),           # Baixo ESG e Financeiro
-    dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),        # ESG alto, Financeiro baixo
-    dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),      # ESG baixo, Financeiro alto
-    dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),   # ESG alto e Financeiro alto
-]
-    fig.update_layout(shapes=shapes)
-
-    # Define limites dos eixos
-    fig.update_xaxes(range=[0, 100])
-    fig.update_yaxes(range=[0, 100])
-
-    st.plotly_chart(fig, use_container_width=True)
 
 # Parte principal da interface
 
