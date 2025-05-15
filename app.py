@@ -102,12 +102,12 @@ if st.button("Calcular Resultado Final"):
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
 
-# URL do seu Google Sheets (em formato CSV)
-url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+    # URL do seu Google Sheets (em formato CSV)
+    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
 
-df_empresas = carregar_dados_empresas(url)
-df_com_scores = calcular_scores(df_empresas)
-plotar_matriz_interativa(df_com_scores)
+    df_empresas = carregar_dados_empresas(url)
+    df_com_scores = calcular_scores(df_empresas)
+    plotar_matriz_interativa(df_com_scores)
 
 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
