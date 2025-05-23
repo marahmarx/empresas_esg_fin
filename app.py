@@ -102,14 +102,6 @@ if st.button("Calcular Resultado Final"):
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
         
-    # Define o estado inicial da página, se ainda não estiver definido
-    if "page" not in st.session_state:
-        st.session_state.page = "inicial"
-
-    # Botão para avançar para a próxima página
-    if st.button("Avançar para análise completa"):
-        st.session_state.page = "análise_completa"
-        st.experimental_rerun()
 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
@@ -231,4 +223,11 @@ if st.session_state.get('calculado'):
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
 
+# Define o estado inicial da página, se ainda não estiver definido
+    if "page" not in st.session_state:
+        st.session_state.page = "inicial"
 
+    # Botão para avançar para a próxima página
+    if st.button("Avançar para análise completa"):
+        st.session_state.page = "análise_completa"
+        st.experimental_rerun()
