@@ -230,4 +230,4 @@ if st.session_state.get('calculado'):
     # Botão para avançar para a próxima página
     if st.button("Avançar para análise completa"):
         st.session_state.page = "análise_completa"
-        st.experimental_rerun()
+        
