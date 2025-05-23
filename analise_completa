@@ -3,12 +3,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# ------------------------------
-# Função principal da página
-# ------------------------------
-def mostrar():
-    st.title("Análise Completa")
-    st.write("Aqui vai o conteúdo da sua análise ESG e financeira.")
+# Definindo configurações da página
+st.set_page_config(page_title="Análise Completa", page_icon="📈")
 
     # Simulação de dados de entrada (substitua pelos reais)
     nome_empresa = "Empresa Exemplo"
