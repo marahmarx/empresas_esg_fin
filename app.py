@@ -230,4 +230,48 @@ if "page" not in st.session_state:
 # Botão para avançar para a próxima página
 if st.button("Avançar para análise completa"):
     st.session_state.page = "análise_completa"
+
+    
+import streamlit as st
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Inicializa o estado da página se não estiver presente
+if "page" not in st.session_state:
+    st.session_state.page = "inicial"  # Define a página inicial como padrão
+
+# Controle de navegação baseado no estado da página
+if st.session_state.page == "inicial":
+    st.title("Triagem ESG e Financeira - Avaliação da Empresa")
+
+    # Aqui seria a lógica para capturar os dados e calcular os scores
+    # Simulação de dados ou inputs de usuário...
+
+    # Botão para avançar para a análise completa
+    if st.button("Avançar para análise completa"):
+        # Quando o botão é clicado, alteramos o estado da página
+        st.session_state.page = "análise_completa"  # Muda a página para 'análise_completa'
+        st.experimental_rerun()  # Força a atualização da página após a mudança
+
+elif st.session_state.page == "análise_completa":
+    # Esta parte será executada quando a página for "análise_completa"
+    st.set_page_config(page_title="Análise Completa", page_icon="📈")
+
+    # Simulação de dados de entrada (substitua pelos reais)
+    nome_empresa = "Empresa Exemplo"
+    respostas_binarias = [1, 1, 0, 1, 1]
+    respostas_esg = [60, 70, 80, 65, 75, 85, 90, 60]
+    respostas_financeiros = [50, 60, 55, 70, 65, 60, 80, 75, 70]
+    respostas = (respostas_binarias, respostas_esg, respostas_financeiros)
+
+    # Aqui, você chamaria a função para realizar a análise
+    # from avaliador import avaliar_empresa
+    # df_resultados, total, score_esg, score_fin = avaliar_empresa(nome_empresa, respostas)
+
+    # Para fins de exemplo, estou apenas criando um DataFrame simulado:
+    df_resultados = pd.DataFrame({
+        'Indicador': ['Indicador 1', 'Indicador 2', 'Indicador 3'],
+        'Score':
+
         
