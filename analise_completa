@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# Inicia a página com um estado de navegação
 if "page" not in st.session_state:
     st.session_state.page = "inicial"
 
@@ -12,13 +13,14 @@ if st.session_state.page == "inicial":
     st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
     # Código de entrada de dados...
-    
+
+    # Botão para avançar para a próxima página
     if st.button("Avançar para análise completa"):
         st.session_state.page = "análise_completa"  # Altera a página para "análise_completa"
-        st.experimental_rerun()  # Força o Streamlit a recarregar a página para aplicar a mudança na navegação
+        # Sem necessidade de rerun, pois a alteração no session_state já causará a troca de página automaticamente
+        st.experimental_rerun()  # Força a atualização da página
 
 elif st.session_state.page == "análise_completa":
-    
     # Definindo configurações da página
     st.set_page_config(page_title="Análise Completa", page_icon="📈")
     
@@ -47,12 +49,11 @@ elif st.session_state.page == "análise_completa":
     
     # Retorno ações ESG x não ESG
     plotar_comparativo_acoes()
-    
-    
+
 # ------------------------------
 # Funções auxiliares para gráficos
 # ------------------------------
-    
+
 def plotar_radar(df_resultados, nome_empresa):
     categorias = df_resultados['Indicador']
     valores = df_resultados['Score']
