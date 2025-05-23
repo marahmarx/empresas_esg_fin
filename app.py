@@ -231,47 +231,151 @@ if "page" not in st.session_state:
 if st.button("Avançar para análise completa"):
     st.session_state.page = "análise_completa"
 
-    
-import streamlit as st
-import numpy as np
-import pandas as pd
+# Gráfico de radar dos indicadores ESG e Financeiros
+
+def plotar_radar(df_resultados, nome_empresa):
+    categorias = df_resultados['Indicador']
+    valores = df_resultados['Score']
+
+    # Normalização dos dados para escala 0-100 e prepara para o radar
+    categorias = list(categorias)
+    valores = list(valores)
+    valores += valores[:1]  # fechar o gráfico
+
+    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+    angles += angles[:1]
+
+    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+    ax.fill(angles, valores, color='red', alpha=0.25)
+    ax.plot(angles, valores, color='red', linewidth=2)
+    ax.set_yticklabels([])
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(categorias, fontsize=9, rotation=90)
+    ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
+    plt.tight_layout()
+    plt.show()
+
+# Simulação: Impacto da melhora de ESG no financeiro
+def plotar_impacto_melhoria_esg(score_esg, score_fin, nome_empresa):
+    melhoria_esg = np.arange(0, 21, 5)  # até 20 pontos de melhoria
+    melhoria_financeira_estim = [score_fin + (x * 0.4) for x in melhoria_esg]  # +0.4 por ponto ESG
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(score_esg + melhoria_esg, melhoria_financeira_estim, marker='o', color='green')
+    plt.axvline(x=score_esg, color='red', linestyle='--', label='ESG Atual')
+    plt.axhline(y=score_fin, color='blue', linestyle='--', label='Financeiro Atual')
+
+    for x, y in zip(score_esg + melhoria_esg, melhoria_financeira_estim):
+        plt.text(x, y + 0.5, f"{y:.1f}", ha='center', fontsize=8)
+
+    plt.title(f'Estimativa de Melhoria no Desempenho Financeiro com ESG - {nome_empresa}', fontsize=14, weight='bold')
+    plt.xlabel('Score ESG ')
+    plt.ylabel('Score Financeiro ')
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+respostas = (respostas_binarias, respostas_esg, respostas_financeiros)
+
+# Exemplo de uso:
+df_resultados, total, score_esg, score_fin = avaliar_empresa("Empresa", respostas)
+
+# Plota gráficos complementares
+plotar_radar(df_resultados, "Empresa")
+plotar_estimativa_melhorias(score_esg, score_fin, "Empresa")
+
 import matplotlib.pyplot as plt
 
-# Inicializa o estado da página se não estiver presente
-if "page" not in st.session_state:
-    st.session_state.page = "inicial"  # Define a página inicial como padrão
+# Dados de impacto das práticas ESG nos indicadores financeiros
+praticas_esg = [
+    "Uso de Energia Renovável",
+    "Diversidade de Gênero na Liderança",
+    "Práticas Éticas na Cadeia de Suprimentos",
+    "Satisfação dos Funcionários",
+    "Redução de Emissões de Carbono"
+]
 
-# Controle de navegação baseado no estado da página
-if st.session_state.page == "inicial":
-    st.title("Triagem ESG e Financeira - Avaliação da Empresa")
+impacto_ebitda = [3, 3, 4, 6, 2]  # em pontos percentuais
+impacto_receita = [0, 2, 0, 5, 1]  # em pontos percentuais
 
-    # Aqui seria a lógica para capturar os dados e calcular os scores
-    # Simulação de dados ou inputs de usuário...
+x = range(len(praticas_esg))
 
-    # Botão para avançar para a análise completa
-    if st.button("Avançar para análise completa"):
-        # Quando o botão é clicado, alteramos o estado da página
-        st.session_state.page = "análise_completa"  # Muda a página para 'análise_completa'
-        st.experimental_rerun()  # Força a atualização da página após a mudança
+plt.figure(figsize=(12, 6))
+plt.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
+plt.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
+plt.xticks([p + 0.2 for p in x], praticas_esg, rotation=45, ha='right')
+plt.ylabel('Impacto (%)')
+plt.title('Impacto das Práticas ESG nos Indicadores Financeiros')
+plt.legend()
+plt.tight_layout()
+plt.show()
 
-elif st.session_state.page == "análise_completa":
-    # Esta parte será executada quando a página for "análise_completa"
-    st.set_page_config(page_title="Análise Completa", page_icon="📈")
+import matplotlib.pyplot as plt
 
-    # Simulação de dados de entrada (substitua pelos reais)
-    nome_empresa = "Empresa Exemplo"
-    respostas_binarias = [1, 1, 0, 1, 1]
-    respostas_esg = [60, 70, 80, 65, 75, 85, 90, 60]
-    respostas_financeiros = [50, 60, 55, 70, 65, 60, 80, 75, 70]
-    respostas = (respostas_binarias, respostas_esg, respostas_financeiros)
+anos = [2025, 2026, 2027, 2028, 2029]
+ebitda_atual = [100, 102, 104, 106, 108]  # Crescimento sem melhorias ESG
+ebitda_melhoria_esg = [100, 105, 110, 115, 120]  # Crescimento com melhorias ESG
 
-    # Aqui, você chamaria a função para realizar a análise
-    # from avaliador import avaliar_empresa
-    # df_resultados, total, score_esg, score_fin = avaliar_empresa(nome_empresa, respostas)
+plt.figure(figsize=(10, 5))
+plt.plot(anos, ebitda_atual, marker='o', label='Sem Melhoria ESG')
+plt.plot(anos, ebitda_melhoria_esg, marker='o', label='Com Melhoria ESG')
+plt.xlabel('Ano')
+plt.ylabel('EBITDA (R$ milhões)')
+plt.title('Projeção do EBITDA com e sem Melhoria em ESG')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
 
-    # Para fins de exemplo, estou apenas criando um DataFrame simulado:
-    df_resultados = pd.DataFrame({
-        'Indicador': ['Indicador 1', 'Indicador 2', 'Indicador 3'],
-        'Score':
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Anos analisados
+anos = np.arange(2018, 2023)
+
+# Retornos médios anuais aproximados (2018-2022)
+# ESG: Natura, WEG, Banco do Brasil (dados médios reais)
+retorno_esg = np.array([0.15, 0.20, 0.18, 0.10, 0.12])
+
+# Não ESG: Oi, Light, Braskem (dados médios reais e aproximados de empresas com instabilidade ou baixa performance ESG)
+retorno_nao_esg = np.array([-0.25, 0.05, -0.10, -0.03, 0.02])
+
+# Retorno do ISE B3 (dados aproximados)
+retorno_ise = np.array([0.12, 0.15, 0.10, 0.08, 0.11])
+
+# Dividend Yield médio anual (aproximado)
+dy_esg = 0.04  # 4%
+dy_nao_esg = 0.02  # 2%
+dy_ise = 0.035  # 3.5%
+
+# Cálculo do valor acumulado das ações com reinvestimento de dividendos
+valor_inicial = 100
+valor_esg = [valor_inicial]
+valor_nao_esg = [valor_inicial]
+valor_ise = [valor_inicial]
+
+for r_esg, r_nao_esg, r_ise in zip(retorno_esg, retorno_nao_esg, retorno_ise):
+    valor_esg.append(valor_esg[-1] * (1 + r_esg + dy_esg))
+    valor_nao_esg.append(valor_nao_esg[-1] * (1 + r_nao_esg + dy_nao_esg))
+    valor_ise.append(valor_ise[-1] * (1 + r_ise + dy_ise))
+
+# Remover o valor inicial duplicado
+valor_esg = valor_esg[1:]
+valor_nao_esg = valor_nao_esg[1:]
+valor_ise = valor_ise[1:]
+
+# Plotagem do gráfico
+plt.figure(figsize=(12, 7))
+plt.plot(anos, valor_esg, marker='o', label='Empresas com práticas ESG (ex: Natura, WEG)', color='green')
+plt.plot(anos, valor_nao_esg, marker='s', label='Empresas sem ESG (ex: Oi, Light)', color='red')
+plt.plot(anos, valor_ise, marker='^', label='ISE B3 (Índice de Sustentabilidade Empresarial)', color='blue')
+plt.title('Evolução do Valor das Ações com Reinvestimento de Dividendos (2018-2022)', fontsize=14)
+plt.xlabel('Ano')
+plt.ylabel('Valor da Ação (R$)')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
 
         
