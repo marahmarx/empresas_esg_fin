@@ -105,21 +105,6 @@ if st.button("Calcular Resultado Final"):
 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
-# Função para carregar dados sem cache
-def carregar_dados_empresas(url):
-    try:
-        df = pd.read_csv(url)
-        df.columns = df.columns.str.strip()  # Remover espaços nas colunas
-        
-        # Converter as colunas para numérico (forçando erros a se tornarem NaN)
-        for coluna in df.columns[3:]:
-            df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
-        
-        return df
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
-        return pd.DataFrame()
-
 # Função para aplicar faixas de pontuação
 def aplicar_faixas(valor, faixas):
     for faixa in faixas:
@@ -197,31 +182,6 @@ def plotar_matriz_interativa(df):
 
     st.plotly_chart(fig, use_container_width=True)
 
-# Parte principal da interface
-
-if st.session_state.get('calculado'):
-    st.header("📊 Comparativo: Matriz ESG x Financeiro")
-
-    try:
-        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
-
-        df_empresas = carregar_dados_empresas(url)
-
-        st.write("Dados carregados da planilha:", df_empresas)
-
-        df_empresas = calcular_scores(df_empresas)
-
-        nova_empresa = {
-            'Empresa': 'Nova Empresa',
-            'Score ESG': st.session_state.score_esg,
-            'Score Financeiro': st.session_state.score_financeiro
-        }
-        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
-
-        st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
-
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
 
 if st.button("Avançar para análise completa"):
     st.session_state.page = "análise_completa"
