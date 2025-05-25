@@ -180,88 +180,92 @@ def plotar_matriz_interativa(df):
 
 # Função para plotar gráfico de radar
 def plotar_radar(df_resultados, nome_empresa):
-categorias = df_resultados['Indicador']
-valores = df_resultados['Score']
+    categorias = df_resultados['Indicador']
+    valores = df_resultados['Score']
 
-# Normalização dos dados para escala 0-100 e prepara para o radar
-categorias = list(categorias)
-valores = list(valores)
-valores += valores[:1]  # fechar o gráfico
+    # Normalização dos dados para escala 0-100 e prepara para o radar
+    categorias = list(categorias)
+    valores = list(valores)
+    valores += valores[:1]  # fechar o gráfico
 
-angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-angles += angles[:1]
+    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+    angles += angles[:1]
 
-fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
-ax.fill(angles, valores, color='red', alpha=0.25)
-ax.plot(angles, valores, color='red', linewidth=2)
-ax.set_yticklabels([])
-ax.set_xticks(angles[:-1])
-ax.set_xticklabels(categorias, fontsize=9, rotation=90)
-ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
-plt.tight_layout()
-plt.show()
+    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+    ax.fill(angles, valores, color='red', alpha=0.25)
+    ax.plot(angles, valores, color='red', linewidth=2)
+    ax.set_yticklabels([])
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(categorias, fontsize=9, rotation=90)
+    ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
+    plt.tight_layout()
+    plt.show()
+
 
 # Função para plotar impacto de melhoria de ESG no financeiro
 def plotar_impacto_melhoria_esg(score_esg, score_fin, nome_empresa):
-melhoria_esg = np.arange(0, 21, 5)  # até 20 pontos de melhoria
-melhoria_financeira_estim = [score_fin + (x * 0.4) for x in melhoria_esg]  # +0.4 por ponto ESG
+    melhoria_esg = np.arange(0, 21, 5)  # até 20 pontos de melhoria
+    melhoria_financeira_estim = [score_fin + (x * 0.4) for x in melhoria_esg]  # +0.4 por ponto ESG
 
-plt.figure(figsize=(10, 6))
-plt.plot(score_esg + melhoria_esg, melhoria_financeira_estim, marker='o', color='green')
-plt.axvline(x=score_esg, color='red', linestyle='--', label='ESG Atual')
-plt.axhline(y=score_fin, color='blue', linestyle='--', label='Financeiro Atual')
+    plt.figure(figsize=(10, 6))
+    plt.plot(score_esg + melhoria_esg, melhoria_financeira_estim, marker='o', color='green')
+    plt.axvline(x=score_esg, color='red', linestyle='--', label='ESG Atual')
+    plt.axhline(y=score_fin, color='blue', linestyle='--', label='Financeiro Atual')
 
-for x, y in zip(score_esg + melhoria_esg, melhoria_financeira_estim):
-    plt.text(x, y + 0.5, f"{y:.1f}", ha='center', fontsize=8)
+    for x, y in zip(score_esg + melhoria_esg, melhoria_financeira_estim):
+        plt.text(x, y + 0.5, f"{y:.1f}", ha='center', fontsize=8)
 
-plt.title(f'Estimativa de Melhoria no Desempenho Financeiro com ESG - {nome_empresa}', fontsize=14, weight='bold')
-plt.xlabel('Score ESG ')
-plt.ylabel('Score Financeiro ')
-plt.grid(True, linestyle='--', alpha=0.7)
-plt.legend()
-plt.tight_layout()
-plt.show()
+    plt.title(f'Estimativa de Melhoria no Desempenho Financeiro com ESG - {nome_empresa}', fontsize=14, weight='bold')
+    plt.xlabel('Score ESG')
+    plt.ylabel('Score Financeiro')
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
 
 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
 def plotar_impacto_praticas_esg():
-praticas_esg = [
-    "Uso de Energia Renovável",
-    "Diversidade de Gênero na Liderança",
-    "Práticas Éticas na Cadeia de Suprimentos",
-    "Satisfação dos Funcionários",
-    "Redução de Emissões de Carbono"
-]
-impacto_ebitda = [3, 3, 4, 6, 2]  # em pontos percentuais
-impacto_receita = [0, 2, 0, 5, 1]  # em pontos percentuais
+    praticas_esg = [
+        "Uso de Energia Renovável",
+        "Diversidade de Gênero na Liderança",
+        "Práticas Éticas na Cadeia de Suprimentos",
+        "Satisfação dos Funcionários",
+        "Redução de Emissões de Carbono"
+    ]
+    impacto_ebitda = [3, 3, 4, 6, 2]  # em pontos percentuais
+    impacto_receita = [0, 2, 0, 5, 1]  # em pontos percentuais
 
-x = range(len(praticas_esg))
+    x = range(len(praticas_esg))
 
-plt.figure(figsize=(12, 6))
-plt.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
-plt.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
-plt.xticks([p + 0.2 for p in x], praticas_esg, rotation=45, ha='right')
-plt.ylabel('Impacto (%)')
-plt.title('Impacto das Práticas ESG nos Indicadores Financeiros')
-plt.legend()
-plt.tight_layout()
-plt.show()
+    plt.figure(figsize=(12, 6))
+    plt.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
+    plt.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
+    plt.xticks([p + 0.2 for p in x], praticas_esg, rotation=45, ha='right')
+    plt.ylabel('Impacto (%)')
+    plt.title('Impacto das Práticas ESG nos Indicadores Financeiros')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
 
 # Função para plotar evolução do EBITDA
 def plotar_projecao_ebitda():
-anos = [2025, 2026, 2027, 2028, 2029]
-ebitda_atual = [100, 102, 104, 106, 108]  # Crescimento sem melhorias ESG
-ebitda_melhoria_esg = [100, 105, 110, 115, 120]  # Crescimento com melhorias ESG
+    anos = [2025, 2026, 2027, 2028, 2029]
+    ebitda_atual = [100, 102, 104, 106, 108]  # Crescimento sem melhorias ESG
+    ebitda_melhoria_esg = [100, 105, 110, 115, 120]  # Crescimento com melhorias ESG
 
-plt.figure(figsize=(10, 5))
-plt.plot(anos, ebitda_atual, marker='o', label='Sem Melhoria ESG')
-plt.plot(anos, ebitda_melhoria_esg, marker='o', label='Com Melhoria ESG')
-plt.xlabel('Ano')
-plt.ylabel('EBITDA (R$ milhões)')
-plt.title('Projeção do EBITDA com e sem Melhoria em ESG')
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.show()
+    plt.figure(figsize=(10, 5))
+    plt.plot(anos, ebitda_atual, marker='o', label='Sem Melhoria ESG')
+    plt.plot(anos, ebitda_melhoria_esg, marker='o', label='Com Melhoria ESG')
+    plt.xlabel('Ano')
+    plt.ylabel('EBITDA (R$ milhões)')
+    plt.title('Projeção do EBITDA com e sem Melhoria em ESG')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
 
 if st.button("Calcular Resultado Final"):
     # Calcula scores
