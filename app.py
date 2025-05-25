@@ -87,7 +87,6 @@ for indicador in indicadores_financeiros:
 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
-# Função para carregar dados sem cache
 def carregar_dados_empresas(url):
     try:
         df = pd.read_csv(url)
@@ -179,49 +178,7 @@ def plotar_matriz_interativa(df):
 
     st.plotly_chart(fig, use_container_width=True)
 
-if st.button("Calcular Resultado Final"):
-    score_financeiro = calcular_score_financeiro(respostas_financeiros)
-    score_esg = calcular_score_esg(respostas_esg)
-    st.session_state.score_financeiro = score_financeiro
-    st.session_state.score_esg = score_esg
-    st.session_state.calculado = True
-    st.metric("Score ESG", score_esg)
-    st.metric("Score Financeiro", score_financeiro)
-
-    if score_financeiro > 70 and score_esg > 70:
-        st.success("✅ Empresa aprovada na triagem financeira.")
-        st.balloons()
-        st.write("### Resultado final: Empresa Aprovada 🎉")
-    else:
-        st.error("❌ Empresa reprovada na triagem financeira.")
-        st.write("### Resultado final: Empresa Reprovada.")
-        
-        # Parte principal da interface
-        
-        if st.session_state.get('calculado'):
-            st.header("📊 Comparativo: Matriz ESG x Financeiro")
-        
-            try:
-                url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
-        
-                df_empresas = carregar_dados_empresas(url)
-        
-                st.write("Dados carregados da planilha:", df_empresas)
-        
-                df_empresas = calcular_scores(df_empresas)
-        
-                nova_empresa = {
-                    'Empresa': 'Nova Empresa',
-                    'Score ESG': st.session_state.score_esg,
-                    'Score Financeiro': st.session_state.score_financeiro
-                }
-                df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
-        
-                st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
-        
-            except Exception as e:
-                st.error(f"Erro ao carregar os dados da planilha: {e}")
-        # Função para plotar gráfico de radar
+# Função para plotar gráfico de radar
         def plotar_radar(df_resultados, nome_empresa):
             categorias = df_resultados['Indicador']
             valores = df_resultados['Score']
@@ -305,6 +262,51 @@ if st.button("Calcular Resultado Final"):
             plt.grid(True)
             plt.tight_layout()
             plt.show()
+            
+if st.button("Calcular Resultado Final"):
+    score_financeiro = calcular_score_financeiro(respostas_financeiros)
+    score_esg = calcular_score_esg(respostas_esg)
+    st.session_state.score_financeiro = score_financeiro
+    st.session_state.score_esg = score_esg
+    st.session_state.calculado = True
+    st.metric("Score ESG", score_esg)
+    st.metric("Score Financeiro", score_financeiro)
+
+    if score_financeiro > 70 and score_esg > 70:
+        st.success("✅ Empresa aprovada na triagem financeira.")
+        st.balloons()
+        st.write("### Resultado final: Empresa Aprovada 🎉")
+
+    else:
+        st.error("❌ Empresa reprovada na triagem financeira.")
+        st.write("### Resultado final: Empresa Reprovada.")
+
+    # Parte principal da interface
+        
+        if st.session_state.get('calculado'):
+            st.header("📊 Comparativo: Matriz ESG x Financeiro")
+        
+            try:
+                url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
+        
+                df_empresas = carregar_dados_empresas(url)
+        
+                st.write("Dados carregados da planilha:", df_empresas)
+        
+                df_empresas = calcular_scores(df_empresas)
+        
+                nova_empresa = {
+                    'Empresa': 'Nova Empresa',
+                    'Score ESG': st.session_state.score_esg,
+                    'Score Financeiro': st.session_state.score_financeiro
+                }
+                df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
+        
+                st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
+        
+            except Exception as e:
+                st.error(f"Erro ao carregar os dados da planilha: {e}")
+                
         
         # Interface Streamlit
         if st.session_state.get('calculado'):
@@ -337,118 +339,7 @@ if st.button("Calcular Resultado Final"):
         
             except Exception as e:
                 st.error(f"Erro ao carregar os dados da planilha: {e}")
-        
-        # Botão para avançar para análise completa
-        if st.button("Avançar para análise completa"):
-            st.session_state.page = "análise_completa"
-                
-            # Define o estado inicial da página, se ainda não estiver definido
-            if "page" not in st.session_state:
-                st.session_state.page = "inicial"
-            
-            # Botão para avançar para a próxima página
-            if st.button("Avançar para análise completa"):
-                st.session_state.page = "análise_completa"
-            
-            # Gráfico de radar dos indicadores ESG e Financeiros
-            
-            def plotar_radar(df_resultados, nome_empresa):
-                categorias = df_resultados['Indicador']
-                valores = df_resultados['Score']
-            
-                # Normalização dos dados para escala 0-100 e prepara para o radar
-                categorias = list(categorias)
-                valores = list(valores)
-                valores += valores[:1]  # fechar o gráfico
-            
-                angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                angles += angles[:1]
-            
-                fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
-                ax.fill(angles, valores, color='red', alpha=0.25)
-                ax.plot(angles, valores, color='red', linewidth=2)
-                ax.set_yticklabels([])
-                ax.set_xticks(angles[:-1])
-                ax.set_xticklabels(categorias, fontsize=9, rotation=90)
-                ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
-                plt.tight_layout()
-                plt.show()
-            
-            # Simulação: Impacto da melhora de ESG no financeiro
-            def plotar_impacto_melhoria_esg(score_esg, score_fin, nome_empresa):
-                melhoria_esg = np.arange(0, 21, 5)  # até 20 pontos de melhoria
-                melhoria_financeira_estim = [score_fin + (x * 0.4) for x in melhoria_esg]  # +0.4 por ponto ESG
-            
-                plt.figure(figsize=(10, 6))
-                plt.plot(score_esg + melhoria_esg, melhoria_financeira_estim, marker='o', color='green')
-                plt.axvline(x=score_esg, color='red', linestyle='--', label='ESG Atual')
-                plt.axhline(y=score_fin, color='blue', linestyle='--', label='Financeiro Atual')
-            
-                for x, y in zip(score_esg + melhoria_esg, melhoria_financeira_estim):
-                    plt.text(x, y + 0.5, f"{y:.1f}", ha='center', fontsize=8)
-            
-                plt.title(f'Estimativa de Melhoria no Desempenho Financeiro com ESG - {nome_empresa}', fontsize=14, weight='bold')
-                plt.xlabel('Score ESG ')
-                plt.ylabel('Score Financeiro ')
-                plt.grid(True, linestyle='--', alpha=0.7)
-                plt.legend()
-                plt.tight_layout()
-                plt.show()
-            
-            respostas = (respostas_binarias, respostas_esg, respostas_financeiros)
-            
-            # Exemplo de uso:
-            df_resultados, total, score_esg, score_fin = avaliar_empresa("Empresa", respostas)
-            
-            # Plota gráficos complementares
-            plotar_radar(df_resultados, "Empresa")
-            plotar_estimativa_melhorias(score_esg, score_fin, "Empresa")
-            
-            import matplotlib.pyplot as plt
-            
-            # Dados de impacto das práticas ESG nos indicadores financeiros
-            praticas_esg = [
-                "Uso de Energia Renovável",
-                "Diversidade de Gênero na Liderança",
-                "Práticas Éticas na Cadeia de Suprimentos",
-                "Satisfação dos Funcionários",
-                "Redução de Emissões de Carbono"
-            ]
-            
-            impacto_ebitda = [3, 3, 4, 6, 2]  # em pontos percentuais
-            impacto_receita = [0, 2, 0, 5, 1]  # em pontos percentuais
-            
-            x = range(len(praticas_esg))
-            
-            plt.figure(figsize=(12, 6))
-            plt.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
-            plt.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
-            plt.xticks([p + 0.2 for p in x], praticas_esg, rotation=45, ha='right')
-            plt.ylabel('Impacto (%)')
-            plt.title('Impacto das Práticas ESG nos Indicadores Financeiros')
-            plt.legend()
-            plt.tight_layout()
-            plt.show()
-            
-            import matplotlib.pyplot as plt
-            
-            anos = [2025, 2026, 2027, 2028, 2029]
-            ebitda_atual = [100, 102, 104, 106, 108]  # Crescimento sem melhorias ESG
-            ebitda_melhoria_esg = [100, 105, 110, 115, 120]  # Crescimento com melhorias ESG
-            
-            plt.figure(figsize=(10, 5))
-            plt.plot(anos, ebitda_atual, marker='o', label='Sem Melhoria ESG')
-            plt.plot(anos, ebitda_melhoria_esg, marker='o', label='Com Melhoria ESG')
-            plt.xlabel('Ano')
-            plt.ylabel('EBITDA (R$ milhões)')
-            plt.title('Projeção do EBITDA com e sem Melhoria em ESG')
-            plt.legend()
-            plt.grid(True)
-            plt.tight_layout()
-            plt.show()
-            
-            import matplotlib.pyplot as plt
-            import numpy as np
+
             
             # Anos analisados
             anos = np.arange(2018, 2023)
@@ -496,4 +387,6 @@ if st.button("Calcular Resultado Final"):
             plt.grid(True)
             plt.tight_layout()
             plt.show()
+        
+        
 
