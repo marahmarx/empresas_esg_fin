@@ -264,129 +264,84 @@ def plotar_matriz_interativa(df):
             plt.show()
             
 if st.button("Calcular Resultado Final"):
+    # Calcula scores
     score_financeiro = calcular_score_financeiro(respostas_financeiros)
     score_esg = calcular_score_esg(respostas_esg)
     st.session_state.score_financeiro = score_financeiro
     st.session_state.score_esg = score_esg
     st.session_state.calculado = True
+
+    # Mostra os scores
     st.metric("Score ESG", score_esg)
     st.metric("Score Financeiro", score_financeiro)
 
+    # Mensagem de aprovação ou reprovação
     if score_financeiro > 70 and score_esg > 70:
         st.success("✅ Empresa aprovada na triagem financeira.")
         st.balloons()
         st.write("### Resultado final: Empresa Aprovada 🎉")
-
     else:
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
 
-    # Parte principal da interface
+    # Parte visual: matriz ESG x Financeiro e gráficos
+    st.header("📊 Comparativo: Matriz ESG x Financeiro")
         
-        if st.session_state.get('calculado'):
-            st.header("📊 Comparativo: Matriz ESG x Financeiro")
-        
-            try:
-                url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
-        
-                df_empresas = carregar_dados_empresas(url)
-        
-                st.write("Dados carregados da planilha:", df_empresas)
-        
-                df_empresas = calcular_scores(df_empresas)
-        
-                nova_empresa = {
-                    'Empresa': 'Nova Empresa',
-                    'Score ESG': st.session_state.score_esg,
-                    'Score Financeiro': st.session_state.score_financeiro
-                }
-                df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
-        
-                st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
-        
-            except Exception as e:
-                st.error(f"Erro ao carregar os dados da planilha: {e}")
-                
-        
-        # Interface Streamlit
-        if st.session_state.get('calculado'):
-            st.header("📊 Comparativo: Matriz ESG x Financeiro")
-        
-            try:
-                url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
-        
-                df_empresas = carregar_dados_empresas(url)
-        
-                st.write("Dados carregados da planilha:", df_empresas)
-        
-                df_empresas = calcular_scores(df_empresas)
-        
-                nova_empresa = {
-                    'Empresa': 'Nova Empresa',
-                    'Score ESG': st.session_state.score_esg,
-                    'Score Financeiro': st.session_state.score_financeiro
-                }
-                df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
-        
-                # Mostrar matriz de ESG x Financeiro
-                plotar_matriz_interativa(df_empresas)
-        
-                # Gráficos complementares
-                plotar_radar(df_resultados, "Nova Empresa")
-                plotar_impacto_melhoria_esg(st.session_state.score_esg, st.session_state.score_financeiro, "Nova Empresa")
-                plotar_impacto_praticas_esg()
-                plotar_projecao_ebitda()
-        
-            except Exception as e:
-                st.error(f"Erro ao carregar os dados da planilha: {e}")
+    try:
+        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
+        df_empresas = carregar_dados_empresas(url)
+        df_empresas = calcular_scores(df_empresas)
 
-            
-            # Anos analisados
-            anos = np.arange(2018, 2023)
-            
-            # Retornos médios anuais aproximados (2018-2022)
-            # ESG: Natura, WEG, Banco do Brasil (dados médios reais)
-            retorno_esg = np.array([0.15, 0.20, 0.18, 0.10, 0.12])
-            
-            # Não ESG: Oi, Light, Braskem (dados médios reais e aproximados de empresas com instabilidade ou baixa performance ESG)
-            retorno_nao_esg = np.array([-0.25, 0.05, -0.10, -0.03, 0.02])
-            
-            # Retorno do ISE B3 (dados aproximados)
-            retorno_ise = np.array([0.12, 0.15, 0.10, 0.08, 0.11])
-            
-            # Dividend Yield médio anual (aproximado)
-            dy_esg = 0.04  # 4%
-            dy_nao_esg = 0.02  # 2%
-            dy_ise = 0.035  # 3.5%
-            
-            # Cálculo do valor acumulado das ações com reinvestimento de dividendos
-            valor_inicial = 100
-            valor_esg = [valor_inicial]
-            valor_nao_esg = [valor_inicial]
-            valor_ise = [valor_inicial]
-            
-            for r_esg, r_nao_esg, r_ise in zip(retorno_esg, retorno_nao_esg, retorno_ise):
-                valor_esg.append(valor_esg[-1] * (1 + r_esg + dy_esg))
-                valor_nao_esg.append(valor_nao_esg[-1] * (1 + r_nao_esg + dy_nao_esg))
-                valor_ise.append(valor_ise[-1] * (1 + r_ise + dy_ise))
-            
-            # Remover o valor inicial duplicado
-            valor_esg = valor_esg[1:]
-            valor_nao_esg = valor_nao_esg[1:]
-            valor_ise = valor_ise[1:]
-            
-            # Plotagem do gráfico
-            plt.figure(figsize=(12, 7))
-            plt.plot(anos, valor_esg, marker='o', label='Empresas com práticas ESG (ex: Natura, WEG)', color='green')
-            plt.plot(anos, valor_nao_esg, marker='s', label='Empresas sem ESG (ex: Oi, Light)', color='red')
-            plt.plot(anos, valor_ise, marker='^', label='ISE B3 (Índice de Sustentabilidade Empresarial)', color='blue')
-            plt.title('Evolução do Valor das Ações com Reinvestimento de Dividendos (2018-2022)', fontsize=14)
-            plt.xlabel('Ano')
-            plt.ylabel('Valor da Ação (R$)')
-            plt.legend()
-            plt.grid(True)
-            plt.tight_layout()
-            plt.show()
-        
-        
+        nova_empresa = {
+            'Empresa': 'Nova Empresa',
+            'Score ESG': st.session_state.score_esg,
+            'Score Financeiro': st.session_state.score_financeiro
+        }
+        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
 
+        st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
+
+        # Gráficos complementares
+        df_resultados = pd.DataFrame({
+            'Indicador': ['ESG', 'Financeiro'],
+            'Score': [score_esg, score_financeiro]
+        })
+        plotar_radar(df_resultados, "Nova Empresa")
+        plotar_impacto_melhoria_esg(score_esg, score_financeiro, "Nova Empresa")
+        plotar_impacto_praticas_esg()
+        plotar_projecao_ebitda()
+
+        # Gráfico da evolução de ações com reinvestimento de dividendos
+        anos = np.arange(2018, 2023)
+        retorno_esg = np.array([0.15, 0.20, 0.18, 0.10, 0.12])
+        retorno_nao_esg = np.array([-0.25, 0.05, -0.10, -0.03, 0.02])
+        retorno_ise = np.array([0.12, 0.15, 0.10, 0.08, 0.11])
+        dy_esg, dy_nao_esg, dy_ise = 0.04, 0.02, 0.035
+
+        valor_inicial = 100
+        valor_esg = [valor_inicial]
+        valor_nao_esg = [valor_inicial]
+        valor_ise = [valor_inicial]
+
+        for r_esg, r_nao_esg, r_ise in zip(retorno_esg, retorno_nao_esg, retorno_ise):
+            valor_esg.append(valor_esg[-1] * (1 + r_esg + dy_esg))
+            valor_nao_esg.append(valor_nao_esg[-1] * (1 + r_nao_esg + dy_nao_esg))
+            valor_ise.append(valor_ise[-1] * (1 + r_ise + dy_ise))
+
+        valor_esg = valor_esg[1:]
+        valor_nao_esg = valor_nao_esg[1:]
+        valor_ise = valor_ise[1:]
+
+        plt.figure(figsize=(12, 7))
+        plt.plot(anos, valor_esg, marker='o', label='Empresas ESG', color='green')
+        plt.plot(anos, valor_nao_esg, marker='s', label='Sem ESG', color='red')
+        plt.plot(anos, valor_ise, marker='^', label='ISE B3', color='blue')
+        plt.title('Evolução do Valor das Ações com Reinvestimento de Dividendos (2018-2022)')
+        plt.xlabel('Ano')
+        plt.ylabel('Valor da Ação (R$)')
+        plt.legend()
+        plt.grid(True)
+        st.pyplot(plt)
+
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha ou gerar gráficos: {e}")
