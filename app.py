@@ -268,18 +268,14 @@ def plotar_projecao_ebitda():
 
 
 if st.button("Calcular Resultado Final"):
-    # Calcula scores
     score_financeiro = calcular_score_financeiro(respostas_financeiros)
     score_esg = calcular_score_esg(respostas_esg)
     st.session_state.score_financeiro = score_financeiro
     st.session_state.score_esg = score_esg
     st.session_state.calculado = True
-
-    # Mostra os scores
     st.metric("Score ESG", score_esg)
     st.metric("Score Financeiro", score_financeiro)
 
-    # Mensagem de aprovação ou reprovação
     if score_financeiro > 70 and score_esg > 70:
         st.success("✅ Empresa aprovada na triagem financeira.")
         st.balloons()
@@ -288,28 +284,48 @@ if st.button("Calcular Resultado Final"):
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
 
-    # Parte visual: matriz ESG x Financeiro e gráficos
+# Segunda parte
+
+# Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
+
+# Função para carregar dados sem cache
+def carregar_dados_empresas(url):
+    try:
+        df = pd.read_csv(url)
+        df.columns = df.columns.str.strip()  # Remover espaços nas colunas
+        
+        # Converter as colunas para numérico (forçando erros a se tornarem NaN)
+        for coluna in df.columns[3:]:
+            df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
+        
+        return df
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+        return pd.DataFrame()
+
+    if st.session_state.get('calculado'):
     st.header("📊 Comparativo: Matriz ESG x Financeiro")
 
     try:
-        score_esg = st.session_state.score_esg
-        score_financeiro = st.session_state.score_financeiro
+        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
 
-        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-.../output=csv'
         df_empresas = carregar_dados_empresas(url)
+
+        st.write("Dados carregados da planilha:", df_empresas)
+
         df_empresas = calcular_scores(df_empresas)
 
         nova_empresa = {
             'Empresa': 'Nova Empresa',
-            'Score ESG': score_esg,
-            'Score Financeiro': score_financeiro
+            'Score ESG': st.session_state.score_esg,
+            'Score Financeiro': st.session_state.score_financeiro
         }
         df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
 
         st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
 
     except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha ou gerar gráficos: {e}")
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
 
 # Defina essa função fora do bloco do botão
 def carregar_dados_empresas(url):
