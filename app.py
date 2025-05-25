@@ -263,8 +263,8 @@ if st.session_state.get('calculado'):
 
                 # Função para plotar gráfico de radar
                 def plotar_radar(df_resultados, nome_empresa):
-                    categorias = df_resultados['Indicador']
-                    valores = df_resultados['Score']
+                    categorias = df_resultados['indicador']
+                    valores = df_resultados['score']
                     categorias = list(categorias)
                     valores = list(valores)
                     valores += valores[:1]
