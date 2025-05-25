@@ -308,6 +308,25 @@ if st.button("Calcular Resultado Final"):
 
         st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
 
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha ou gerar gráficos: {e}")
+
+# Defina essa função fora do bloco do botão
+def carregar_dados_empresas(url):
+    try:
+        df = pd.read_csv(url)
+        df.columns = df.columns.str.strip()  # Remover espaços nas colunas
+
+        # Converter as colunas para numérico (forçando erros a se tornarem NaN)
+        for coluna in df.columns[3:]:
+            df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
+
+        return df
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+        return pd.DataFrame()
+
+        
         # Segunda parte
         mostrar_analise = st.button("Obter análise completa")
         if mostrar_analise:        
