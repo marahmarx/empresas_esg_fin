@@ -280,6 +280,39 @@ def carregar_dados_empresas(url):
         st.error(f"Erro ao carregar os dados da planilha: {e}")
         return pd.DataFrame()
 
+if st.button("Calcular Resultado Final"):
+    score_financeiro = calcular_score_financeiro(respostas_financeiros)
+    score_esg = calcular_score_esg(respostas_esg)
+    st.session_state.score_financeiro = score_financeiro
+    st.session_state.score_esg = score_esg
+    st.session_state.calculado = True
+    st.metric("Score ESG", score_esg)
+    st.metric("Score Financeiro", score_financeiro)
+
+    if score_financeiro > 70 and score_esg > 70:
+        st.success("✅ Empresa aprovada na triagem financeira.")
+        st.balloons()
+        st.write("### Resultado final: Empresa Aprovada 🎉")
+    else:
+        st.error("❌ Empresa reprovada na triagem financeira.")
+        st.write("### Resultado final: Empresa Reprovada.")
+
+
+# Função para carregar dados sem cache
+def carregar_dados_empresas(url):
+    try:
+        df = pd.read_csv(url)
+        df.columns = df.columns.str.strip()  # Remover espaços nas colunas
+        
+        # Converter as colunas para numérico (forçando erros a se tornarem NaN)
+        for coluna in df.columns[3:]:
+            df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
+        
+        return df
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+        return pd.DataFrame()
+
 
 if st.session_state.get('calculado'):
     st.header("📊 Comparativo: Matriz ESG x Financeiro")
@@ -305,20 +338,6 @@ if st.session_state.get('calculado'):
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
 
-# Defina essa função fora do bloco do botão
-def carregar_dados_empresas(url):
-    try:
-        df = pd.read_csv(url)
-        df.columns = df.columns.str.strip()  # Remover espaços nas colunas
-
-        # Converter as colunas para numérico (forçando erros a se tornarem NaN)
-        for coluna in df.columns[3:]:
-            df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
-
-        return df
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
-        return pd.DataFrame()
 
         
         # Segunda parte
