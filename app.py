@@ -182,89 +182,84 @@ def plotar_matriz_interativa(df):
 def plotar_radar(df_resultados, nome_empresa):
     categorias = df_resultados['Indicador']
     valores = df_resultados['Score']
-
-    # Normalização dos dados para escala 0-100 e prepara para o radar
     categorias = list(categorias)
     valores = list(valores)
-    valores += valores[:1]  # fechar o gráfico
+    valores += valores[:1]
 
     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
     angles += angles[:1]
 
-    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
     ax.fill(angles, valores, color='red', alpha=0.25)
     ax.plot(angles, valores, color='red', linewidth=2)
-    ax.set_yticklabels([])
+    ax.set_yticklabels([])  # opcional
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categorias, fontsize=9, rotation=90)
-    ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
-    plt.tight_layout()
-    plt.show()
+    ax.set_xticklabels(categorias, fontsize=10)
+    ax.set_title(f"Radar de Indicadores - {nome_empresa}", size=13, weight='bold', y=1.1)
+    st.pyplot(fig)
 
-
-# Função para plotar impacto de melhoria de ESG no financeiro
+#Função impacto financeiro com melhorias esg 
 def plotar_impacto_melhoria_esg(score_esg, score_fin, nome_empresa):
-    melhoria_esg = np.arange(0, 21, 5)  # até 20 pontos de melhoria
-    melhoria_financeira_estim = [score_fin + (x * 0.4) for x in melhoria_esg]  # +0.4 por ponto ESG
+    melhoria_esg = np.arange(0, 21, 5)
+    esg_scores = [score_esg + x for x in melhoria_esg]
+    melhoria_financeira_estim = [score_fin + (x * 0.4) for x in melhoria_esg]
 
     plt.figure(figsize=(10, 6))
-    plt.plot(score_esg + melhoria_esg, melhoria_financeira_estim, marker='o', color='green')
+    plt.plot(esg_scores, melhoria_financeira_estim, marker='o', color='green')
     plt.axvline(x=score_esg, color='red', linestyle='--', label='ESG Atual')
     plt.axhline(y=score_fin, color='blue', linestyle='--', label='Financeiro Atual')
 
-    for x, y in zip(score_esg + melhoria_esg, melhoria_financeira_estim):
+    for x, y in zip(esg_scores, melhoria_financeira_estim):
         plt.text(x, y + 0.5, f"{y:.1f}", ha='center', fontsize=8)
 
-    plt.title(f'Estimativa de Melhoria no Desempenho Financeiro com ESG - {nome_empresa}', fontsize=14, weight='bold')
+    plt.title(f'Impacto da Melhoria no ESG no Score Financeiro - {nome_empresa}', fontsize=14, weight='bold')
     plt.xlabel('Score ESG')
     plt.ylabel('Score Financeiro')
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.legend()
     plt.tight_layout()
-    plt.show()
-
+    st.pyplot(plt.gcf())
 
 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
 def plotar_impacto_praticas_esg():
     praticas_esg = [
-        "Uso de Energia Renovável",
-        "Diversidade de Gênero na Liderança",
-        "Práticas Éticas na Cadeia de Suprimentos",
+        "Energia Renovável",
+        "Diversidade na Liderança",
+        "Ética na Cadeia de Suprimentos",
         "Satisfação dos Funcionários",
-        "Redução de Emissões de Carbono"
+        "Redução de Carbono"
     ]
-    impacto_ebitda = [3, 3, 4, 6, 2]  # em pontos percentuais
-    impacto_receita = [0, 2, 0, 5, 1]  # em pontos percentuais
+    impacto_ebitda = [3, 3, 4, 6, 2]
+    impacto_receita = [0, 2, 0, 5, 1]
 
-    x = range(len(praticas_esg))
+    x = np.arange(len(praticas_esg))
 
     plt.figure(figsize=(12, 6))
-    plt.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
-    plt.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
-    plt.xticks([p + 0.2 for p in x], praticas_esg, rotation=45, ha='right')
+    plt.bar(x - 0.2, impacto_ebitda, width=0.4, label='EBITDA')
+    plt.bar(x + 0.2, impacto_receita, width=0.4, label='Receita')
+    plt.xticks(x, praticas_esg, rotation=45, ha='right')
     plt.ylabel('Impacto (%)')
-    plt.title('Impacto das Práticas ESG nos Indicadores Financeiros')
+    plt.title('Impacto das Práticas ESG em Indicadores Financeiros')
     plt.legend()
     plt.tight_layout()
-    plt.show()
-
+    st.pyplot(plt.gcf())
 
 # Função para plotar evolução do EBITDA
 def plotar_projecao_ebitda():
     anos = [2025, 2026, 2027, 2028, 2029]
-    ebitda_atual = [100, 102, 104, 106, 108]  # Crescimento sem melhorias ESG
-    ebitda_melhoria_esg = [100, 105, 110, 115, 120]  # Crescimento com melhorias ESG
+    ebitda_atual = [100, 102, 104, 106, 108]
+    ebitda_melhoria_esg = [100, 105, 110, 115, 120]
 
     plt.figure(figsize=(10, 5))
     plt.plot(anos, ebitda_atual, marker='o', label='Sem Melhoria ESG')
     plt.plot(anos, ebitda_melhoria_esg, marker='o', label='Com Melhoria ESG')
     plt.xlabel('Ano')
     plt.ylabel('EBITDA (R$ milhões)')
-    plt.title('Projeção do EBITDA com e sem Melhoria em ESG')
+    plt.title('Projeção do EBITDA com e sem Melhoria ESG')
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    st.pyplot(plt.gcf())
 
 def carregar_dados_empresas(url):
     try:
@@ -340,52 +335,64 @@ if st.session_state.get('calculado'):
 
 
         
-        # Segunda parte
+        # Segunda parte: Análise visual completa
         mostrar_analise = st.button("Obter análise completa")
-        if mostrar_analise:        
-            df_resultados = pd.DataFrame({
-                'Indicador': ['ESG', 'Financeiro'],
-                'Score': [score_esg, score_financeiro]
-            })
+        
+        if mostrar_analise:
+            try:
+                # Garantir uso das variáveis calculadas
+                score_esg = st.session_state.get('score_esg', 0)
+                score_financeiro = st.session_state.get('score_financeiro', 0)
+        
+                # 1. Radar de Scores
+                df_resultados = pd.DataFrame({
+                    'Indicador': ['ESG', 'Financeiro'],
+                    'Score': [score_esg, score_financeiro]
+                })
+                plotar_radar(df_resultados, "Nova Empresa")
+        
+                # 2. Impacto de melhorias ESG e projeções
+                plotar_impacto_melhoria_esg(score_esg, score_financeiro, "Nova Empresa")
+                plotar_impacto_praticas_esg()
+                plotar_projecao_ebitda()
+        
+                # 3. Evolução com dividendos
+                anos = np.arange(2018, 2023)
+                retorno_esg = np.array([0.15, 0.20, 0.18, 0.10, 0.12])
+                retorno_nao_esg = np.array([-0.25, 0.05, -0.10, -0.03, 0.02])
+                retorno_ise = np.array([0.12, 0.15, 0.10, 0.08, 0.11])
+                dy_esg, dy_nao_esg, dy_ise = 0.04, 0.02, 0.035  # Dividend yields
+        
+                valor_inicial = 100
+                valor_esg = [valor_inicial]
+                valor_nao_esg = [valor_inicial]
+                valor_ise = [valor_inicial]
+        
+                for r_esg, r_nao_esg, r_ise in zip(retorno_esg, retorno_nao_esg, retorno_ise):
+                    valor_esg.append(valor_esg[-1] * (1 + r_esg + dy_esg))
+                    valor_nao_esg.append(valor_nao_esg[-1] * (1 + r_nao_esg + dy_nao_esg))
+                    valor_ise.append(valor_ise[-1] * (1 + r_ise + dy_ise))
+        
+                # Remove valor_inicial
+                valor_esg = valor_esg[1:]
+                valor_nao_esg = valor_nao_esg[1:]
+                valor_ise = valor_ise[1:]
+        
+                # Plot do gráfico de evolução
+                fig, ax = plt.subplots(figsize=(12, 6))
+                ax.plot(anos, valor_esg, marker='o', label='Empresas ESG', color='green', linewidth=2)
+                ax.plot(anos, valor_nao_esg, marker='s', label='Sem ESG', color='red', linewidth=2)
+                ax.plot(anos, valor_ise, marker='^', label='ISE B3', color='blue', linewidth=2)
+        
+                ax.set_title('💹 Evolução do Valor das Ações com Reinvestimento de Dividendos (2018–2022)', fontsize=14)
+                ax.set_xlabel('Ano', fontsize=12)
+                ax.set_ylabel('Valor da Ação (R$)', fontsize=12)
+                ax.legend(loc='upper left')
+                ax.grid(True, linestyle='--', alpha=0.7)
+                st.pyplot(fig)
+        
+            except Exception as e:
+                st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
 
-            plotar_radar(df_resultados, "Nova Empresa")
-            plotar_impacto_melhoria_esg(score_esg, score_financeiro, "Nova Empresa")
-            plotar_impacto_praticas_esg()
-            plotar_projecao_ebitda()
-
-            # Último gráfico: evolução com dividendos
-            anos = np.arange(2018, 2023)
-            retorno_esg = np.array([0.15, 0.20, 0.18, 0.10, 0.12])
-            retorno_nao_esg = np.array([-0.25, 0.05, -0.10, -0.03, 0.02])
-            retorno_ise = np.array([0.12, 0.15, 0.10, 0.08, 0.11])
-            dy_esg, dy_nao_esg, dy_ise = 0.04, 0.02, 0.035
-
-            valor_inicial = 100
-            valor_esg = [valor_inicial]
-            valor_nao_esg = [valor_inicial]
-            valor_ise = [valor_inicial]
-
-            for r_esg, r_nao_esg, r_ise in zip(retorno_esg, retorno_nao_esg, retorno_ise):
-                valor_esg.append(valor_esg[-1] * (1 + r_esg + dy_esg))
-                valor_nao_esg.append(valor_nao_esg[-1] * (1 + r_nao_esg + dy_nao_esg))
-                valor_ise.append(valor_ise[-1] * (1 + r_ise + dy_ise))
-
-            valor_esg = valor_esg[1:]
-            valor_nao_esg = valor_nao_esg[1:]
-            valor_ise = valor_ise[1:]
-
-            fig, ax = plt.subplots(figsize=(12, 7))
-            ax.plot(anos, valor_esg, marker='o', label='Empresas ESG', color='green')
-            ax.plot(anos, valor_nao_esg, marker='s', label='Sem ESG', color='red')
-            ax.plot(anos, valor_ise, marker='^', label='ISE B3', color='blue')
-            ax.set_title('Evolução do Valor das Ações com Reinvestimento de Dividendos (2018-2022)')
-            ax.set_xlabel('Ano')
-            ax.set_ylabel('Valor da Ação (R$)')
-            ax.legend()
-            ax.grid(True)
-            st.pyplot(fig)
-
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha ou gerar gráficos: {e}")
 
 
