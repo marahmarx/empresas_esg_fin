@@ -266,45 +266,53 @@ if st.session_state.get('calculado'):
                     categorias = []
                     valores = []
                 
-                    # Indicadores binários (convertidos para pontuação)
+                    # ✅ Indicadores binários (com nomes reais)
                     for i, pergunta in enumerate(perguntas_binarias):
-                        categorias.append(f"Q{i+1}")
+                        categorias.append(pergunta)  # usa o nome da pergunta
                         valor = 100 if respostas_binarias[i] == 1 else 0
                         valores.append(valor)
                 
-                    # Indicadores ESG quantitativos
-                    for i, (valor, peso, faixas) in enumerate(respostas_esg):
-                        pontuacao = aplicar_faixas(valor, faixas)
-                        categorias.append(indicadores_esg[i]["indicador"])
-                        valores.append(pontuacao)
+                    # 🧪 Diagnóstico
+                    st.write("Respostas ESG (quantitativas):", respostas_esg)
+                
+                    # ✅ Indicadores ESG quantitativos
+                    for i, item in enumerate(respostas_esg):
+                        try:
+                            valor, peso, faixas = item
+                            pontuacao = aplicar_faixas(valor, faixas)
+                            categorias.append(indicadores_esg[i]["indicador"])  # nome do indicador
+                            valores.append(pontuacao)
+                        except Exception as e:
+                            st.warning(f"Erro ao processar indicador {i}: {e}")
                 
                     # Fechar o loop do radar
-                    categorias.append(categorias[0])
-                    valores.append(valores[0])
+                    if categorias and valores:
+                        categorias.append(categorias[0])
+                        valores.append(valores[0])
                 
-                    fig = go.Figure(
-                        data=[
-                            go.Scatterpolar(
-                                r=valores,
-                                theta=categorias,
-                                fill='toself',
-                                name=nome_empresa
-                            )
-                        ]
-                    )
+                        fig = go.Figure(
+                            data=[
+                                go.Scatterpolar(
+                                    r=valores,
+                                    theta=categorias,
+                                    fill='toself',
+                                    name=nome_empresa
+                                )
+                            ]
+                        )
                 
-                    fig.update_layout(
-                        polar=dict(
-                            radialaxis=dict(visible=True, range=[0, 100])
-                        ),
-                        showlegend=True,
-                        title=f"Radar dos Indicadores ESG - {nome_empresa}"
-                    )
+                        fig.update_layout(
+                            polar=dict(
+                                radialaxis=dict(visible=True, range=[0, 100])
+                            ),
+                            showlegend=True,
+                            title=f"Radar dos Indicadores ESG - {nome_empresa}"
+                        )
                 
-                    st.plotly_chart(fig, use_container_width=True)
-                
-                # Chamada da função (fora da definição)
-                plotar_radar_indicadores(nome_empresa, respostas_binarias, respostas_esg)
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.warning("Não há dados suficientes para gerar o gráfico.")
+
 
 
                 
