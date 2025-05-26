@@ -270,10 +270,6 @@ if st.session_state.get('calculado'):
                     categorias = df_resultados['Indicador'].tolist()
                     valores = df_resultados['Score'].tolist()
                 
-                    if len(categorias) < 3:
-                        st.warning("É necessário pelo menos 3 indicadores para gerar o radar.")
-                        return
-                
                     # Fechar o radar
                     categorias.append(categorias[0])
                     valores.append(valores[0])
