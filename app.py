@@ -351,21 +351,22 @@ if mostrar_analise:
         # Criar dataframe com resultados ESG e Financeiros
         df_resultados = []
 
-        # Indicadores binários
-        for (nome, peso), resposta in zip(perguntas_binarias, respostas_binarias):
-            score = 100 if resposta else 0
-            df_resultados.append({"Indicador": nome, "Score": score})
+        # Indicadores binários (Sim = 1 → 100 pontos; Não = 0 → 0 pontos)
+        for pergunta, resposta in zip(perguntas_binarias, respostas_binarias):
+            score = 100 if resposta == 1 else 0
+            df_resultados.append({"Indicador": pergunta, "Score": score})
         
         # Indicadores ESG quantitativos
-        for (nome, peso), resposta in zip(indicadores_esg, respostas_esg):
-            score = avaliar_faixa(resposta, faixas_esg[nome])
-            df_resultados.append({"Indicador": nome, "Score": score})
+        for indicador, (valor, peso, faixas) in zip(indicadores_esg, respostas_esg):
+            score = avaliar_faixa(valor, faixas)
+            df_resultados.append({"Indicador": indicador["indicador"], "Score": score})
         
         # Indicadores financeiros
-        for (nome, peso), resposta in zip(indicadores_fin, respostas_fin):
-            score = avaliar_faixa(resposta, faixas_financeiras[nome])
-            df_resultados.append({"Indicador": nome, "Score": score})
+        for indicador, (valor, peso, faixas) in zip(indicadores_financeiros, respostas_financeiros):
+            score = avaliar_faixa(valor, faixas)
+            df_resultados.append({"Indicador": indicador["indicador"], "Score": score})
         
+        # Criar DataFrame final
         df_resultados = pd.DataFrame(df_resultados)
 
 
