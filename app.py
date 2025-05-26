@@ -260,58 +260,69 @@ if st.session_state.get('calculado'):
                 # Garantir uso das variáveis calculadas
                 score_esg = st.session_state.get('score_esg', 0)
                 score_financeiro = st.session_state.get('score_financeiro', 0)
+
+                def avaliar_empresa(nome_empresa, respostas_esg, respostas_financeiros):
+                    resultados = []
+                    score_esg = 0
+                    score_financeiro = 0
                 
+                    # Avaliação ESG
+                    for (valor, peso, faixas), indicador in zip(respostas_esg, indicadores_esg):
+                        score = aplicar_faixas(valor, faixas)
+                        score_ponderado = score * peso / 100
+                        score_esg += score_ponderado
+                
+                        resultados.append({
+                            "Tipo": "ESG",
+                            "Indicador": indicador["indicador"],
+                            "Valor": valor,
+                            "Score": score,
+                            "Peso (%)": peso,
+                            "Score Ponderado": score_ponderado
+                        })
+                
+                    # Avaliação Financeira
+                    for (valor, peso, faixas), indicador in zip(respostas_financeiros, indicadores_financeiros):
+                        score = aplicar_faixas(valor, faixas)
+                        score_ponderado = score * peso / 100
+                        score_financeiro += score_ponderado
+                
+                        resultados.append({
+                            "Tipo": "Financeiro",
+                            "Indicador": indicador["indicador"],
+                            "Valor": valor,
+                            "Score": score,
+                            "Peso (%)": peso,
+                            "Score Ponderado": score_ponderado
+                        })
+                
+                    total_score = score_esg + score_financeiro
+                    df_resultados = pd.DataFrame(resultados)
+                
+                    return df_resultados, score_esg, score_financeiro, total_score
+
                 # Função para calcular score individual por indicador e gerar o gráfico radar
-                def plotar_radar_indicadores(nome_empresa, respostas_binarias, respostas_esg):
-                    categorias = []
-                    valores = []
+                def plotar_radar(df_resultados, nome_empresa):
+                    categorias = df_resultados['Indicador']
+                    valores = df_resultados['Score']
                 
-                    # ✅ Indicadores binários (com nomes reais)
-                    for i, pergunta in enumerate(perguntas_binarias):
-                        categorias.append(pergunta)  # usa o nome da pergunta
-                        valor = 100 if respostas_binarias[i] == 1 else 0
-                        valores.append(valor)
+                    # Normalização dos dados para escala 0-100 e prepara para o radar
+                    categorias = list(categorias)
+                    valores = list(valores)
+                    valores += valores[:1]  # fechar o gráfico
                 
-                    # 🧪 Diagnóstico
-                    st.write("Respostas ESG (quantitativas):", respostas_esg)
+                    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+                    angles += angles[:1]
                 
-                    # ✅ Indicadores ESG quantitativos
-                    for i, item in enumerate(respostas_esg):
-                        try:
-                            valor, peso, faixas = item
-                            pontuacao = aplicar_faixas(valor, faixas)
-                            categorias.append(indicadores_esg[i]["indicador"])  # nome do indicador
-                            valores.append(pontuacao)
-                        except Exception as e:
-                            st.warning(f"Erro ao processar indicador {i}: {e}")
-                
-                    # Fechar o loop do radar
-                    if categorias and valores:
-                        categorias.append(categorias[0])
-                        valores.append(valores[0])
-                
-                        fig = go.Figure(
-                            data=[
-                                go.Scatterpolar(
-                                    r=valores,
-                                    theta=categorias,
-                                    fill='toself',
-                                    name=nome_empresa
-                                )
-                            ]
-                        )
-                
-                        fig.update_layout(
-                            polar=dict(
-                                radialaxis=dict(visible=True, range=[0, 100])
-                            ),
-                            showlegend=True,
-                            title=f"Radar dos Indicadores ESG - {nome_empresa}"
-                        )
-                
-                        st.plotly_chart(fig, use_container_width=True)
-                    else:
-                        st.warning("Não há dados suficientes para gerar o gráfico.")
+                    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+                    ax.fill(angles, valores, color='red', alpha=0.25)
+                    ax.plot(angles, valores, color='red', linewidth=2)
+                    ax.set_yticklabels([])
+                    ax.set_xticks(angles[:-1])
+                    ax.set_xticklabels(categorias, fontsize=9, rotation=90)
+                    ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
+                    plt.tight_layout()
+                    plt.show()
 
 
 
