@@ -262,12 +262,34 @@ if st.session_state.get('calculado'):
         
                 # Função para plotar gráfico de radar 
                 def plotar_radar(df_resultados, nome_empresa): 
-                    categorias = df_resultados['Indicador'] 
-                    valores = df_resultados['Score'] 
-                    # Normalização dos dados para escala 0-100 e prepara para o radar 
-                    categorias = list(categorias) 
-                    valores = list(valores) 
-                    valores += valores[:1]  
+                    
+                   # Função para calcular score individual por indicador
+                def calcular_scores_por_indicador(respostas, tipo="ESG"):
+                    resultado = {}
+                
+                    if tipo == "ESG":
+                        indicadores = indicadores_esg
+                    else:
+                        indicadores = indicadores_financeiros
+                
+                    for i, (valor, peso, faixas) in enumerate(respostas):
+                        nome_indicador = indicadores[i]["indicador"]
+                
+                        # Binário: 1 = score máximo, 0 = score zero
+                        if faixas in ["binario", None]:
+                            score = 100 * peso / 100 if valor == 1 else 0
+                        else:
+                            score = aplicar_faixas(valor, faixas) * peso / 100
+                
+                        resultado[nome_indicador] = score
+                
+                    return resultado
+                
+                # Função para plotar gráfico radar
+                def plotar_radar(dicionario_resultados, nome_empresa):
+                    categorias = list(dicionario_resultados.keys())
+                    valores = list(dicionario_resultados.values())
+                    valores += valores[:1]  # Fecha o círculo
                
                     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist() 
                     angles += angles[:1] 
