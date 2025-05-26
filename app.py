@@ -266,29 +266,25 @@ if mostrar_analise:
         def plotar_radar(df_resultados, nome_empresa):
             categorias = df_resultados['Indicador'].tolist()
             valores = df_resultados['Score'].tolist()
-
-            if len(categorias) < 3:
-                # Completa os indicadores se tiver apenas 2 (para formar o radar)
-                while len(categorias) < 3:
-                    categorias.append(f"Extra {len(categorias)+1}")
-                    valores.append(0)
-
-            # Fechar o radar adicionando o primeiro item ao final
+        
+            # Fechar o círculo
             categorias.append(categorias[0])
             valores.append(valores[0])
-
+        
             angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-            angles.append(angles[0])  # Fecha o círculo
-
-            fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+            angles.append(angles[0])
+        
+            fig, ax = plt.subplots(figsize=(10, 8), subplot_kw=dict(polar=True))
             ax.plot(angles, valores, color='red', linewidth=2)
             ax.fill(angles, valores, color='red', alpha=0.25)
             ax.set_xticks(angles[:-1])
             ax.set_xticklabels(categorias[:-1], fontsize=9)
             ax.set_yticklabels([])
-            ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
+            ax.set_title(f"Radar de Indicadores - {nome_empresa}", size=15, weight='bold')
+        
             st.pyplot(fig)
             plt.close(fig)
+
 
         # Nova função que estava faltando
         def plotar_impacto_melhoria_esg(score_atual, score_projetado, nome_empresa):
@@ -352,10 +348,25 @@ if mostrar_analise:
             plt.close()
 
         # Criar dataframe com resultados ESG e Financeiros
-        df_resultados = pd.DataFrame({
-            'Indicador': ['ESG', 'Financeiro'],
-            'Score': [score_esg, score_financeiro]
-        })
+        df_resultados = []
+
+        # Indicadores binários
+        for (nome, peso), resposta in zip(indicadores_binarios, respostas_binarias):
+            score = 100 if resposta else 0
+            df_resultados.append({"Indicador": nome, "Score": score})
+        
+        # Indicadores ESG quantitativos
+        for (nome, peso), resposta in zip(indicadores_esg, respostas_esg):
+            score = avaliar_faixa(resposta, faixas_esg[nome])
+            df_resultados.append({"Indicador": nome, "Score": score})
+        
+        # Indicadores financeiros
+        for (nome, peso), resposta in zip(indicadores_fin, respostas_fin):
+            score = avaliar_faixa(resposta, faixas_financeiras[nome])
+            df_resultados.append({"Indicador": nome, "Score": score})
+        
+        df_resultados = pd.DataFrame(df_resultados)
+
 
         # Chamar os gráficos
         plotar_radar(df_resultados, "Nova Empresa")
