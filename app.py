@@ -266,9 +266,15 @@ if st.session_state.get('calculado'):
                     if df_resultados.empty or "Indicador" not in df_resultados or "Score" not in df_resultados:
                         st.error("Dados insuficientes para gerar o gráfico radar.")
                         return
+
+                    categorias = df_resultados['Indicador'].tolist()
+                    valores = df_resultados['Score'].tolist()    
+                    if len(categorias) < 3:
+                        st.warning("É necessário pelo menos 3 indicadores para gerar o radar.")
+                        return
                         
-                    categorias = df_resultados['Indicador']
-                    valores = df_resultados['Score']
+                    categorias.append(categorias[0])
+                    valores.append(valores[0])
                 
                     # Normalização dos dados para escala 0-100 e prepara para o radar
                     categorias = list(categorias)
