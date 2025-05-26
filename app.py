@@ -261,68 +261,40 @@ if st.session_state.get('calculado'):
                 score_esg = st.session_state.get('score_esg', 0)
                 score_financeiro = st.session_state.get('score_financeiro', 0)
 
-                def avaliar_empresa(nome_empresa, respostas_esg, respostas_financeiros):
-                    resultados = []
-                    score_esg = 0
-                    score_financeiro = 0
-                
-                    # Função para gerar gráfico radar
-                    def plotar_radar(df_resultados, nome_empresa):
-                        categorias = df_resultados['Indicador'].tolist()
-                        valores = df_resultados['Score'].tolist()
-                    
-                        # Fecha o gráfico conectando o último ponto ao primeiro
-                        valores += valores[:1]
-                        categorias += categorias[:1]
-                    
-                        angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                        angles += angles[:1]
-                    
-                        fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
-                        ax.fill(angles, valores, color='red', alpha=0.25)
-                        ax.plot(angles, valores, color='red', linewidth=2)
-                    
-                        ax.set_yticklabels([])
-                        ax.set_xticks(angles[:-1])
-                        ax.set_xticklabels(categorias[:-1], fontsize=9, rotation=45, ha='right')
-                    
-                        ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
-                        plt.tight_layout()
-                    
-                        # MOSTRA O GRÁFICO NO STREAMLIT
-                        st.pyplot(fig)
-                    
-                        # Fecha figura para evitar vazamentos de memória no loop
-                        plt.close(fig)
-
-                # Função para calcular score individual por indicador e gerar o gráfico radar
                 def plotar_radar(df_resultados, nome_empresa):
+                    # Garante que os dados estão prontos
+                    if df_resultados.empty or "Indicador" not in df_resultados or "Score" not in df_resultados:
+                        st.error("Dados insuficientes para gerar o gráfico radar.")
+                        return
+                
                     categorias = df_resultados['Indicador'].tolist()
                     valores = df_resultados['Score'].tolist()
                 
-                    # Fecha o gráfico conectando o último ponto ao primeiro
-                    valores += valores[:1]
-                    categorias += categorias[:1]
+                    if len(categorias) < 3:
+                        st.warning("É necessário pelo menos 3 indicadores para gerar um radar.")
+                        return
                 
+                    # Fecha o radar (volta ao primeiro ponto)
+                    categorias.append(categorias[0])
+                    valores.append(valores[0])
+                
+                    # Cria os ângulos com base na quantidade de categorias
                     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                    angles += angles[:1]
+                    angles.append(angles[0])  # fechar o círculo
                 
+                    # Plot
                     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
-                    ax.fill(angles, valores, color='red', alpha=0.25)
                     ax.plot(angles, valores, color='red', linewidth=2)
+                    ax.fill(angles, valores, color='red', alpha=0.25)
                 
-                    ax.set_yticklabels([])
                     ax.set_xticks(angles[:-1])
-                    ax.set_xticklabels(categorias[:-1], fontsize=9, rotation=45, ha='right')
+                    ax.set_xticklabels(categorias[:-1], fontsize=9)
+                    ax.set_yticklabels([])
                 
                     ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
-                    plt.tight_layout()
-                
-                    # MOSTRA O GRÁFICO NO STREAMLIT
                     st.pyplot(fig)
-                
-                    # Fecha figura para evitar vazamentos de memória no loop
                     plt.close(fig)
+
                 
                 #Função impacto financeiro com melhorias esg 
                 def plotar_impacto_melhoria_esg(score_esg, score_fin, nome_empresa):
