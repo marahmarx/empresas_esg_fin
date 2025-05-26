@@ -261,8 +261,8 @@ if st.session_state.get('calculado'):
                 score_esg = st.session_state.get('score_esg', 0)
                 score_financeiro = st.session_state.get('score_financeiro', 0)
 
+                # Função genérica para gráfico radar
                 def plotar_radar(df_resultados, nome_empresa):
-                    # Garante que os dados estão prontos
                     if df_resultados.empty or "Indicador" not in df_resultados or "Score" not in df_resultados:
                         st.error("Dados insuficientes para gerar o gráfico radar.")
                         return
@@ -271,18 +271,15 @@ if st.session_state.get('calculado'):
                     valores = df_resultados['Score'].tolist()
                 
                     if len(categorias) < 3:
-                        st.warning("É necessário pelo menos 3 indicadores para gerar um radar.")
+                        st.warning("É necessário pelo menos 3 indicadores para gerar o radar.")
                         return
                 
-                    # Fecha o radar (volta ao primeiro ponto)
                     categorias.append(categorias[0])
                     valores.append(valores[0])
                 
-                    # Cria os ângulos com base na quantidade de categorias
                     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                    angles.append(angles[0])  # fechar o círculo
+                    angles.append(angles[0])
                 
-                    # Plot
                     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
                     ax.plot(angles, valores, color='red', linewidth=2)
                     ax.fill(angles, valores, color='red', alpha=0.25)
@@ -292,6 +289,24 @@ if st.session_state.get('calculado'):
                     ax.set_yticklabels([])
                 
                     ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
+                
+                    st.pyplot(fig)
+                    plt.close(fig)
+                
+                
+                # Nova função para plotar radar com apenas ESG e Financeiro
+                def plotar_radar_resumo(score_esg, score_financeiro, nome_empresa="Resumo"):
+                    df_resumo = pd.DataFrame({
+                        'Indicador': ['ESG', 'Financeiro'],
+                        'Score': [score_esg, score_financeiro]
+                    })
+                
+                    # Para apenas 2 categorias, evitamos o radar e usamos barras
+                    fig, ax = plt.subplots(figsize=(6, 4))
+                    ax.bar(df_resumo['Indicador'], df_resumo['Score'], color=['green', 'blue'])
+                    ax.set_ylim(0, 100)
+                    ax.set_ylabel("Score")
+                    ax.set_title(f"Resumo de Scores - {nome_empresa}")
                     st.pyplot(fig)
                     plt.close(fig)
 
@@ -358,13 +373,6 @@ if st.session_state.get('calculado'):
                     plt.grid(True)
                     plt.tight_layout()
                     st.pyplot(plt.gcf())
-        
-                # 1. Radar de Scores
-                df_resultados = pd.DataFrame({
-                    'Indicador': ['ESG', 'Financeiro'],
-                    'Score': [score_esg, score_financeiro]
-                })
-                plotar_radar(df_resultados, "Nova Empresa")
         
                 # 2. Impacto de melhorias ESG e projeções
                 plotar_impacto_melhoria_esg(score_esg, score_financeiro, "Nova Empresa")
