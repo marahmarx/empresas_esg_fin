@@ -260,8 +260,8 @@ if st.session_state.get('calculado'):
                 # Garantir uso das variáveis calculadas
                 score_esg = st.session_state.get('score_esg', 0)
                 score_financeiro = st.session_state.get('score_financeiro', 0)
-
-               # Função para calcular score individual por indicador
+                
+                # Função para calcular score individual por indicador e gerar o gráfico radar
                 def plotar_radar_indicadores(nome_empresa, respostas_binarias, respostas_esg):
                     categorias = []
                     valores = []
@@ -302,7 +302,10 @@ if st.session_state.get('calculado'):
                     )
                 
                     st.plotly_chart(fig, use_container_width=True)
-                    plotar_radar_indicadores(nome_empresa, respostas_binarias, respostas_esg)
+                
+                # Chamada da função (fora da definição)
+                plotar_radar_indicadores(nome_empresa, respostas_binarias, respostas_esg)
+
 
                 
                 #Função impacto financeiro com melhorias esg 
