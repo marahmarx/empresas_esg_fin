@@ -263,6 +263,10 @@ if st.session_state.get('calculado'):
 
                 # Função para plotar gráfico de radar
                 def plotar_radar(df_resultados, nome_empresa):
+                    if df_resultados.empty or "Indicador" not in df_resultados or "Score" not in df_resultados:
+                        st.error("Dados insuficientes para gerar o gráfico radar.")
+                        return
+                        
                     categorias = df_resultados['Indicador']
                     valores = df_resultados['Score']
                 
