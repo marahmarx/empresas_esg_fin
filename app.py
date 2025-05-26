@@ -72,6 +72,7 @@ for i, pergunta in enumerate(perguntas_binarias):
     respostas_binarias.append(1 if resposta == "Sim" else 0)
 
 st.header("Indicadores ESG Quantitativos")
+
 respostas_esg = []
 for indicador in indicadores_esg:
     st.subheader(indicador["indicador"])
@@ -351,7 +352,7 @@ if mostrar_analise:
         df_resultados = []
 
         # Indicadores binários
-        for (nome, peso), resposta in zip(indicadores_binarios, respostas_binarias):
+        for (nome, peso), resposta in zip(perguntas_binarias, respostas_binarias):
             score = 100 if resposta else 0
             df_resultados.append({"Indicador": nome, "Score": score})
         
