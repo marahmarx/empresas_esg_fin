@@ -253,103 +253,119 @@ if st.session_state.get('calculado'):
 
         
         # Segunda parte: Análise visual completa
-        mostrar_analise = st.button("Obter análise completa")
-        
-        if mostrar_analise:
-            try:
-                # Garantir uso das variáveis calculadas
-                score_esg = st.session_state.get('score_esg', 0)
-                score_financeiro = st.session_state.get('score_financeiro', 0)
+        # Segunda parte: Análise visual completa
+mostrar_analise = st.button("Obter análise completa")
 
-                # Função para plotar gráfico de radar
-                def plotar_radar(df_resultados, nome_empresa):
-                    categorias = df_resultados['Indicador'].tolist()
-                    valores = df_resultados['Score'].tolist()
-                
-                    if len(categorias) < 3:
-                        st.warning("É necessário pelo menos 3 indicadores para gerar o radar.")
-                        return
-                
-                    # Fechar o radar adicionando o primeiro item ao final
-                    categorias.append(categorias[0])
-                    valores.append(valores[0])
-                
-                    # Criar ângulos para o radar
-                    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                    angles.append(angles[0])  # Fechar o círculo
-                
-                    # Plotar o radar
-                    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
-                    ax.plot(angles, valores, color='red', linewidth=2)
-                    ax.fill(angles, valores, color='red', alpha=0.25)
-                
-                    # Configurar os rótulos
-                    ax.set_xticks(angles[:-1])  # Remover o ângulo duplicado
-                    ax.set_xticklabels(categorias[:-1], fontsize=9)
-                    ax.set_yticklabels([])
-                
-                    ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
-                
-                    st.pyplot(fig)
-                    plt.close(fig)
+if mostrar_analise:
+    try:
+        # Garantir uso das variáveis calculadas
+        score_esg = st.session_state.get('score_esg', 0)
+        score_financeiro = st.session_state.get('score_financeiro', 0)
 
+        # Função para plotar gráfico de radar
+        def plotar_radar(df_resultados, nome_empresa):
+            categorias = df_resultados['Indicador'].tolist()
+            valores = df_resultados['Score'].tolist()
 
-                
-                # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
-                def plotar_impacto_praticas_esg():
-                    praticas_esg = [
-                        "Energia Renovável",
-                        "Diversidade na Liderança",
-                        "Ética na Cadeia de Suprimentos",
-                        "Satisfação dos Funcionários",
-                        "Redução de Carbono"
-                    ]
-                    impacto_ebitda = [3, 3, 4, 6, 2]
-                    impacto_receita = [0, 2, 0, 5, 1]
-                
-                    x = np.arange(len(praticas_esg))
-                
-                    plt.figure(figsize=(12, 6))
-                    plt.bar(x - 0.2, impacto_ebitda, width=0.4, label='EBITDA')
-                    plt.bar(x + 0.2, impacto_receita, width=0.4, label='Receita')
-                    plt.xticks(x, praticas_esg, rotation=45, ha='right')
-                    plt.ylabel('Impacto (%)')
-                    plt.title('Impacto das Práticas ESG em Indicadores Financeiros')
-                    plt.legend()
-                    plt.tight_layout()
-                    st.pyplot(plt.gcf())
-                
-                # Função para plotar evolução do EBITDA
-                def plotar_projecao_ebitda():
-                    anos = [2025, 2026, 2027, 2028, 2029]
-                    ebitda_atual = [100, 102, 104, 106, 108]
-                    ebitda_melhoria_esg = [100, 105, 110, 115, 120]
-                
-                    plt.figure(figsize=(10, 5))
-                    plt.plot(anos, ebitda_atual, marker='o', label='Sem Melhoria ESG')
-                    plt.plot(anos, ebitda_melhoria_esg, marker='o', label='Com Melhoria ESG')
-                    plt.xlabel('Ano')
-                    plt.ylabel('EBITDA (R$ milhões)')
-                    plt.title('Projeção do EBITDA com e sem Melhoria ESG')
-                    plt.legend()
-                    plt.grid(True)
-                    plt.tight_layout()
-                    st.pyplot(plt.gcf())
-        
-                # 2. Impacto de melhorias ESG e projeções
-                df_resultados = pd.DataFrame({
-                    'Indicador': ['ESG', 'Financeiro'],
-                    'Score': [score_esg, score_financeiro]
-                })
-    
-                plotar_radar(df_resultados, "Nova Empresa")
-                plotar_impacto_melhoria_esg(score_esg, score_financeiro, "Nova Empresa")
-                plotar_impacto_praticas_esg()
-                plotar_projecao_ebitda()
-        
-               
-            except Exception as e:
-                st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
+            if len(categorias) < 3:
+                # Completa os indicadores se tiver apenas 2 (para formar o radar)
+                while len(categorias) < 3:
+                    categorias.append(f"Extra {len(categorias)+1}")
+                    valores.append(0)
+
+            # Fechar o radar adicionando o primeiro item ao final
+            categorias.append(categorias[0])
+            valores.append(valores[0])
+
+            angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+            angles.append(angles[0])  # Fecha o círculo
+
+            fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+            ax.plot(angles, valores, color='red', linewidth=2)
+            ax.fill(angles, valores, color='red', alpha=0.25)
+            ax.set_xticks(angles[:-1])
+            ax.set_xticklabels(categorias[:-1], fontsize=9)
+            ax.set_yticklabels([])
+            ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
+            st.pyplot(fig)
+            plt.close(fig)
+
+        # Nova função que estava faltando
+        def plotar_impacto_melhoria_esg(score_atual, score_projetado, nome_empresa):
+            categorias = ['Score ESG Atual', 'Score ESG Projetado']
+            valores = [score_atual, score_projetado]
+
+            fig, ax = plt.subplots()
+            bars = ax.bar(categorias, valores, color=['red', 'green'])
+            ax.set_ylim(0, 100)
+            ax.set_ylabel("Score ESG")
+            ax.set_title(f"Impacto da Melhoria ESG - {nome_empresa}")
+
+            for bar in bars:
+                yval = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width()/2, yval + 1, f'{yval:.1f}', ha='center', va='bottom')
+
+            st.pyplot(fig)
+            plt.close(fig)
+
+        # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
+        def plotar_impacto_praticas_esg():
+            praticas_esg = [
+                "Energia Renovável",
+                "Diversidade na Liderança",
+                "Ética na Cadeia de Suprimentos",
+                "Satisfação dos Funcionários",
+                "Redução de Carbono"
+            ]
+            impacto_ebitda = [3, 3, 4, 6, 2]
+            impacto_receita = [0, 2, 0, 5, 1]
+
+            x = np.arange(len(praticas_esg))
+
+            plt.figure(figsize=(12, 6))
+            plt.bar(x - 0.2, impacto_ebitda, width=0.4, label='EBITDA')
+            plt.bar(x + 0.2, impacto_receita, width=0.4, label='Receita')
+            plt.xticks(x, praticas_esg, rotation=45, ha='right')
+            plt.ylabel('Impacto (%)')
+            plt.title('Impacto das Práticas ESG em Indicadores Financeiros')
+            plt.legend()
+            plt.tight_layout()
+            st.pyplot(plt.gcf())
+            plt.close()
+
+        # Função para plotar evolução do EBITDA
+        def plotar_projecao_ebitda():
+            anos = [2025, 2026, 2027, 2028, 2029]
+            ebitda_atual = [100, 102, 104, 106, 108]
+            ebitda_melhoria_esg = [100, 105, 110, 115, 120]
+
+            plt.figure(figsize=(10, 5))
+            plt.plot(anos, ebitda_atual, marker='o', label='Sem Melhoria ESG')
+            plt.plot(anos, ebitda_melhoria_esg, marker='o', label='Com Melhoria ESG')
+            plt.xlabel('Ano')
+            plt.ylabel('EBITDA (R$ milhões)')
+            plt.title('Projeção do EBITDA com e sem Melhoria ESG')
+            plt.legend()
+            plt.grid(True)
+            plt.tight_layout()
+            st.pyplot(plt.gcf())
+            plt.close()
+
+        # Criar dataframe com resultados ESG e Financeiros
+        df_resultados = pd.DataFrame({
+            'Indicador': ['ESG', 'Financeiro'],
+            'Score': [score_esg, score_financeiro]
+        })
+
+        # Chamar os gráficos
+        plotar_radar(df_resultados, "Nova Empresa")
+        plotar_impacto_melhoria_esg(score_esg, min(score_esg + 10, 100), "Nova Empresa")  # exemplo de melhoria
+        plotar_impacto_praticas_esg()
+        plotar_projecao_ebitda()
+
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
+
 
 
 
