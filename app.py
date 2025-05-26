@@ -251,9 +251,6 @@ if st.session_state.get('calculado'):
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
 
-
-        
-        # Segunda parte: Análise visual completa
         # Segunda parte: Análise visual completa
         mostrar_analise = st.button("Obter análise completa")
         
@@ -263,14 +260,14 @@ if st.session_state.get('calculado'):
                 score_esg = st.session_state.get('score_esg', 0)
                 score_financeiro = st.session_state.get('score_financeiro', 0)
         
-                # Função para plotar gráfico de radar
                 # Função para plotar gráfico de radar 
                 def plotar_radar(df_resultados, nome_empresa): 
                     categorias = df_resultados['Indicador'] 
                     valores = df_resultados['Score'] 
                     # Normalização dos dados para escala 0-100 e prepara para o radar 
                     categorias = list(categorias) 
-                    valores = list(valores) valores += valores[:1]  
+                    valores = list(valores) 
+                    valores += valores[:1]  
                
                     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist() 
                     angles += angles[:1] fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True)) 
