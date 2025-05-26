@@ -298,6 +298,7 @@ if st.session_state.get('calculado'):
                 
                     total_score = score_esg + score_financeiro
                     df_resultados = pd.DataFrame(resultados)
+                    plotar_radar(df_resultados, nome_empresa)
                 
                     return df_resultados, score_esg, score_financeiro, total_score
 
