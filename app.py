@@ -261,13 +261,33 @@ if st.session_state.get('calculado'):
                 score_esg = st.session_state.get('score_esg', 0)
                 score_financeiro = st.session_state.get('score_financeiro', 0)
 
-                # Função para plotar gráfico de radar
-                def plotar_radar(df_resultados, nome_empresa):
-                    categorias = df_resultados['Indicador']
-                    valores = df_resultados['Score']
-                    categorias = list(categorias)
-                    valores = list(valores)
-                    valores += valores[:1]
+               # Função para calcular score individual por indicador
+                def calcular_scores_por_indicador(respostas, tipo="ESG"):
+                    resultado = {}
+                
+                    if tipo == "ESG":
+                        indicadores = indicadores_esg
+                    else:
+                        indicadores = indicadores_financeiros
+                
+                    for i, (valor, peso, faixas) in enumerate(respostas):
+                        nome_indicador = indicadores[i]["indicador"]
+                
+                        # Binário: 1 = score máximo, 0 = score zero
+                        if faixas in ["binario", None]:
+                            score = 100 * peso / 100 if valor == 1 else 0
+                        else:
+                            score = aplicar_faixas(valor, faixas) * peso / 100
+                
+                        resultado[nome_indicador] = score
+                
+                    return resultado
+                
+                # Função para plotar gráfico radar
+                def plotar_radar(dicionario_resultados, nome_empresa):
+                    categorias = list(dicionario_resultados.keys())
+                    valores = list(dicionario_resultados.values())
+                    valores += valores[:1]  # Fecha o círculo
                 
                     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
                     angles += angles[:1]
@@ -275,7 +295,7 @@ if st.session_state.get('calculado'):
                     fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
                     ax.fill(angles, valores, color='red', alpha=0.25)
                     ax.plot(angles, valores, color='red', linewidth=2)
-                    ax.set_yticklabels([])  # opcional
+                    ax.set_yticklabels([])  # Remove os valores do eixo radial
                     ax.set_xticks(angles[:-1])
                     ax.set_xticklabels(categorias, fontsize=10)
                     ax.set_title(f"Radar de Indicadores - {nome_empresa}", size=13, weight='bold', y=1.1)
