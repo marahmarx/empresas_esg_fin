@@ -270,7 +270,8 @@ if st.session_state.get('calculado'):
                     valores += valores[:1]  
                
                     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist() 
-                    angles += angles[:1] fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True)) 
+                    angles += angles[:1] 
+                    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True)) 
                     ax.fill(angles, valores, color='red', alpha=0.25) ax.plot(angles, valores, color='red', linewidth=2) 
                     ax.set_yticklabels([]) ax.set_xticks(angles[:-1]) ax.set_xticklabels(categorias, fontsize=9, rotation=90) 
                     ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
