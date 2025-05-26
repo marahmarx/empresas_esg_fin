@@ -263,21 +263,17 @@ if st.session_state.get('calculado'):
 
                 # Função para plotar gráfico de radar
                 def plotar_radar(df_resultados, nome_empresa):
-                    if df_resultados.empty or "Indicador" not in df_resultados or "Score" not in df_resultados:
-                        st.error("Dados insuficientes para gerar o gráfico radar.")
-                        return
+                    categorias = df_resultados['Indicador']
+                    valores = df_resultados['Score']
                 
-                    categorias = df_resultados['Indicador'].tolist()
-                    valores = df_resultados['Score'].tolist()
+                    # Normalização dos dados para escala 0-100 e prepara para o radar
+                    categorias = list(categorias)
+                    valores = list(valores)
+                    valores += valores[:1]  # fechar o gráfico
                 
-                    # Fechar o radar
-                    categorias.append(categorias[0])
-                    valores.append(valores[0])
-                
-                    # Ângulos
                     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                    angles.append(angles[0])
-                
+                    angles += angles[:1]
+                    
                     # Radar plot
                     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
                     ax.plot(angles, valores, color='red', linewidth=2)
