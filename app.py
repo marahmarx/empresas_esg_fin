@@ -264,27 +264,21 @@ if st.session_state.get('calculado'):
                 score_financeiro = st.session_state.get('score_financeiro', 0)
         
                 # Função para plotar gráfico de radar
-                def plotar_radar(df_resultados, nome_empresa):
-                    categorias = df_resultados['Indicador'].tolist()
-                    valores = df_resultados['Score'].tolist()
-                
-                    # Fechar o círculo
-                    categorias.append(categorias[0])
-                    valores.append(valores[0])
-                
-                    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                    angles.append(angles[0])
-                
-                    fig, ax = plt.subplots(figsize=(10, 8), subplot_kw=dict(polar=True))
-                    ax.plot(angles, valores, color='red', linewidth=2)
-                    ax.fill(angles, valores, color='red', alpha=0.25)
-                    ax.set_xticks(angles[:-1])
-                    ax.set_xticklabels(categorias[:-1], fontsize=9)
-                    ax.set_yticklabels([])
-                    ax.set_title(f"Radar de Indicadores - {nome_empresa}", size=15, weight='bold')
-                
-                    st.pyplot(fig)
-                    plt.close(fig)
+                # Função para plotar gráfico de radar 
+                def plotar_radar(df_resultados, nome_empresa): 
+                    categorias = df_resultados['Indicador'] 
+                    valores = df_resultados['Score'] 
+                    # Normalização dos dados para escala 0-100 e prepara para o radar 
+                    categorias = list(categorias) 
+                    valores = list(valores) valores += valores[:1]  
+               
+                    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist() 
+                    angles += angles[:1] fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True)) 
+                    ax.fill(angles, valores, color='red', alpha=0.25) ax.plot(angles, valores, color='red', linewidth=2) 
+                    ax.set_yticklabels([]) ax.set_xticks(angles[:-1]) ax.set_xticklabels(categorias, fontsize=9, rotation=90) 
+                    ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
+                    plt.tight_layout()
+                    plt.show()
         
         
                 # Nova função que estava faltando
@@ -349,34 +343,11 @@ if st.session_state.get('calculado'):
                     plt.close()
         
                 # Criar dataframe com resultados ESG e Financeiros
-                def avaliar_faixa(valor, faixas):
-                    for faixa in faixas:
-                        if faixa[0] <= valor <= faixa[1]:
-                            return faixa[2]
-                    return 0
-            
-                df_resultados = []
-        
-                # Indicadores binários (Sim = 1 → 100 pontos; Não = 0 → 0 pontos)
-                for pergunta, resposta in zip(perguntas_binarias, respostas_binarias):
-                    score = 100 if resposta == 1 else 0
-                    df_resultados.append({"Indicador": pergunta, "Score": score})
-                
-                # Indicadores ESG quantitativos
-                for indicador, (valor, peso, faixas) in zip(indicadores_esg, respostas_esg):
-                    score = avaliar_faixa(valor, faixas)
-                    df_resultados.append({"Indicador": indicador["indicador"], "Score": score})
-                
-                # Indicadores financeiros
-                for indicador, (valor, peso, faixas) in zip(indicadores_financeiros, respostas_financeiros):
-                    score = avaliar_faixa(valor, faixas)
-                    df_resultados.append({"Indicador": indicador["indicador"], "Score": score})
-                
-                # Criar DataFrame final
-                df_resultados = pd.DataFrame(df_resultados)
-        
-        
-                # Chamar os gráficos
+                df_resultados = pd.DataFrame({
+                'Indicador': ['ESG', 'Financeiro'],
+                'Score': [score_esg, score_financeiro]
+            })
+
                 plotar_radar(df_resultados, "Nova Empresa")
                 plotar_impacto_melhoria_esg(score_esg, min(score_esg + 10, 100), "Nova Empresa")  # exemplo de melhoria
                 plotar_impacto_praticas_esg()
