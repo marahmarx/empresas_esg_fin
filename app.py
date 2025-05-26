@@ -261,6 +261,7 @@ if st.session_state.get('calculado'):
                 score_esg = st.session_state.get('score_esg', 0)
                 score_financeiro = st.session_state.get('score_financeiro', 0)
 
+                # Função para plotar gráfico de radar
                 def plotar_radar(df_resultados, nome_empresa):
                     categorias = df_resultados['Indicador']
                     valores = df_resultados['Score']
@@ -273,13 +274,23 @@ if st.session_state.get('calculado'):
                     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
                     angles += angles[:1]
                 
-                    plt.title(f'Impacto da Melhoria no ESG no Score Financeiro - {nome_empresa}', fontsize=14, weight='bold')
-                    plt.xlabel('Score ESG')
-                    plt.ylabel('Score Financeiro')
-                    plt.grid(True, linestyle='--', alpha=0.7)
-                    plt.legend()
+                    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+                    ax.fill(angles, valores, color='red', alpha=0.25)
+                    ax.plot(angles, valores, color='red', linewidth=2)
+                    ax.set_yticklabels([])
+                    ax.set_xticks(angles[:-1])
+                    ax.set_xticklabels(categorias, fontsize=9, rotation=90)
+                    ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
                     plt.tight_layout()
-                    st.pyplot(plt.gcf())
+                    plt.show()
+
+                    df_resultados = pd.DataFrame({
+                    'Indicador': ['ESG', 'Financeiro'],
+                    'Score': [score_esg, score_financeiro]
+                })
+    
+                plotar_radar(df_resultados, "Nova Empresa")
+
                 
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
                 def plotar_impacto_praticas_esg():
@@ -327,41 +338,7 @@ if st.session_state.get('calculado'):
                 plotar_impacto_praticas_esg()
                 plotar_projecao_ebitda()
         
-                # 3. Evolução com dividendos
-                anos = np.arange(2018, 2023)
-                retorno_esg = np.array([0.15, 0.20, 0.18, 0.10, 0.12])
-                retorno_nao_esg = np.array([-0.25, 0.05, -0.10, -0.03, 0.02])
-                retorno_ise = np.array([0.12, 0.15, 0.10, 0.08, 0.11])
-                dy_esg, dy_nao_esg, dy_ise = 0.04, 0.02, 0.035  # Dividend yields
-        
-                valor_inicial = 100
-                valor_esg = [valor_inicial]
-                valor_nao_esg = [valor_inicial]
-                valor_ise = [valor_inicial]
-        
-                for r_esg, r_nao_esg, r_ise in zip(retorno_esg, retorno_nao_esg, retorno_ise):
-                    valor_esg.append(valor_esg[-1] * (1 + r_esg + dy_esg))
-                    valor_nao_esg.append(valor_nao_esg[-1] * (1 + r_nao_esg + dy_nao_esg))
-                    valor_ise.append(valor_ise[-1] * (1 + r_ise + dy_ise))
-        
-                # Remove valor_inicial
-                valor_esg = valor_esg[1:]
-                valor_nao_esg = valor_nao_esg[1:]
-                valor_ise = valor_ise[1:]
-        
-                # Plot do gráfico de evolução
-                fig, ax = plt.subplots(figsize=(12, 6))
-                ax.plot(anos, valor_esg, marker='o', label='Empresas ESG', color='green', linewidth=2)
-                ax.plot(anos, valor_nao_esg, marker='s', label='Sem ESG', color='red', linewidth=2)
-                ax.plot(anos, valor_ise, marker='^', label='ISE B3', color='blue', linewidth=2)
-        
-                ax.set_title('💹 Evolução do Valor das Ações com Reinvestimento de Dividendos (2018–2022)', fontsize=14)
-                ax.set_xlabel('Ano', fontsize=12)
-                ax.set_ylabel('Valor da Ação (R$)', fontsize=12)
-                ax.legend(loc='upper left')
-                ax.grid(True, linestyle='--', alpha=0.7)
-                st.pyplot(fig)
-        
+               
             except Exception as e:
                 st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
 
