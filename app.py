@@ -261,69 +261,17 @@ if st.session_state.get('calculado'):
                 score_esg = st.session_state.get('score_esg', 0)
                 score_financeiro = st.session_state.get('score_financeiro', 0)
 
-                # Função genérica para gráfico radar
                 def plotar_radar(df_resultados, nome_empresa):
-                    if df_resultados.empty or "Indicador" not in df_resultados or "Score" not in df_resultados:
-                        st.error("Dados insuficientes para gerar o gráfico radar.")
-                        return
+                    categorias = df_resultados['Indicador']
+                    valores = df_resultados['Score']
                 
-                    categorias = df_resultados['Indicador'].tolist()
-                    valores = df_resultados['Score'].tolist()
-                
-                    if len(categorias) < 3:
-                        st.warning("É necessário pelo menos 3 indicadores para gerar o radar.")
-                        return
-                
-                    categorias.append(categorias[0])
-                    valores.append(valores[0])
+                    # Normalização dos dados para escala 0-100 e prepara para o radar
+                    categorias = list(categorias)
+                    valores = list(valores)
+                    valores += valores[:1]  # fechar o gráfico
                 
                     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                    angles.append(angles[0])
-                
-                    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
-                    ax.plot(angles, valores, color='red', linewidth=2)
-                    ax.fill(angles, valores, color='red', alpha=0.25)
-                
-                    ax.set_xticks(angles[:-1])
-                    ax.set_xticklabels(categorias[:-1], fontsize=9)
-                    ax.set_yticklabels([])
-                
-                    ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
-                
-                    st.pyplot(fig)
-                    plt.close(fig)
-                
-                
-                # Nova função para plotar radar com apenas ESG e Financeiro
-                def plotar_radar_resumo(score_esg, score_financeiro, nome_empresa="Resumo"):
-                    df_resumo = pd.DataFrame({
-                        'Indicador': ['ESG', 'Financeiro'],
-                        'Score': [score_esg, score_financeiro]
-                    })
-                
-                    # Para apenas 2 categorias, evitamos o radar e usamos barras
-                    fig, ax = plt.subplots(figsize=(6, 4))
-                    ax.bar(df_resumo['Indicador'], df_resumo['Score'], color=['green', 'blue'])
-                    ax.set_ylim(0, 100)
-                    ax.set_ylabel("Score")
-                    ax.set_title(f"Resumo de Scores - {nome_empresa}")
-                    st.pyplot(fig)
-                    plt.close(fig)
-
-                
-                #Função impacto financeiro com melhorias esg 
-                def plotar_impacto_melhoria_esg(score_esg, score_fin, nome_empresa):
-                    melhoria_esg = np.arange(0, 21, 5)
-                    esg_scores = [score_esg + x for x in melhoria_esg]
-                    melhoria_financeira_estim = [score_fin + (x * 0.4) for x in melhoria_esg]
-                
-                    plt.figure(figsize=(10, 6))
-                    plt.plot(esg_scores, melhoria_financeira_estim, marker='o', color='green')
-                    plt.axvline(x=score_esg, color='red', linestyle='--', label='ESG Atual')
-                    plt.axhline(y=score_fin, color='blue', linestyle='--', label='Financeiro Atual')
-                
-                    for x, y in zip(esg_scores, melhoria_financeira_estim):
-                        plt.text(x, y + 0.5, f"{y:.1f}", ha='center', fontsize=8)
+                    angles += angles[:1]
                 
                     plt.title(f'Impacto da Melhoria no ESG no Score Financeiro - {nome_empresa}', fontsize=14, weight='bold')
                     plt.xlabel('Score ESG')
