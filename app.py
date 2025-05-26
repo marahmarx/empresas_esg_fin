@@ -266,67 +266,63 @@ if st.session_state.get('calculado'):
                     score_esg = 0
                     score_financeiro = 0
                 
-                    # Avaliação ESG
-                    for (valor, peso, faixas), indicador in zip(respostas_esg, indicadores_esg):
-                        score = aplicar_faixas(valor, faixas)
-                        score_ponderado = score * peso / 100
-                        score_esg += score_ponderado
-                
-                        resultados.append({
-                            "Tipo": "ESG",
-                            "Indicador": indicador["indicador"],
-                            "Valor": valor,
-                            "Score": score,
-                            "Peso (%)": peso,
-                            "Score Ponderado": score_ponderado
-                        })
-                
-                    # Avaliação Financeira
-                    for (valor, peso, faixas), indicador in zip(respostas_financeiros, indicadores_financeiros):
-                        score = aplicar_faixas(valor, faixas)
-                        score_ponderado = score * peso / 100
-                        score_financeiro += score_ponderado
-                
-                        resultados.append({
-                            "Tipo": "Financeiro",
-                            "Indicador": indicador["indicador"],
-                            "Valor": valor,
-                            "Score": score,
-                            "Peso (%)": peso,
-                            "Score Ponderado": score_ponderado
-                        })
-                
-                    total_score = score_esg + score_financeiro
-                    df_resultados = pd.DataFrame(resultados)
-                    plotar_radar(df_resultados, nome_empresa, streamlit_mode=True)
-                
-                    return df_resultados, score_esg, score_financeiro, total_score
+                    # Função para gerar gráfico radar
+                    def plotar_radar(df_resultados, nome_empresa):
+                        categorias = df_resultados['Indicador'].tolist()
+                        valores = df_resultados['Score'].tolist()
+                    
+                        # Fecha o gráfico conectando o último ponto ao primeiro
+                        valores += valores[:1]
+                        categorias += categorias[:1]
+                    
+                        angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+                        angles += angles[:1]
+                    
+                        fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+                        ax.fill(angles, valores, color='red', alpha=0.25)
+                        ax.plot(angles, valores, color='red', linewidth=2)
+                    
+                        ax.set_yticklabels([])
+                        ax.set_xticks(angles[:-1])
+                        ax.set_xticklabels(categorias[:-1], fontsize=9, rotation=45, ha='right')
+                    
+                        ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
+                        plt.tight_layout()
+                    
+                        # MOSTRA O GRÁFICO NO STREAMLIT
+                        st.pyplot(fig)
+                    
+                        # Fecha figura para evitar vazamentos de memória no loop
+                        plt.close(fig)
 
                 # Função para calcular score individual por indicador e gerar o gráfico radar
                 def plotar_radar(df_resultados, nome_empresa):
-                    categorias = df_resultados['Indicador']
-                    valores = df_resultados['Score']
+                    categorias = df_resultados['Indicador'].tolist()
+                    valores = df_resultados['Score'].tolist()
                 
-                    # Normalização dos dados para escala 0-100 e prepara para o radar
-                    categorias = list(categorias)
-                    valores = list(valores)
-                    valores += valores[:1]  # fechar o gráfico
+                    # Fecha o gráfico conectando o último ponto ao primeiro
+                    valores += valores[:1]
+                    categorias += categorias[:1]
                 
                     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
                     angles += angles[:1]
                 
-                    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+                    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
                     ax.fill(angles, valores, color='red', alpha=0.25)
                     ax.plot(angles, valores, color='red', linewidth=2)
+                
                     ax.set_yticklabels([])
                     ax.set_xticks(angles[:-1])
-                    ax.set_xticklabels(categorias, fontsize=9, rotation=90)
+                    ax.set_xticklabels(categorias[:-1], fontsize=9, rotation=45, ha='right')
+                
                     ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
                     plt.tight_layout()
-                    plt.show()
-
-
-
+                
+                    # MOSTRA O GRÁFICO NO STREAMLIT
+                    st.pyplot(fig)
+                
+                    # Fecha figura para evitar vazamentos de memória no loop
+                    plt.close(fig)
                 
                 #Função impacto financeiro com melhorias esg 
                 def plotar_impacto_melhoria_esg(score_esg, score_fin, nome_empresa):
