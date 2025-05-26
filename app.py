@@ -349,6 +349,12 @@ if mostrar_analise:
             plt.close()
 
         # Criar dataframe com resultados ESG e Financeiros
+        def avaliar_faixa(valor, faixas):
+            for faixa in faixas:
+                if faixa[0] <= valor <= faixa[1]:
+                    return faixa[2]
+            return 0
+    
         df_resultados = []
 
         # Indicadores binários (Sim = 1 → 100 pontos; Não = 0 → 0 pontos)
