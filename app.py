@@ -266,33 +266,34 @@ if st.session_state.get('calculado'):
                     if df_resultados.empty or "Indicador" not in df_resultados or "Score" not in df_resultados:
                         st.error("Dados insuficientes para gerar o gráfico radar.")
                         return
-
+                
                     categorias = df_resultados['Indicador'].tolist()
-                    valores = df_resultados['Score'].tolist()    
+                    valores = df_resultados['Score'].tolist()
+                
                     if len(categorias) < 3:
                         st.warning("É necessário pelo menos 3 indicadores para gerar o radar.")
                         return
-                        
+                
+                    # Fechar o radar
                     categorias.append(categorias[0])
                     valores.append(valores[0])
                 
-                    # Normalização dos dados para escala 0-100 e prepara para o radar
-                    categorias = list(categorias)
-                    valores = list(valores)
-                    valores += valores[:1]  # fechar o gráfico
-                
+                    # Ângulos
                     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                    angles += angles[:1]
+                    angles.append(angles[0])
                 
-                    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
-                    ax.fill(angles, valores, color='red', alpha=0.25)
+                    # Radar plot
+                    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
                     ax.plot(angles, valores, color='red', linewidth=2)
-                    ax.set_yticklabels([])
+                    ax.fill(angles, valores, color='red', alpha=0.25)
                     ax.set_xticks(angles[:-1])
-                    ax.set_xticklabels(categorias, fontsize=9, rotation=90)
+                    ax.set_xticklabels(categorias[:-1], fontsize=9)
+                    ax.set_yticklabels([])
                     ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
-                    plt.tight_layout()
-                    plt.show()
+                
+                    st.pyplot(fig)
+                    plt.close(fig)
+
                 
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
                 def plotar_impacto_praticas_esg():
