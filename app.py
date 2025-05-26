@@ -293,14 +293,6 @@ if st.session_state.get('calculado'):
                     ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
                     plt.tight_layout()
                     plt.show()
-
-                    df_resultados = pd.DataFrame({
-                    'Indicador': ['ESG', 'Financeiro'],
-                    'Score': [score_esg, score_financeiro]
-                })
-    
-                plotar_radar(df_resultados, "Nova Empresa")
-
                 
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
                 def plotar_impacto_praticas_esg():
@@ -344,6 +336,12 @@ if st.session_state.get('calculado'):
                     st.pyplot(plt.gcf())
         
                 # 2. Impacto de melhorias ESG e projeções
+                df_resultados = pd.DataFrame({
+                    'Indicador': ['ESG', 'Financeiro'],
+                    'Score': [score_esg, score_financeiro]
+                })
+    
+                plotar_radar(df_resultados, "Nova Empresa")
                 plotar_impacto_melhoria_esg(score_esg, score_financeiro, "Nova Empresa")
                 plotar_impacto_praticas_esg()
                 plotar_projecao_ebitda()
