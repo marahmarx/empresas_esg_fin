@@ -328,7 +328,7 @@ if st.session_state.get('calculado'):
         
                 # Criar dataframe com resultados ESG e Financeiros
                 #gráfico radar
-                def calcular_subscores(respostas):
+                def calcular_subscores(respostas_esg, respostas_binarias, respostas_financeiros):
                     ambiental_idx = [0, 1, 2, 3, 4]  # índices das perguntas ambientais
                     social_idx = [5, 6, 7, 8, 9, 10]  # perguntas sociais
                     governanca_idx = [11, 12, 13, 14, 15, 16]  # perguntas de governança
