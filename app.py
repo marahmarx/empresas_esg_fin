@@ -328,52 +328,34 @@ if st.session_state.get('calculado'):
         
                 # Criar dataframe com resultados ESG e Financeiros
                 #gráfico radar
-                # Função para aplicar faixas (você já deve ter isso no seu código)
-                def aplicar_faixas(valor, faixas):
-                    for faixa in faixas:
-                        if faixa["min"] <= valor <= faixa["max"]:
-                            return faixa["score"]
-                    return 0  # valor fora de faixa
+                def plotar_grafico_radar(nome_empresa, respostas_esg, respostas_financeiros):
+                    categorias = []
+                    scores = []
                 
-                # Função para calcular os scores individuais (binários + ESG + financeiros)
-                def calcular_scores_individuais(respostas_binarias, respostas_esg, respostas_fin, indicadores_esg, indicadores_fin):
-                    resultados = []
-                
-                    # Perguntas binárias
-                    nomes_binarios = [f"Binário {i+1}" for i in range(len(respostas_binarias))]
-                    for i, valor in enumerate(respostas_binarias):
-                        score = 1 if valor else 0
-                        resultados.append({"Indicador": nomes_binarios[i], "Score": score})
-                
-                    # Indicadores ESG
-                    for i, (valor, peso, faixas) in enumerate(respostas_esg):
-                        item = indicadores_esg[i]
-                        indicador_nome = item["indicador"] if isinstance(item, dict) else item[0]
+                    # ESG
+                    for i, indicador in enumerate(indicadores_esg):
+                        nome = indicador["indicador"]
+                        valor, peso, faixas = respostas_esg[i]
                         score = aplicar_faixas(valor, faixas)
-                        resultados.append({"Indicador": indicador_nome, "Score": score})
+                        categorias.append(nome)
+                        scores.append(score)
                 
-                    # Indicadores Financeiros
-                    for i, (valor, peso, faixas) in enumerate(respostas_fin):
-                        item = indicadores_fin[i]
-                        indicador_nome = item["indicador"] if isinstance(item, dict) else item[0]
+                    # Financeiros
+                    for i, indicador in enumerate(indicadores_financeiros):
+                        nome = indicador["indicador"]
+                        valor, peso, faixas = respostas_financeiros[i]
                         score = aplicar_faixas(valor, faixas)
-                        resultados.append({"Indicador": indicador_nome, "Score": score})
+                        categorias.append(nome)
+                        scores.append(score)
                 
-                    return pd.DataFrame(resultados)
-
-                
-                # Função para gerar o gráfico radar
-                def plotar_radar_unico(df_scores, nome_empresa):
-                    categorias = df_scores['Indicador'].tolist()
-                    valores = df_scores['Score'].tolist()
-                
-                    # Fechar o gráfico
-                    categorias += [categorias[0]]
-                    valores += [valores[0]]
+                    # Fechar o ciclo do radar (voltar ao primeiro)
+                    categorias.append(categorias[0])
+                    scores.append(scores[0])
                 
                     fig = go.Figure()
+                
                     fig.add_trace(go.Scatterpolar(
-                        r=valores,
+                        r=scores,
                         theta=categorias,
                         fill='toself',
                         name=nome_empresa
@@ -383,24 +365,19 @@ if st.session_state.get('calculado'):
                         polar=dict(
                             radialaxis=dict(
                                 visible=True,
-                                range=[0, 1]
+                                range=[0, 100]
                             )
                         ),
-                        showlegend=False,
-                        title=f'Radar de Indicadores - {nome_empresa}'
+                        showlegend=True,
+                        title=f"Gráfico Radar - Indicadores ESG e Financeiros ({nome_empresa})"
                     )
                 
-                    st.plotly_chart(fig)
-                
-                df_todos_scores = calcular_scores_individuais(
-                    respostas_binarias,
-                    respostas_esg,
-                    respostas_financeiros,
-                    indicadores_esg,
-                    indicadores_financeiros
-                )
-                
-                plotar_radar_unico(df_todos_scores, nome_empresa)
+                    st.plotly_chart(fig, use_container_width=True)
+
+                if nome_empresa:
+                    plotar_grafico_radar(nome_empresa, respostas_esg, respostas_financeiros)
+
+
                 plotar_impacto_melhoria_esg(score_esg, min(score_esg + 10, 100), "Nova Empresa")  # exemplo de melhoria
                 plotar_impacto_praticas_esg()
                 plotar_projecao_ebitda()
