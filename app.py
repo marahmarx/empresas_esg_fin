@@ -267,18 +267,18 @@ if st.session_state.get('calculado'):
                     categorias = list(categorias)
                     valores = list(valores)
                     valores += valores[:1]
-                
+                    
                     angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
                     angles += angles[:1]
-                
-                    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-                    ax.fill(angles, valores, color='red', alpha=0.25)
-                    ax.plot(angles, valores, color='red', linewidth=2)
-                    ax.set_yticklabels([])  # opcional
+                    
+                    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+                    ax.fill(angles, valores, color='royalblue', alpha=0.3)
+                    ax.plot(angles, valores, color='royalblue', linewidth=2)
+                    ax.set_yticklabels([])
                     ax.set_xticks(angles[:-1])
-                    ax.set_xticklabels(categorias, fontsize=10)
-                    ax.set_title(f"Radar de Indicadores - {nome_empresa}", size=13, weight='bold', y=1.1)
-                    st.pyplot(fig)      
+                    ax.set_xticklabels(categorias, fontsize=9)
+                    ax.set_title(f"Radar de Indicadores - {nome_empresa}", size=14, weight='bold', y=1.1)
+                    st.pyplot(fig)   
         
                 # Nova função que estava faltando
                 def plotar_impacto_melhoria_esg(score_atual, score_projetado, nome_empresa):
@@ -299,29 +299,33 @@ if st.session_state.get('calculado'):
                     plt.close(fig)
         
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
-                def plotar_impacto_praticas_esg():
-                    praticas_esg = [
-                        "Energia Renovável",
-                        "Diversidade na Liderança",
-                        "Ética na Cadeia de Suprimentos",
-                        "Satisfação dos Funcionários",
-                        "Redução de Carbono"
-                    ]
-                    impacto_ebitda = [3, 3, 4, 6, 2]
-                    impacto_receita = [0, 2, 0, 5, 1]
-        
-                    x = np.arange(len(praticas_esg))
-        
-                    plt.figure(figsize=(12, 6))
-                    plt.bar(x - 0.2, impacto_ebitda, width=0.4, label='EBITDA')
-                    plt.bar(x + 0.2, impacto_receita, width=0.4, label='Receita')
-                    plt.xticks(x, praticas_esg, rotation=45, ha='right')
-                    plt.ylabel('Impacto (%)')
-                    plt.title('Impacto das Práticas ESG em Indicadores Financeiros')
-                    plt.legend()
-                    plt.tight_layout()
-                    st.pyplot(plt.gcf())
-                    plt.close()
+                # Dados
+                praticas_esg = [
+                    "Uso de Energia Renovável",
+                    "Diversidade de Gênero na Liderança",
+                    "Práticas Éticas na Cadeia de Suprimentos",
+                    "Satisfação dos Funcionários",
+                    "Redução de Emissões de Carbono"
+                ]
+                
+                impacto_ebitda = [3, 3, 4, 6, 2]  # em pontos percentuais
+                impacto_receita = [0, 2, 0, 5, 1]  # em pontos percentuais
+                
+                # Criar gráfico com matplotlib
+                x = range(len(praticas_esg))
+                
+                fig, ax = plt.subplots(figsize=(12, 6))
+                ax.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
+                ax.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
+                ax.set_xticks([p + 0.2 for p in x])
+                ax.set_xticklabels(praticas_esg, rotation=45, ha='right')
+                ax.set_ylabel('Impacto (%)')
+                ax.set_title('Impacto das Práticas ESG nos Indicadores Financeiros')
+                ax.legend()
+                plt.tight_layout()
+                
+                # Exibir no Streamlit
+                st.pyplot(fig)
         
                 # Função para plotar evolução do EBITDA
                 def plotar_projecao_ebitda():
@@ -346,8 +350,8 @@ if st.session_state.get('calculado'):
                 'Indicador': ['ESG', 'Financeiro'],
                 'Score': [score_esg, score_financeiro]
             })
-
-                plotar_radar(df_resultados, "Nova Empresa")
+                df_resultados = calcular_scores_individuais(respostas_esg, respostas_financeiros)
+                plotar_radar(df_resultados, nome_empresa)
                 plotar_impacto_melhoria_esg(score_esg, min(score_esg + 10, 100), "Nova Empresa")  # exemplo de melhoria
                 plotar_impacto_praticas_esg()
                 plotar_projecao_ebitda()
