@@ -347,17 +347,20 @@ if st.session_state.get('calculado'):
                 
                     # Indicadores ESG
                     for i, (valor, peso, faixas) in enumerate(respostas_esg):
-                        indicador_nome = indicadores_esg[i]["indicador"]
+                        item = indicadores_esg[i]
+                        indicador_nome = item["indicador"] if isinstance(item, dict) else item[0]
                         score = aplicar_faixas(valor, faixas)
                         resultados.append({"Indicador": indicador_nome, "Score": score})
                 
                     # Indicadores Financeiros
                     for i, (valor, peso, faixas) in enumerate(respostas_fin):
-                        indicador_nome = indicadores_fin[i]["indicador"]
+                        item = indicadores_fin[i]
+                        indicador_nome = item["indicador"] if isinstance(item, dict) else item[0]
                         score = aplicar_faixas(valor, faixas)
                         resultados.append({"Indicador": indicador_nome, "Score": score})
                 
                     return pd.DataFrame(resultados)
+
                 
                 # Função para gerar o gráfico radar
                 def plotar_radar_unico(df_scores, nome_empresa):
