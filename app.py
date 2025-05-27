@@ -261,24 +261,35 @@ if st.session_state.get('calculado'):
                 score_financeiro = st.session_state.get('score_financeiro', 0)
         
                 # Função para plotar gráfico de radar               
-                def plotar_radar(df_resultados, nome_empresa):
-                    categorias = df_resultados['Indicador']
-                    valores = df_resultados['Score']
-                    categorias = list(categorias)
-                    valores = list(valores)
-                    valores += valores[:1]
-                    
-                    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                    angles += angles[:1]
-                    
-                    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
-                    ax.fill(angles, valores, color='royalblue', alpha=0.3)
-                    ax.plot(angles, valores, color='royalblue', linewidth=2)
-                    ax.set_yticklabels([])
-                    ax.set_xticks(angles[:-1])
-                    ax.set_xticklabels(categorias, fontsize=9)
-                    ax.set_title(f"Radar de Indicadores - {nome_empresa}", size=14, weight='bold', y=1.1)
-                    st.pyplot(fig)   
+                def plotar_radar_unico(df_scores, nome_empresa):
+                    categorias = df_scores['Indicador'].tolist()
+                    valores = df_scores['Score'].tolist()
+                
+                    # Fechar o gráfico ligando o último ponto ao primeiro
+                    categorias += [categorias[0]]
+                    valores += [valores[0]]
+                
+                    fig = go.Figure()
+                    fig.add_trace(go.Scatterpolar(
+                        r=valores,
+                        theta=categorias,
+                        fill='toself',
+                        name=nome_empresa
+                    ))
+                
+                    fig.update_layout(
+                        polar=dict(
+                            radialaxis=dict(
+                                visible=True,
+                                range=[0, 1]
+                            )
+                        ),
+                        showlegend=False,
+                        title=f'Radar de Indicadores - {nome_empresa}'
+                    )
+                
+                    st.plotly_chart(fig)
+ 
         
                 # Nova função que estava faltando
                 def plotar_impacto_melhoria_esg(score_atual, score_projetado, nome_empresa):
@@ -346,12 +357,38 @@ if st.session_state.get('calculado'):
                     plt.close()
         
                 # Criar dataframe com resultados ESG e Financeiros
-                df_resultados = pd.DataFrame({
-                'Indicador': ['ESG', 'Financeiro'],
-                'Score': [score_esg, score_financeiro]
-            })
-                df_resultados = calcular_scores_individuais(respostas_esg, respostas_financeiros)
-                plotar_radar(df_resultados, nome_empresa)
+                def calcular_scores_individuais(respostas_binarias, respostas_esg, respostas_fin, indicadores_esg, indicadores_fin):
+                    resultados = []
+                
+                    # Perguntas binárias: valem 1 se sim, 0 se não (ou score binário)
+                    nomes_binarios = [f"Binário {i+1}" for i in range(len(respostas_binarias))]
+                    for i, valor in enumerate(respostas_binarias):
+                        score = 1 if valor else 0
+                        resultados.append({"Indicador": nomes_binarios[i], "Score": score})
+                
+                    # Indicadores ESG
+                    for i, (valor, peso, faixas) in enumerate(respostas_esg):
+                        indicador_nome = indicadores_esg[i]["indicador"]
+                        score = aplicar_faixas(valor, faixas)
+                        resultados.append({"Indicador": indicador_nome, "Score": score})
+                
+                    # Indicadores Financeiros
+                    for i, (valor, peso, faixas) in enumerate(respostas_fin):
+                        indicador_nome = indicadores_fin[i]["indicador"]
+                        score = aplicar_faixas(valor, faixas)
+                        resultados.append({"Indicador": indicador_nome, "Score": score})
+                
+                    return pd.DataFrame(resultados)
+
+                    df_todos_scores = calcular_scores_individuais(
+                        respostas_binarias,
+                        respostas_esg,
+                        respostas_financeiros,
+                        indicadores_esg,
+                        indicadores_financeiros
+                    )
+                
+                plotar_radar_unico(df_todos_scores, nome_empresa)
                 plotar_impacto_melhoria_esg(score_esg, min(score_esg + 10, 100), "Nova Empresa")  # exemplo de melhoria
                 plotar_impacto_praticas_esg()
                 plotar_projecao_ebitda()
