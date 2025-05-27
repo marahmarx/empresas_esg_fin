@@ -328,56 +328,60 @@ if st.session_state.get('calculado'):
         
                 # Criar dataframe com resultados ESG e Financeiros
                 #gráfico radar
-                def plotar_grafico_radar(nome_empresa, respostas_esg, respostas_financeiros):
-                    categorias = []
-                    scores = []
+                def calcular_subscores(respostas):
+                    ambiental_idx = [0, 1, 2, 3, 4]  # índices das perguntas ambientais
+                    social_idx = [5, 6, 7, 8, 9, 10]  # perguntas sociais
+                    governanca_idx = [11, 12, 13, 14, 15, 16]  # perguntas de governança
+                    financeiro_idx = [17, 18, 19, 20, 21, 22]  # perguntas financeiras
                 
-                    # ESG
-                    for i, indicador in enumerate(indicadores_esg):
-                        nome = indicador["indicador"]
-                        valor, peso, faixas = respostas_esg[i]
-                        score = aplicar_faixas(valor, faixas)
-                        categorias.append(nome)
-                        scores.append(score)
+                    grupos = {
+                        "Ambiental": ambiental_idx,
+                        "Social": social_idx,
+                        "Governança": governanca_idx,
+                        "Financeiro": financeiro_idx
+                    }
                 
-                    # Financeiros
-                    for i, indicador in enumerate(indicadores_financeiros):
-                        nome = indicador["indicador"]
-                        valor, peso, faixas = respostas_financeiros[i]
-                        score = aplicar_faixas(valor, faixas)
-                        categorias.append(nome)
-                        scores.append(score)
-                
-                    # Fechar o ciclo do radar (voltar ao primeiro)
-                    categorias.append(categorias[0])
-                    scores.append(scores[0])
-                
-                    fig = go.Figure()
-                
-                    fig.add_trace(go.Scatterpolar(
-                        r=scores,
-                        theta=categorias,
-                        fill='toself',
-                        name=nome_empresa
-                    ))
-                
-                    fig.update_layout(
-                        polar=dict(
-                            radialaxis=dict(
-                                visible=True,
-                                range=[0, 100]
-                            )
-                        ),
-                        showlegend=True,
-                        title=f"Gráfico Radar - Indicadores ESG e Financeiros ({nome_empresa})"
-                    )
-                
-                    st.plotly_chart(fig, use_container_width=True)
+                    scores = {}
+                    for nome, idxs in grupos.items():
+                        score = 0
+                        peso_total = 0
+                        for i in idxs:
+                            indicador_info = indicadores[i]
+                            peso_total += indicador_info["weight"]
+                            valor = respostas[i]
+                            score_ind = calcular_pontuacao(valor, indicador_info["ranges"])
+                            weighted_score = score_ind * indicador_info["weight"] / 100
+                            score += weighted_score
+                        scores[nome] = round((score / (peso_total / 100)), 2)
+                    
+                    return scores
 
-                if nome_empresa:
-                    plotar_grafico_radar(nome_empresa, respostas_esg, respostas_financeiros)
+                def plotar_grafico_radar(scores_dict, nome_empresa):
+                    categorias = list(scores_dict.keys())
+                    valores = list(scores_dict.values())
+                
+                    # Fechar o gráfico conectando o último ponto ao primeiro
+                    valores += valores[:1]
+                    categorias += categorias[:1]
+                
+                    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+                    angles += angles[:1]
+                
+                    fig, ax = plt.subplots(figsize=(6,6), subplot_kw=dict(polar=True))
+                    ax.plot(angles, valores, linewidth=2, linestyle='solid')
+                    ax.fill(angles, valores, alpha=0.25)
+                
+                    ax.set_xticks(angles[:-1])
+                    ax.set_xticklabels(categorias)
+                
+                    ax.set_title(f"Perfil ESG + Financeiro - {nome_empresa}")
+                    ax.set_ylim(0, 100)
+                
+                    plt.tight_layout()
+                    plt.show()
 
-
+                subscores = calcular_subscores(respostas)
+                plotar_grafico_radar(subscores, nome_empresa)
                 plotar_impacto_melhoria_esg(score_esg, min(score_esg + 10, 100), "Nova Empresa")  # exemplo de melhoria
                 plotar_impacto_praticas_esg()
                 plotar_projecao_ebitda()
