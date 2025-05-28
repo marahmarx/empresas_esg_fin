@@ -98,56 +98,7 @@ respostas_financeiros = []
 for indicador in indicadores_financeiros:
     st.subheader(indicador["indicador"])
     valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", format="%.2f", key=f"fin_{indicador['indicador']}")
-    respostas_financeiros.append((valor, indicador["peso"], indicador["faixas"]))  
-    
-#Gerar relatorios 
-# Função para gerar relatório ESG formatado com base nas respostas
-def gerar_relatorio_esg_formatado_streamlit(nome_empresa, respostas, formato="GRI"):
-    st.subheader(f"📄 Relatório ESG da Empresa: {nome_empresa}")
-    st.write(f"**Formato selecionado:** {formato}")
-
-    estrutura = {
-        "GRI": {
-            "GRI 305: Emissão de CO2 (M ton)": respostas[0],
-            "GRI 306: Gestão de Resíduos (%)": respostas[1],
-            "GRI 302: Eficiência Energética (%)": respostas[2],
-            "GRI 405: Diversidade de Gênero (%)": respostas[3],
-            "GRI 405: Diversidade Racial (%)": respostas[4],
-            "GRI 401: Satisfação dos Funcionários (%)": respostas[5],
-            "GRI 413: Investimento em Programas Sociais (R$ M)": respostas[6],
-            "GRI 307: Risco Ambiental (0-10)": respostas[7],
-        },
-        "SASB": {
-            "SASB: Eficiência Energética (%)": respostas[2],
-            "SASB: Diversidade Estratégica (Gênero e Raça)": f"{respostas[3]}% / {respostas[4]}%",
-            "SASB: Engajamento com Funcionários (%)": respostas[5],
-            "SASB: Investimento Social (R$ M)": respostas[6],
-            "SASB: Indicador de Risco Ambiental": respostas[7],
-        },
-        "CSRD": {
-            "CSRD: Emissões Escopos 1-3 (M ton)": respostas[0],
-            "CSRD: Desempenho em Resíduos (%)": respostas[1],
-            "CSRD: Eficiência Energética (%)": respostas[2],
-            "CSRD: Indicadores Sociais (Diversidade e Satisfação)": f"{respostas[3]}% / {respostas[4]}% / {respostas[5]}%",
-            "CSRD: Programas e Riscos Socioambientais": f"{respostas[6]} / Risco: {respostas[7]}",
-        }
-    }
-
-    estrutura_escolhida = estrutura.get(formato.upper(), estrutura["GRI"])
-
-    for item, valor in estrutura_escolhida.items():
-        st.write(f"- **{item}**: {valor}")
-
-    st.info("✔️ Rascunho do relatório gerado com base nas respostas fornecidas.")
-        if "nome_empresa" in st.session_state and "respostas" in st.session_state:
-        nome_empresa = st.session_state["nome_empresa"]
-        respostas = st.session_state["respostas"]
-    
-        formato = st.selectbox("Selecione o formato do relatório:", ["GRI", "SASB", "CSRD"], index=0)
-        gerar_relatorio_esg_formatado_streamlit(nome_empresa, respostas, formato)
-    else:
-        st.warning("⚠️ Nenhuma empresa foi avaliada ainda. Preencha os dados primeiro.")
-   
+    respostas_financeiros.append((valor, indicador["peso"], indicador["faixas"]))     
 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
@@ -324,46 +275,33 @@ if st.session_state.get('calculado'):
                 score_financeiro = st.session_state.get('score_financeiro', 0)
  
                 # Gráfico Radar
-                def gerar_grafico_radar(nome_empresa, respostas, tipo="ESG"):
-                    categorias = []
-                    valores = []
+                categories = [ind['indicador'] for ind in indicadores_esg] + [ind['indicador'] for ind in indicadores_financeiros]
                 
-                    for i, (valor, peso, faixas) in enumerate(respostas):
-                        nome_indicador = indicadores_esg[i]["indicador"] if tipo == "ESG" else indicadores_financeiros[i]["indicador"]
-                        score = 0
-                        for faixa in faixas:
-                            if faixa[0] <= valor <= faixa[1]:
-                                score = faixa[2]
-                                break
-                        categorias.append(nome_indicador)
-                        valores.append(score)
+                valores = respostas_esg + respostas_financeiros
                 
-                    # Fechamento do gráfico radar (o radar precisa ser um loop)
-                    categorias.append(categorias[0])
-                    valores.append(valores[0])
+                # Normalização simples para radar (0-100), assumindo que valores já estão na escala de 0-100
+                # Se não, pode-se normalizar conforme necessário.
                 
-                    fig = go.Figure()
+                fig = go.Figure()
                 
-                    fig.add_trace(go.Scatterpolar(
-                        r=valores,
-                        theta=categorias,
-                        fill='toself',
-                        name=nome_empresa
-                    ))
+                fig.add_trace(go.Scatterpolar(
+                    r=valores + [valores[0]],  # Fechar o radar repetindo o primeiro valor
+                    theta=categories + [categories[0]],
+                    fill='toself',
+                    name=nome_empresa
+                ))
                 
-                    fig.update_layout(
-                      polar=dict(
+                fig.update_layout(
+                    polar=dict(
                         radialaxis=dict(
-                          visible=True,
-                          range=[0, 100]
+                            visible=True,
+                            range=[0, max(100, max(valores))]
                         )),
-                      showlegend=False,
-                      title=f"Gráfico Radar - Indicadores {tipo}"
-                    )
+                    showlegend=True,
+                    title="Perfil ESG e Financeiro da Empresa"
+                )
                 
-                    st.plotly_chart(fig)
-                    st.success("Análise gerada com sucesso!")
-                        gerar_grafico_radar(nome_empresa, respostas_esg, tipo="ESG", respostas_financeiros, tipo="Financeiro")
+                st.plotly_chart(fig, use_container_width=True)
 
         
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
@@ -453,4 +391,50 @@ if st.session_state.get('calculado'):
         
         
         
-        
+#Gerar relatorios 
+# Função para gerar relatório ESG formatado com base nas respostas
+def gerar_relatorio_esg_formatado_streamlit(nome_empresa, respostas, formato="GRI"):
+    st.subheader(f"📄 Relatório ESG da Empresa: {nome_empresa}")
+    st.write(f"**Formato selecionado:** {formato}")
+
+    estrutura = {
+        "GRI": {
+            "GRI 305: Emissão de CO2 (M ton)": respostas[0],
+            "GRI 306: Gestão de Resíduos (%)": respostas[1],
+            "GRI 302: Eficiência Energética (%)": respostas[2],
+            "GRI 405: Diversidade de Gênero (%)": respostas[3],
+            "GRI 405: Diversidade Racial (%)": respostas[4],
+            "GRI 401: Satisfação dos Funcionários (%)": respostas[5],
+            "GRI 413: Investimento em Programas Sociais (R$ M)": respostas[6],
+            "GRI 307: Risco Ambiental (0-10)": respostas[7],
+        },
+        "SASB": {
+            "SASB: Eficiência Energética (%)": respostas[2],
+            "SASB: Diversidade Estratégica (Gênero e Raça)": f"{respostas[3]}% / {respostas[4]}%",
+            "SASB: Engajamento com Funcionários (%)": respostas[5],
+            "SASB: Investimento Social (R$ M)": respostas[6],
+            "SASB: Indicador de Risco Ambiental": respostas[7],
+        },
+        "CSRD": {
+            "CSRD: Emissões Escopos 1-3 (M ton)": respostas[0],
+            "CSRD: Desempenho em Resíduos (%)": respostas[1],
+            "CSRD: Eficiência Energética (%)": respostas[2],
+            "CSRD: Indicadores Sociais (Diversidade e Satisfação)": f"{respostas[3]}% / {respostas[4]}% / {respostas[5]}%",
+            "CSRD: Programas e Riscos Socioambientais": f"{respostas[6]} / Risco: {respostas[7]}",
+        }
+    }
+
+    estrutura_escolhida = estrutura.get(formato.upper(), estrutura["GRI"])
+
+    for item, valor in estrutura_escolhida.items():
+        st.write(f"- **{item}**: {valor}")
+
+    st.info("✔️ Rascunho do relatório gerado com base nas respostas fornecidas.")
+        if "nome_empresa" in st.session_state and "respostas" in st.session_state:
+        nome_empresa = st.session_state["nome_empresa"]
+        respostas = st.session_state["respostas"]
+    
+        formato = st.selectbox("Selecione o formato do relatório:", ["GRI", "SASB", "CSRD"], index=0)
+        gerar_relatorio_esg_formatado_streamlit(nome_empresa, respostas, formato)
+    else:
+        st.warning("⚠️ Nenhuma empresa foi avaliada ainda. Preencha os dados primeiro.")
