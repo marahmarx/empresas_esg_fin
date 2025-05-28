@@ -54,7 +54,7 @@ st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 # Perguntas iniciais
 st.header("Dados da Empresa")
 nome_empresa = st.text_input("Nome da empresa:")
-setor_empresa = st.selectbox("Setor da empresa:", ["Primário", "Secundário", "Terciário"])
+segmento_empresa = st.selectbox("Setor da empresa:", ["Primário", "Secundário", "Terciário"])
 
 impacto_por_setor = {
     "Beleza / Tecnologia / Serviços": 5,
@@ -65,7 +65,7 @@ impacto_por_setor = {
     "Petróleo e Gás": 70
 }
 
-setor = st.selectbox("Setor da empresa", list(impacto_por_setor.keys()))
+setor_empresa = st.selectbox("Setor da empresa", list(impacto_por_setor.keys()))
 impacto_setor = impacto_por_setor[setor]
 
 # Etapa Unificada - Coleta de Dados
