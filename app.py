@@ -134,7 +134,7 @@ def calcular_scores(df):
         for indicador in indicadores_esg:
             valor = row.get(indicador["indicador"], np.nan)
             if pd.notna(valor):
-                score_esg1 += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
+                score_esg += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
 
 
         for indicador in indicadores_financeiros:
