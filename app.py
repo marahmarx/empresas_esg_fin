@@ -27,11 +27,12 @@ def calcular_score_financeiro(respostas):
 
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 indicadores_esg = [
+    {"indicador": "Setor da empresa", "peso": 10, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
     {"indicador": "Emissão de CO2 (M ton)", "peso": 15, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
     {"indicador": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 10, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 10, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
     {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(np.inf, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
     {"indicador": "Risco Ambiental", "peso": 5, "faixas": [(0, 1, 100), (2, 3, 70), (4, 6, 50), (7, 8, 30), (9, 10, 10)]},
@@ -53,8 +54,19 @@ st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 # Perguntas iniciais
 st.header("Dados da Empresa")
 nome_empresa = st.text_input("Nome da empresa:")
-segmento_empresa = st.text_input("Segmento da empresa:")
 setor_empresa = st.selectbox("Setor da empresa:", ["Primário", "Secundário", "Terciário"])
+
+impacto_por_setor = {
+    "Beleza / Tecnologia / Serviços": 5,
+    "Indústria Leve / Moda": 15,
+    "Transporte / Logística": 25,
+    "Químico / Agropecuário": 40,
+    "Metalurgia": 55,
+    "Petróleo e Gás": 70
+}
+
+setor = st.selectbox("Setor da empresa", list(impacto_por_setor.keys()))
+impacto_setor = impacto_por_setor[setor]
 
 # Etapa Unificada - Coleta de Dados
 
@@ -80,12 +92,62 @@ for indicador in indicadores_esg:
     valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", min_value=0.0, format="%.2f", key=f"esg_{indicador['indicador']}")
     respostas_esg.append((valor, indicador["peso"], indicador["faixas"]))
 
+
 st.header("Indicadores Financeiros")
 respostas_financeiros = []
 for indicador in indicadores_financeiros:
     st.subheader(indicador["indicador"])
     valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", format="%.2f", key=f"fin_{indicador['indicador']}")
-    respostas_financeiros.append((valor, indicador["peso"], indicador["faixas"]))    
+    respostas_financeiros.append((valor, indicador["peso"], indicador["faixas"]))  
+    
+#Gerar relatorios 
+# Função para gerar relatório ESG formatado com base nas respostas
+def gerar_relatorio_esg_formatado_streamlit(nome_empresa, respostas, formato="GRI"):
+    st.subheader(f"📄 Relatório ESG da Empresa: {nome_empresa}")
+    st.write(f"**Formato selecionado:** {formato}")
+
+    estrutura = {
+        "GRI": {
+            "GRI 305: Emissão de CO2 (M ton)": respostas[0],
+            "GRI 306: Gestão de Resíduos (%)": respostas[1],
+            "GRI 302: Eficiência Energética (%)": respostas[2],
+            "GRI 405: Diversidade de Gênero (%)": respostas[3],
+            "GRI 405: Diversidade Racial (%)": respostas[4],
+            "GRI 401: Satisfação dos Funcionários (%)": respostas[5],
+            "GRI 413: Investimento em Programas Sociais (R$ M)": respostas[6],
+            "GRI 307: Risco Ambiental (0-10)": respostas[7],
+        },
+        "SASB": {
+            "SASB: Eficiência Energética (%)": respostas[2],
+            "SASB: Diversidade Estratégica (Gênero e Raça)": f"{respostas[3]}% / {respostas[4]}%",
+            "SASB: Engajamento com Funcionários (%)": respostas[5],
+            "SASB: Investimento Social (R$ M)": respostas[6],
+            "SASB: Indicador de Risco Ambiental": respostas[7],
+        },
+        "CSRD": {
+            "CSRD: Emissões Escopos 1-3 (M ton)": respostas[0],
+            "CSRD: Desempenho em Resíduos (%)": respostas[1],
+            "CSRD: Eficiência Energética (%)": respostas[2],
+            "CSRD: Indicadores Sociais (Diversidade e Satisfação)": f"{respostas[3]}% / {respostas[4]}% / {respostas[5]}%",
+            "CSRD: Programas e Riscos Socioambientais": f"{respostas[6]} / Risco: {respostas[7]}",
+        }
+    }
+
+    estrutura_escolhida = estrutura.get(formato.upper(), estrutura["GRI"])
+
+    for item, valor in estrutura_escolhida.items():
+        st.write(f"- **{item}**: {valor}")
+
+    st.info("✔️ Rascunho do relatório gerado com base nas respostas fornecidas.")
+        if "nome_empresa" in st.session_state and "respostas" in st.session_state:
+        nome_empresa = st.session_state["nome_empresa"]
+        respostas = st.session_state["respostas"]
+    
+        formato = st.selectbox("Selecione o formato do relatório:", ["GRI", "SASB", "CSRD"], index=0)
+        gerar_relatorio_esg_formatado_streamlit(nome_empresa, respostas, formato)
+    else:
+        st.warning("⚠️ Nenhuma empresa foi avaliada ainda. Preencha os dados primeiro.")
+   
 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
@@ -103,13 +165,12 @@ def carregar_dados_empresas(url):
         st.error(f"Erro ao carregar os dados da planilha: {e}")
         return pd.DataFrame()
 
-# Função para aplicar faixas de pontuação
-def aplicar_faixas(valor, faixas):
-    for faixa in faixas:
-        if faixa[0] <= valor <= faixa[1]:
-            return faixa[2]
-    return 0  # Pontuação padrão
 
+def aplicar_ajuste_por_setor(score_esg_bruto, setor):
+    ajuste = ajuste_por_setor.get(setor, 0.10)  # valor padrão se setor não for identificado
+    score_ajustado = score_esg_bruto + (100 - score_esg_bruto) * ajuste
+    return round(score_ajustado, 2)
+    
 # Função para calcular os scores
 def calcular_scores(df):
     esg_total = []
@@ -122,7 +183,8 @@ def calcular_scores(df):
         for indicador in indicadores_esg:
             valor = row.get(indicador["indicador"], np.nan)
             if pd.notna(valor):
-                score_esg += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
+                score_esg1 += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
+
 
         for indicador in indicadores_financeiros:
             valor = row.get(indicador["indicador"], np.nan)
@@ -262,22 +324,44 @@ if st.session_state.get('calculado'):
                 score_financeiro = st.session_state.get('score_financeiro', 0)
  
                 # Nova função que estava faltando
-                def plotar_impacto_melhoria_esg(score_atual, score_projetado, nome_empresa):
-                    categorias = ['Score ESG Atual', 'Score ESG Projetado']
-                    valores = [score_atual, score_projetado]
-        
-                    fig, ax = plt.subplots()
-                    bars = ax.bar(categorias, valores, color=['red', 'green'])
-                    ax.set_ylim(0, 100)
-                    ax.set_ylabel("Score ESG")
-                    ax.set_title(f"Impacto da Melhoria ESG - {nome_empresa}")
-        
-                    for bar in bars:
-                        yval = bar.get_height()
-                        ax.text(bar.get_x() + bar.get_width()/2, yval + 1, f'{yval:.1f}', ha='center', va='bottom')
-        
-                    st.pyplot(fig)
-                    plt.close(fig)
+                def calcular_pontuacoes_por_indicador(row, indicadores):
+                    pontuacoes = []
+                    nomes_indicadores = []
+                    for indicador in indicadores:
+                        nome = indicador["indicador"]
+                        valor = row.get(nome, np.nan)
+                        if pd.notna(valor):
+                            score = aplicar_faixas(valor, indicador["faixas"])
+                            pontuacoes.append(score)
+                            nomes_indicadores.append(nome)
+                    return nomes_indicadores, pontuacoes
+                
+                def plotar_grafico_radar(df_empresa, indicadores_esg):
+                    nomes, pontuacoes = calcular_pontuacoes_por_indicador(df_empresa, indicadores_esg)
+                
+                    fig = go.Figure(data=go.Scatterpolar(
+                        r=pontuacoes + [pontuacoes[0]],  # fecha o ciclo
+                        theta=nomes + [nomes[0]],
+                        fill='toself',
+                        name='Desempenho ESG'
+                    ))
+                
+                    fig.update_layout(
+                        polar=dict(
+                            radialaxis=dict(
+                                visible=True,
+                                range=[0, 100]
+                            )
+                        ),
+                        showlegend=False,
+                        title="Radar ESG - Desempenho por Indicador"
+                    )
+                
+                    return fig
+
+                st.subheader("Radar de Desempenho ESG")
+                fig = plotar_grafico_radar(df_nova_empresa, indicadores_esg)
+                st.plotly_chart(fig)
         
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
                 # Dados
