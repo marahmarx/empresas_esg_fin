@@ -323,45 +323,48 @@ if st.session_state.get('calculado'):
                 score_esg = st.session_state.get('score_esg', 0)
                 score_financeiro = st.session_state.get('score_financeiro', 0)
  
-                # Nova função que estava faltando
-                def calcular_pontuacoes_por_indicador(row, indicadores):
-                    pontuacoes = []
-                    nomes_indicadores = []
-                    for indicador in indicadores:
-                        nome = indicador["indicador"]
-                        valor = row.get(nome, np.nan)
-                        if pd.notna(valor):
-                            score = aplicar_faixas(valor, indicador["faixas"])
-                            pontuacoes.append(score)
-                            nomes_indicadores.append(nome)
-                    return nomes_indicadores, pontuacoes
+                # Gráfico Radar
+                def gerar_grafico_radar(nome_empresa, respostas, tipo="ESG"):
+                    categorias = []
+                    valores = []
                 
-                def plotar_grafico_radar(df_empresa, indicadores_esg):
-                    nomes, pontuacoes = calcular_pontuacoes_por_indicador(df_empresa, indicadores_esg)
+                    for i, (valor, peso, faixas) in enumerate(respostas):
+                        nome_indicador = indicadores_esg[i]["indicador"] if tipo == "ESG" else indicadores_financeiros[i]["indicador"]
+                        score = 0
+                        for faixa in faixas:
+                            if faixa[0] <= valor <= faixa[1]:
+                                score = faixa[2]
+                                break
+                        categorias.append(nome_indicador)
+                        valores.append(score)
                 
-                    fig = go.Figure(data=go.Scatterpolar(
-                        r=pontuacoes + [pontuacoes[0]],  # fecha o ciclo
-                        theta=nomes + [nomes[0]],
+                    # Fechamento do gráfico radar (o radar precisa ser um loop)
+                    categorias.append(categorias[0])
+                    valores.append(valores[0])
+                
+                    fig = go.Figure()
+                
+                    fig.add_trace(go.Scatterpolar(
+                        r=valores,
+                        theta=categorias,
                         fill='toself',
-                        name='Desempenho ESG'
+                        name=nome_empresa
                     ))
                 
                     fig.update_layout(
-                        polar=dict(
-                            radialaxis=dict(
-                                visible=True,
-                                range=[0, 100]
-                            )
-                        ),
-                        showlegend=False,
-                        title="Radar ESG - Desempenho por Indicador"
+                      polar=dict(
+                        radialaxis=dict(
+                          visible=True,
+                          range=[0, 100]
+                        )),
+                      showlegend=False,
+                      title=f"Gráfico Radar - Indicadores {tipo}"
                     )
                 
-                    return fig
+                    st.plotly_chart(fig)
+                    st.success("Análise gerada com sucesso!")
+                        gerar_grafico_radar(nome_empresa, respostas_esg, tipo="ESG", respostas_financeiros, tipo="Financeiro")
 
-                st.subheader("Radar de Desempenho ESG")
-                fig = plotar_grafico_radar(df_nova_empresa, indicadores_esg)
-                st.plotly_chart(fig)
         
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
                 # Dados
@@ -438,34 +441,9 @@ if st.session_state.get('calculado'):
                             score += weighted_score
                         scores[nome] = round((score / (peso_total / 100)), 2)
                     
-                    return scores
+                    return scores               
 
-                def plotar_grafico_radar(scores_dict, nome_empresa):
-                    categorias = list(scores_dict.keys())
-                    valores = list(scores_dict.values())
-                
-                    # Fechar o gráfico conectando o último ponto ao primeiro
-                    valores += valores[:1]
-                    categorias += categorias[:1]
-                
-                    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                    angles += angles[:1]
-                
-                    fig, ax = plt.subplots(figsize=(6,6), subplot_kw=dict(polar=True))
-                    ax.plot(angles, valores, linewidth=2, linestyle='solid')
-                    ax.fill(angles, valores, alpha=0.25)
-                
-                    ax.set_xticks(angles[:-1])
-                    ax.set_xticklabels(categorias)
-                
-                    ax.set_title(f"Perfil ESG + Financeiro - {nome_empresa}")
-                    ax.set_ylim(0, 100)
-                
-                    plt.tight_layout()
-                    plt.show()
 
-                subscores = calcular_subscores(respostas)
-                plotar_grafico_radar(subscores, nome_empresa)
                 plotar_impacto_melhoria_esg(score_esg, min(score_esg + 10, 100), "Nova Empresa")  # exemplo de melhoria
                 plotar_impacto_praticas_esg()
                 plotar_projecao_ebitda()
