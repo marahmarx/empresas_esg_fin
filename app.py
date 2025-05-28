@@ -66,7 +66,7 @@ impacto_por_setor = {
 }
 
 setor_empresa = st.selectbox("Setor da empresa", list(impacto_por_setor.keys()))
-impacto_setor = impacto_por_setor[setor]
+impacto_setor = impacto_por_setor[setor_empresa]
 
 # Etapa Unificada - Coleta de Dados
 
