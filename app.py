@@ -430,11 +430,14 @@ def gerar_relatorio_esg_formatado_streamlit(nome_empresa, respostas, formato="GR
         st.write(f"- **{item}**: {valor}")
 
     st.info("✔️ Rascunho do relatório gerado com base nas respostas fornecidas.")
-        if "nome_empresa" in st.session_state and "respostas" in st.session_state:
-        nome_empresa = st.session_state["nome_empresa"]
-        respostas = st.session_state["respostas"]
-    
-        formato = st.selectbox("Selecione o formato do relatório:", ["GRI", "SASB", "CSRD"], index=0)
-        gerar_relatorio_esg_formatado_streamlit(nome_empresa, respostas, formato)
-    else:
-        st.warning("⚠️ Nenhuma empresa foi avaliada ainda. Preencha os dados primeiro.")
+
+# Fora da função: execução da geração de relatório
+if "nome_empresa" in st.session_state and "respostas" in st.session_state:
+    nome_empresa = st.session_state["nome_empresa"]
+    respostas = st.session_state["respostas"]
+
+    formato = st.selectbox("Selecione o formato do relatório:", ["GRI", "SASB", "CSRD"], index=0)
+    gerar_relatorio_esg_formatado_streamlit(nome_empresa, respostas, formato)
+else:
+    st.warning("⚠️ Nenhuma empresa foi avaliada ainda. Preencha os dados primeiro.")
+
