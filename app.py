@@ -10,7 +10,7 @@ def aplicar_faixas(valor, faixas):
     for faixa in faixas:
         if faixa[0] <= valor <= faixa[1]:
             return faixa[2]
-    return 0  # Se o valor não se encaixar em nenhuma faixa
+    return 0
 
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 
@@ -118,7 +118,7 @@ def calcular_scores(df):
             if pd.notna(valor):
                 score_esg1 += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
                 score_esg = score_esg1 * fator_redutor
-
+                
         for indicador in indicadores_financeiros:
             valor = row.get(indicador["indicador"], np.nan)
             if pd.notna(valor):
@@ -274,20 +274,16 @@ if st.session_state.get('calculado'):
         if mostrar_analise:
             try:
                 # Gráfico Radar 
-                def calcular_score(valor, faixas):
+                # Função para calcular o score ESG
+                def aplicar_faixas(valor, faixas):
                     for faixa in faixas:
-                        try:
-                            min_val, max_val, score = faixa
-                            if min_val <= valor <= max_val:
-                                return score
-                        except Exception as e:
-                            st.error(f"Erro na faixa: {faixa} — {e}")
+                        if faixa[0] <= valor <= faixa[1]:
+                            return faixa[2]
                     return 0
 
-    
                 scores_binarios_ind = [100 if x == 1 else 0 for x in respostas_binarias]
-                scores_esg_ind = [calcular_score(v, ind["faixas"]) for v, ind in zip(respostas_esg, indicadores_esg)]
-                scores_fin_ind = [calcular_score(v, ind["faixas"]) for v, ind in zip(respostas_financeiros, indicadores_financeiros)]
+                scores_esg_ind = [calcular_score(valor, indicador["faixas"] * indicador["peso"]) for valor, indicador in zip(respostas_esg, indicadores_esg)]
+                scores_fin_ind = [calcular_score(valor, indicador["faixas"] * indicador["peso"]) for valor, indicadorin zip(respostas_financeiros, indicadores_financeiros)]
                 
                 # Juntando todos os scores
                 scores_totais = scores_binarios_ind + scores_esg_ind + scores_fin_ind
