@@ -283,7 +283,7 @@ if st.session_state.get('calculado'):
 
                 scores_binarios_ind = [100 if x == 1 else 0 for x in respostas_binarias]
                 scores_esg_ind = [calcular_score(valor, indicador["faixas"] * indicador["peso"]) for valor, indicador in zip(respostas_esg, indicadores_esg)]
-                scores_fin_ind = [calcular_score(valor, indicador["faixas"] * indicador["peso"]) for valor, indicadorin zip(respostas_financeiros, indicadores_financeiros)]
+                scores_fin_ind = [calcular_score(valor, indicador["faixas"] * indicador["peso"]) for valor, indicador in zip(respostas_financeiros, indicadores_financeiros)]
                 
                 # Juntando todos os scores
                 scores_totais = scores_binarios_ind + scores_esg_ind + scores_fin_ind
@@ -312,7 +312,7 @@ if st.session_state.get('calculado'):
                 ax.set_thetagrids(np.degrees(angles[:-1]), labels_totais[:-1], fontsize=8)
                 
                 ax.set_ylim(0, 100)
-                plt.title("Radar de Desempenho por Indicador (26 Scores)", fontsize=16)
+                plt.title("Radar de Desempenho por Indicador", fontsize=16)
                 plt.legend(loc='upper right')
                 
                 st.pyplot(fig)
