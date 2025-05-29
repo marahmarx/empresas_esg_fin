@@ -351,7 +351,9 @@ if st.session_state.get('calculado'):
                     plt.tight_layout()
                     plt.show()
 
-                plotar_grafico_radar(df_resultados, nome_empresa)
+                empresa = avaliar_empresa("Empresa Exemplo", respostas_binarias, respostas_quantitativas)
+                plotar_grafico_radar(empresa["resultados"], empresa["nome"])
+
 
         
                 # Função para plotar evolução do EBITDA
