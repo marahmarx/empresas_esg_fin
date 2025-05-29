@@ -408,6 +408,9 @@ if st.session_state.get('calculado'):
         
             except Exception as e:
                 st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
+
+            
+
         
         
 
