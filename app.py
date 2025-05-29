@@ -15,14 +15,13 @@ def aplicar_faixas(valor, faixas):
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 
 indicadores_esg = [
-    {"indicador": "Emissão de CO2 (M ton)", "peso": 15, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
+    {"indicador": "Emissão de CO2 (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
     {"indicador": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 10, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 10, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
     {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(np.inf, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
-    {"indicador": "Risco Ambiental", "peso": 5, "faixas": [(0, 1, 100), (2, 3, 70), (4, 6, 50), (7, 8, 30), (9, 10, 10)]},
 ]
 
 indicadores_financeiros = [
@@ -274,58 +273,52 @@ if st.session_state.get('calculado'):
         
         if mostrar_analise:
             try:
-                # Função auxiliar para calcular score individual por indicador
-                def calcular_score_por_indicador(valor, faixas, peso):
+                # Gráfico Radar                            
+                def calcular_score(valor, faixas):
                     for faixa in faixas:
-                        if faixa[0] <= valor <= faixa[1]:
-                            return (faixa[2] * peso / 100)
+                        min_val, max_val, score = faixa
+                        if min_val <= valor <= max_val:
+                            return score
                     return 0
                 
-                # Gráfico Radar: ESG e Financeiro
-                score_binarios = sum([v * 100 for v in respostas_binarias]) / len(respostas_binarias) if respostas_binarias else 0
+                # Calcula scores individuais para ESG e financeiro
+                scores_esg_ind = [calcular_score(v, ind["faixas"]) for v, ind in zip(respostas_esg, indicadores_esg)]
+                scores_fin_ind = [calcular_score(v, ind["faixas"]) for v, ind in zip(respostas_financeiros, indicadores_financeiros)]
                 
-                # Score ESG
-                score_esg_total = 0
-                peso_total_esg = 0
-                for valor, peso, faixas in respostas_esg:
-                    score = aplicar_faixas(valor, faixas)
-                    score_esg_total += score * peso
-                    peso_total_esg += peso
-                score_esg = score_esg_total / peso_total_esg if peso_total_esg else 0
+                # Scores binários como 0 ou 100
+                scores_binarios_ind = [100 if x == 1 else 0 for x in respostas_binarias]
                 
-                # Score Financeiro
-                score_fin_total = 0
-                peso_total_fin = 0
-                for valor, peso, faixas in respostas_financeiros:
-                    score = aplicar_faixas(valor, faixas)
-                    score_fin_total += score * peso
-                    peso_total_fin += peso
-                score_financeiro = score_fin_total / peso_total_fin if peso_total_fin else 0
+                # Labels
+                labels_binarios = perguntas_binarias
+                labels_esg = [ind["indicador"] for ind in indicadores_esg]
+                labels_fin = [ind["indicador"] for ind in indicadores_financeiros]
                 
-                categorias = ['Binários', 'ESG', 'Financeiro']
-                valores = [score_binarios, score_esg, score_financeiro]
+                # Todos os scores e labels juntos (ordem que quiser, aqui concatenei direto)
+                scores_totais = scores_binarios_ind + scores_esg_ind + scores_fin_ind
+                labels_totais = labels_binarios_ind + labels_esg_ind + labels_fin_ind
                 
-                # Calcular ângulos com base na quantidade original de categorias
-                angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+                # Fecha o ciclo do radar
+                scores_totais.append(scores_totais[0])
+                labels_totais.append(labels_totais[0])
                 
-                # Fechar o ciclo duplicando o primeiro valor
-                valores += [valores[0]]
-                angles += [angles[0]]
-                categorias += [categorias[0]]
+                # Calcula ângulos para cada indicador
+                angles = np.linspace(0, 2 * np.pi, len(scores_totais), endpoint=False).tolist()
+                angles.append(angles[0])
                 
-                fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-                ax.plot(angles, valores, linewidth=2, linestyle='solid', label='Nova Empresa')
-                ax.fill(angles, valores, color='blue', alpha=0.25)
+                # Plot Radar
+                fig, ax = plt.subplots(figsize=(12,12), subplot_kw=dict(polar=True))
+                ax.plot(angles, scores_totais, linewidth=2, linestyle='solid', label='Scores Indicadores')
+                ax.fill(angles, scores_totais, alpha=0.25)
                 
-                ax.set_thetagrids(np.degrees(angles[:-1]), categorias[:-1])
+                # Ajusta labels
+                ax.set_thetagrids(np.degrees(angles[:-1]), labels_totais[:-1], fontsize=9)
+                
                 ax.set_ylim(0, 100)
-                plt.title("Radar - Triagem ESG e Financeira", size=16)
+                plt.title("Radar dos Scores de Cada Indicador", fontsize=16)
                 plt.legend(loc='upper right')
+                
                 st.pyplot(fig)
 
-
-                # Mostrar o gráfico
-                plotar_grafico_radar(respostas_esg, respostas_financeiros, indicadores_esg, indicadores_financeiros)
         
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
                 # Dados
@@ -375,7 +368,6 @@ if st.session_state.get('calculado'):
                     plt.close()
         
                 # Criar dataframe com resultados ESG e Financeiros
-                #gráfico radar
                 def calcular_subscores(respostas_esg, respostas_binarias, respostas_financeiros):
                     ambiental_idx = [0, 1, 2, 3, 4]  # índices das perguntas ambientais
                     social_idx = [5, 6, 7, 8, 9, 10]  # perguntas sociais
