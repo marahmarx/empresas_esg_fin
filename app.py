@@ -351,7 +351,7 @@ if st.session_state.get('calculado'):
                     plt.tight_layout()
                     plt.show()
 
-                empresa = avaliar_empresa("Empresa Exemplo", respostas_binarias, respostas_quantitativas)
+                empresa = avaliar_empresa("Empresa Exemplo")
                 plotar_grafico_radar(empresa["resultados"], empresa["nome"])
 
 
