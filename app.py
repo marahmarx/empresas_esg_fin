@@ -276,11 +276,14 @@ if st.session_state.get('calculado'):
                 # Gráfico Radar 
                 def calcular_score(valor, faixas):
                     for faixa in faixas:
-                        print("Faixa recebida:", faixa)
-                        min_val, max_val, score = faixa  # aqui está o provável erro
-                        if min_val <= valor <= max_val:
-                            return score
+                        try:
+                            min_val, max_val, score = faixa
+                            if min_val <= valor <= max_val:
+                                return score
+                        except Exception as e:
+                            st.error(f"Erro na faixa: {faixa} — {e}")
                     return 0
+
     
                 scores_binarios_ind = [100 if x == 1 else 0 for x in respostas_binarias]
                 scores_esg_ind = [calcular_score(v, ind["faixas"]) for v, ind in zip(respostas_esg, indicadores_esg)]
