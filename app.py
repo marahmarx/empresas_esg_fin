@@ -270,39 +270,62 @@ if st.session_state.get('calculado'):
         
         if mostrar_analise:
             try:
-                # Garantir uso das variáveis calculadas
-                score_esg = st.session_state.get('score_esg', 0)
-                score_financeiro = st.session_state.get('score_financeiro', 0)
- 
-                # Gráfico Radar
-                categories = [ind['indicador'] for ind in indicadores_esg] + [ind['indicador'] for ind in indicadores_financeiros]
+                # Função auxiliar para calcular score individual por indicador
+                def calcular_score_por_indicador(valor, faixas, peso):
+                    for faixa in faixas:
+                        if faixa[0] <= valor <= faixa[1]:
+                            return (faixa[2] * peso / 100)
+                    return 0
                 
-                valores = respostas_esg + respostas_financeiros
+                # Gráfico Radar: ESG e Financeiro
+                def plotar_grafico_radar(respostas_esg, respostas_financeiros, indicadores_esg, indicadores_fin):
+                    # Calcular scores normalizados (de 0 a 100)
+                    scores_esg = [
+                        calcular_score_por_indicador(valor, faixas, peso)
+                        for valor, peso, faixas in respostas_esg
+                    ]
+                    scores_fin = [
+                        calcular_score_por_indicador(valor, faixas, peso)
+                        for valor, peso, faixas in respostas_financeiros
+                    ]
                 
-                # Normalização simples para radar (0-100), assumindo que valores já estão na escala de 0-100
-                # Se não, pode-se normalizar conforme necessário.
+                    # Criar gráfico radar com Plotly
+                    fig = go.Figure()
                 
-                fig = go.Figure()
+                    fig.add_trace(go.Scatterpolar(
+                        r=scores_esg,
+                        theta=indicadores_esg,
+                        fill='toself',
+                        name='ESG',
+                        line=dict(color='green')
+                    ))
                 
-                fig.add_trace(go.Scatterpolar(
-                    r=valores + [valores[0]],  # Fechar o radar repetindo o primeiro valor
-                    theta=categories + [categories[0]],
-                    fill='toself',
-                    name=nome_empresa
-                ))
+                    fig.add_trace(go.Scatterpolar(
+                        r=scores_fin,
+                        theta=indicadores_fin,
+                        fill='toself',
+                        name='Financeiro',
+                        line=dict(color='blue')
+                    ))
                 
-                fig.update_layout(
-                    polar=dict(
-                        radialaxis=dict(
-                            visible=True,
-                            range=[0, max(100, max(valores))]
-                        )),
-                    showlegend=True,
-                    title="Perfil ESG e Financeiro da Empresa"
-                )
+                    fig.update_layout(
+                        polar=dict(
+                            radialaxis=dict(
+                                visible=True,
+                                range=[0, 100]
+                            )
+                        ),
+                        showlegend=True,
+                        title="Radar de Indicadores ESG e Financeiros"
+                    )
                 
-                st.plotly_chart(fig, use_container_width=True)
-
+                    st.plotly_chart(fig, use_container_width=True)
+                
+                # Título do app
+                st.title("Gráfico Radar - Indicadores ESG e Financeiros")
+                
+                # Mostrar o gráfico
+                plotar_grafico_radar(respostas_esg, respostas_financeiros, indicadores_esg, indicadores_fin)
         
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
                 # Dados
