@@ -26,8 +26,8 @@ def calcular_score_financeiro(respostas):
     return total_score
 
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
+
 indicadores_esg = [
-    {"indicador": "Setor da empresa", "peso": 10, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
     {"indicador": "Emissão de CO2 (M ton)", "peso": 15, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
     {"indicador": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
@@ -58,15 +58,16 @@ segmento_empresa = st.selectbox("Segmento da empresa:", ["Primário", "Secundár
 
 impacto_por_setor = {
     "Beleza / Tecnologia / Serviços": 5,
-    "Indústria Leve / Moda": 15,
-    "Transporte / Logística": 25,
-    "Químico / Agropecuário": 40,
-    "Metalurgia": 55,
-    "Petróleo e Gás": 70
+    "Indústria Leve / Moda": 10,
+    "Transporte / Logística": 15,
+    "Químico / Agropecuário": 20,
+    "Metalurgia": 25,
+    "Petróleo e Gás": 30
 }
 
 setor_empresa = st.selectbox("Setor da empresa", list(impacto_por_setor.keys()))
 impacto_setor = impacto_por_setor[setor_empresa]
+fator_redutor = 1 - impacto_setor / 100
 
 # Etapa Unificada - Coleta de Dados
 
@@ -116,11 +117,6 @@ def carregar_dados_empresas(url):
         st.error(f"Erro ao carregar os dados da planilha: {e}")
         return pd.DataFrame()
 
-
-def aplicar_ajuste_por_setor(score_esg_bruto, setor):
-    ajuste = ajuste_por_setor.get(setor, 0.10)  # valor padrão se setor não for identificado
-    score_ajustado = score_esg_bruto + (100 - score_esg_bruto) * ajuste
-    return round(score_ajustado, 2)
     
 # Função para calcular os scores
 def calcular_scores(df):
@@ -128,19 +124,20 @@ def calcular_scores(df):
     financeiro_total = []
 
     for _, row in df.iterrows():
-        score_esg = 0
-        score_financeiro = 0
+        score_esg1 = 0
+        score_financeiro1 = 0
 
         for indicador in indicadores_esg:
             valor = row.get(indicador["indicador"], np.nan)
             if pd.notna(valor):
-                score_esg += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
-
+                score_esg1 += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
+                score_esg = score_esg1 * fator_redutor
 
         for indicador in indicadores_financeiros:
             valor = row.get(indicador["indicador"], np.nan)
             if pd.notna(valor):
-                score_financeiro += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
+                score_financeiro1 += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
+                score_financeiro = score_financeiro1 * fator_redutor
 
         esg_total.append(score_esg)
         financeiro_total.append(score_financeiro)
@@ -413,54 +410,5 @@ if st.session_state.get('calculado'):
                 st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
         
         
-        
-#Gerar relatorios 
-# Função para gerar relatório ESG formatado com base nas respostas
-def gerar_relatorio_esg_formatado_streamlit(nome_empresa, respostas, formato="GRI"):
-    st.subheader(f"📄 Relatório ESG da Empresa: {nome_empresa}")
-    st.write(f"**Formato selecionado:** {formato}")
 
-    estrutura = {
-        "GRI": {
-            "GRI 305: Emissão de CO2 (M ton)": respostas[0],
-            "GRI 306: Gestão de Resíduos (%)": respostas[1],
-            "GRI 302: Eficiência Energética (%)": respostas[2],
-            "GRI 405: Diversidade de Gênero (%)": respostas[3],
-            "GRI 405: Diversidade Racial (%)": respostas[4],
-            "GRI 401: Satisfação dos Funcionários (%)": respostas[5],
-            "GRI 413: Investimento em Programas Sociais (R$ M)": respostas[6],
-            "GRI 307: Risco Ambiental (0-10)": respostas[7],
-        },
-        "SASB": {
-            "SASB: Eficiência Energética (%)": respostas[2],
-            "SASB: Diversidade Estratégica (Gênero e Raça)": f"{respostas[3]}% / {respostas[4]}%",
-            "SASB: Engajamento com Funcionários (%)": respostas[5],
-            "SASB: Investimento Social (R$ M)": respostas[6],
-            "SASB: Indicador de Risco Ambiental": respostas[7],
-        },
-        "CSRD": {
-            "CSRD: Emissões Escopos 1-3 (M ton)": respostas[0],
-            "CSRD: Desempenho em Resíduos (%)": respostas[1],
-            "CSRD: Eficiência Energética (%)": respostas[2],
-            "CSRD: Indicadores Sociais (Diversidade e Satisfação)": f"{respostas[3]}% / {respostas[4]}% / {respostas[5]}%",
-            "CSRD: Programas e Riscos Socioambientais": f"{respostas[6]} / Risco: {respostas[7]}",
-        }
-    }
-
-    estrutura_escolhida = estrutura.get(formato.upper(), estrutura["GRI"])
-
-    for item, valor in estrutura_escolhida.items():
-        st.write(f"- **{item}**: {valor}")
-
-    st.info("✔️ Rascunho do relatório gerado com base nas respostas fornecidas.")
-
-# Fora da função: execução da geração de relatório
-if "nome_empresa" in st.session_state and "respostas" in st.session_state:
-    nome_empresa = st.session_state["nome_empresa"]
-    respostas = st.session_state["respostas"]
-
-    formato = st.selectbox("Selecione o formato do relatório:", ["GRI", "SASB", "CSRD"], index=0)
-    gerar_relatorio_esg_formatado_streamlit(nome_empresa, respostas, formato)
-else:
-    st.warning("⚠️ Nenhuma empresa foi avaliada ainda. Preencha os dados primeiro.")
 
