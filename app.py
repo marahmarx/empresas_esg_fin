@@ -329,7 +329,7 @@ if st.session_state.get('calculado'):
                 st.title("Gráfico Radar - Indicadores ESG e Financeiros")
                 
                 # Mostrar o gráfico
-                plotar_grafico_radar(respostas_esg, respostas_financeiros, indicadores_esg, indicadores_fin)
+                plotar_grafico_radar(respostas_esg, respostas_financeiros, indicadores_esg, indicadores_financeiros)
         
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
                 # Dados
