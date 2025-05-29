@@ -15,25 +15,25 @@ def aplicar_faixas(valor, faixas):
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 
 indicadores_esg = [
-    {"indicador": "Emissão de CO2 (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
-    {"indicador": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
-    {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(np.inf, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
+    {"indicador": "6. Emissão de CO2 (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
+    {"indicador": "7. Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "8. Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "9. Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "10. Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "11. Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
+    {"indicador": "12. Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(np.inf, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
 ]
 
 indicadores_financeiros = [
-    {"indicador": "Variação da ação YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
-    {"indicador": "EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Margem EBITDA (%)", "peso": 5.5 , "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
-    {"indicador": "Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
-    {"indicador": "Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
-    {"indicador": "Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "13. Variação da ação YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "14. EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
+    {"indicador": "15. EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "16. Margem EBITDA (%)", "peso": 5.5 , "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "17. Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
+    {"indicador": "18. Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
+    {"indicador": "19. Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
+    {"indicador": "20. Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "21. Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
 ]
 st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
@@ -274,48 +274,84 @@ if st.session_state.get('calculado'):
         if mostrar_analise:
             try:
                 # Gráfico Radar 
-                # Função para calcular o score ESG
-                def aplicar_faixas(valor, faixas):
-                    for faixa in faixas:
-                        if faixa[0] <= valor <= faixa[1]:
-                            return faixa[2]
-                    return 0
 
-                scores_binarios_ind = [100 if x == 1 else 0 for x in respostas_binarias]
-                scores_esg_ind = [aplicar_faixas(valor, indicador["faixas"] * indicador["peso"]) for valor, indicador in zip(respostas_esg, indicadores_esg)]
-                scores_fin_ind = [aplicar_faixas(valor, indicador["faixas"] * indicador["peso"]) for valor, indicador in zip(respostas_financeiros, indicadores_financeiros)]
+                def avaliar_empresa(nome_empresa, respostas_binarias, respostas_quantitativas):
+                    resultados = []
+                    total_score = 0
+                    total_peso = 0
                 
-                # Juntando todos os scores
-                scores_totais = scores_binarios_ind + scores_esg_ind + scores_fin_ind
+                    # Processa perguntas binárias (5 itens, cada um com peso fixo, por exemplo 5)
+                    peso_binario = 5  # ou qualquer valor proporcional
+                    for pergunta, resposta in zip(perguntas_binarias, respostas_binarias):
+                        score = calcular_score_binario(resposta)
+                        weighted_score = score * peso_binario / 100
+                        total_score += weighted_score
+                        total_peso += peso_binario
+                        resultados.append({
+                            "Indicador": pergunta,
+                            "Valor": resposta,
+                            "Score": score,
+                            "Peso (%)": peso_binario,
+                            "Score Ponderado": weighted_score
+                        })
                 
-                # Labels numerados
-                labels_binarios = [f"{i+1}. {label}" for i, label in enumerate(perguntas_binarias)]
-                labels_esg = [f"{i+1+len(labels_binarios)}. {ind['indicador']}" for i, ind in enumerate(indicadores_esg)]
-                labels_fin = [f"{i+1+len(labels_binarios)+len(labels_esg)}. {ind['indicador']}" for i, ind in enumerate(indicadores_financeiros)]
+                    # Processa os indicadores ESG e financeiros (quantitativos)
+                    indicadores = indicadores_esg + indicadores_financeiros
+                    for indicador_info, resposta in zip(indicadores, respostas_quantitativas):
+                        score = calcular_score_faixas(resposta, indicador_info["faixas"])
+                        peso = indicador_info["peso"]
+                        weighted_score = score * peso / 100
+                        total_score += weighted_score
+                        total_peso += peso
+                        resultados.append({
+                            "Indicador": indicador_info["indicador"],
+                            "Valor": resposta,
+                            "Score": score,
+                            "Peso (%)": peso,
+                            "Score Ponderado": weighted_score
+                        })
                 
-                labels_totais = labels_binarios + labels_esg + labels_fin
+                    df_resultados = pd.DataFrame(resultados)
                 
-                # Fechamento do ciclo no radar
-                scores_totais.append(scores_totais[0])
-                labels_totais.append(labels_totais[0])
+                    score_final_normalizado = total_score / (total_peso / 100)  # Normaliza para base 100
                 
-                # Ângulos
-                angles = np.linspace(0, 2 * np.pi, len(scores_totais), endpoint=False).tolist()
-                angles.append(angles[0])
+                    return {
+                        "nome": nome_empresa,
+                        "score_total": score_final_normalizado,
+                        "resultados": df_resultados
+                    }
+
+                def plotar_grafico_radar(df_resultados, nome_empresa):
+            
+                    categorias = df_resultados["Indicador"].tolist()
+                    valores = df_resultados["Score"].tolist()
                 
-                # Plot Radar
-                fig, ax = plt.subplots(figsize=(12, 12), subplot_kw=dict(polar=True))
-                ax.plot(angles, scores_totais, linewidth=2, linestyle='solid', label='Empresa')
-                ax.fill(angles, scores_totais, alpha=0.25)
+                    # Fecha o loop do gráfico (volta ao primeiro ponto)
+                    categorias += [categorias[0]]
+                    valores += [valores[0]]
                 
-                # Ajustar os labels
-                ax.set_thetagrids(np.degrees(angles[:-1]), labels_totais[:-1], fontsize=8)
+                    # Ângulos para o radar
+                    num_vars = len(categorias)
+                    angulos = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
+                    angulos += [angulos[0]]
                 
-                ax.set_ylim(0, 100)
-                plt.title("Radar de Desempenho por Indicador", fontsize=16)
-                plt.legend(loc='upper right')
+                    # Plotagem
+                    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+                    ax.plot(angulos, valores, color="blue", linewidth=2)
+                    ax.fill(angulos, valores, color="skyblue", alpha=0.4)
                 
-                st.pyplot(fig)
+                    # Ajuste dos rótulos
+                    ax.set_xticks(angulos[:-1])
+                    ax.set_xticklabels(categorias, fontsize=9)
+                
+                    ax.set_yticks([20, 40, 60, 80, 100])
+                    ax.set_yticklabels(["20", "40", "60", "80", "100"])
+                    ax.set_title(f"Desempenho por Indicador - {nome_empresa}", size=14, y=1.1)
+                
+                    plt.tight_layout()
+                    plt.show()
+
+                plotar_grafico_radar()
 
         
                 # Função para plotar evolução do EBITDA
