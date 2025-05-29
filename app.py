@@ -274,80 +274,43 @@ if st.session_state.get('calculado'):
         if mostrar_analise:
             try:
                 # Gráfico Radar                            
-                def calcular_score(valor, faixas):
-                    for faixa in faixas:
-                        min_val, max_val, score = faixa
-                        if min_val <= valor <= max_val:
-                            return score
-                    return 0
                 
-                # Calcula scores individuais para ESG e financeiro
+                scores_binarios_ind = [100 if x == 1 else 0 for x in respostas_binarias]
                 scores_esg_ind = [calcular_score(v, ind["faixas"]) for v, ind in zip(respostas_esg, indicadores_esg)]
                 scores_fin_ind = [calcular_score(v, ind["faixas"]) for v, ind in zip(respostas_financeiros, indicadores_financeiros)]
                 
-                # Scores binários como 0 ou 100
-                scores_binarios_ind = [100 if x == 1 else 0 for x in respostas_binarias]
-                
-                # Labels
-                labels_binarios = perguntas_binarias
-                labels_esg = [ind["indicador"] for ind in indicadores_esg]
-                labels_fin = [ind["indicador"] for ind in indicadores_financeiros]
-                
-                # Todos os scores e labels juntos (ordem que quiser, aqui concatenei direto)
+                # Juntando todos os scores
                 scores_totais = scores_binarios_ind + scores_esg_ind + scores_fin_ind
-                labels_totais = labels_binarios_ind + labels_esg_ind + labels_fin_ind
                 
-                # Fecha o ciclo do radar
+                # Labels numerados
+                labels_binarios = [f"{i+1}. {label}" for i, label in enumerate(perguntas_binarias)]
+                labels_esg = [f"{i+1+len(labels_binarios)}. {ind['indicador']}" for i, ind in enumerate(indicadores_esg)]
+                labels_fin = [f"{i+1+len(labels_binarios)+len(labels_esg)}. {ind['indicador']}" for i, ind in enumerate(indicadores_financeiros)]
+                
+                labels_totais = labels_binarios + labels_esg + labels_fin
+                
+                # Fechamento do ciclo no radar
                 scores_totais.append(scores_totais[0])
                 labels_totais.append(labels_totais[0])
                 
-                # Calcula ângulos para cada indicador
+                # Ângulos
                 angles = np.linspace(0, 2 * np.pi, len(scores_totais), endpoint=False).tolist()
                 angles.append(angles[0])
                 
                 # Plot Radar
-                fig, ax = plt.subplots(figsize=(12,12), subplot_kw=dict(polar=True))
-                ax.plot(angles, scores_totais, linewidth=2, linestyle='solid', label='Scores Indicadores')
+                fig, ax = plt.subplots(figsize=(12, 12), subplot_kw=dict(polar=True))
+                ax.plot(angles, scores_totais, linewidth=2, linestyle='solid', label='Empresa')
                 ax.fill(angles, scores_totais, alpha=0.25)
                 
-                # Ajusta labels
-                ax.set_thetagrids(np.degrees(angles[:-1]), labels_totais[:-1], fontsize=9)
+                # Ajustar os labels
+                ax.set_thetagrids(np.degrees(angles[:-1]), labels_totais[:-1], fontsize=8)
                 
                 ax.set_ylim(0, 100)
-                plt.title("Radar dos Scores de Cada Indicador", fontsize=16)
+                plt.title("Radar de Desempenho por Indicador (26 Scores)", fontsize=16)
                 plt.legend(loc='upper right')
                 
                 st.pyplot(fig)
 
-        
-                # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
-                # Dados
-                praticas_esg = [
-                    "Uso de Energia Renovável",
-                    "Diversidade de Gênero na Liderança",
-                    "Práticas Éticas na Cadeia de Suprimentos",
-                    "Satisfação dos Funcionários",
-                    "Redução de Emissões de Carbono"
-                ]
-                
-                impacto_ebitda = [3, 3, 4, 6, 2]  # em pontos percentuais
-                impacto_receita = [0, 2, 0, 5, 1]  # em pontos percentuais
-                
-                # Criar gráfico com matplotlib
-                x = range(len(praticas_esg))
-                
-                fig, ax = plt.subplots(figsize=(12, 6))
-                ax.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
-                ax.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
-                ax.set_xticks([p + 0.2 for p in x])
-                ax.set_xticklabels(praticas_esg, rotation=45, ha='right')
-                ax.set_ylabel('Impacto (%)')
-                ax.set_title('Impacto das Práticas ESG nos Indicadores Financeiros')
-                ax.legend()
-                plt.tight_layout()
-                
-                # Exibir no Streamlit
-                st.pyplot(fig)
         
                 # Função para plotar evolução do EBITDA
                 def plotar_projecao_ebitda():
