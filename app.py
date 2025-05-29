@@ -305,12 +305,13 @@ if st.session_state.get('calculado'):
                 categorias = ['Binários', 'ESG', 'Financeiro']
                 valores = [score_binarios, score_esg, score_financeiro]
                 
-                # Fechar o ciclo
-                categorias += [categorias[0]]
-                valores += [valores[0]]
-                
+                # Calcular ângulos com base na quantidade original de categorias
                 angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                angles += angles[:1]
+                
+                # Fechar o ciclo duplicando o primeiro valor
+                valores += [valores[0]]
+                angles += [angles[0]]
+                categorias += [categorias[0]]
                 
                 fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
                 ax.plot(angles, valores, linewidth=2, linestyle='solid', label='Nova Empresa')
@@ -322,7 +323,7 @@ if st.session_state.get('calculado'):
                 plt.legend(loc='upper right')
                 st.pyplot(fig)
 
-                
+
                 # Mostrar o gráfico
                 plotar_grafico_radar(respostas_esg, respostas_financeiros, indicadores_esg, indicadores_financeiros)
         
