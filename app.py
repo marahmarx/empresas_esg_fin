@@ -282,51 +282,46 @@ if st.session_state.get('calculado'):
                     return 0
                 
                 # Gráfico Radar: ESG e Financeiro
-                def plotar_grafico_radar(respostas_esg, respostas_financeiros, indicadores_esg, indicadores_financeiros):
-                    # Calcular scores normalizados (de 0 a 100)
-                    scores_esg = [
-                        calcular_score_por_indicador(valor, faixas, peso)
-                        for valor, peso, faixas in respostas_esg
-                    ]
-                    scores_fin = [
-                        calcular_score_por_indicador(valor, faixas, peso)
-                        for valor, peso, faixas in respostas_financeiros
-                    ]
+                score_binarios = sum([v * 100 for v in respostas_binarias]) / len(respostas_binarias) if respostas_binarias else 0
                 
-                    # Criar gráfico radar com Plotly
-                    fig = go.Figure()
+                # Score ESG
+                score_esg_total = 0
+                peso_total_esg = 0
+                for valor, peso, faixas in respostas_esg:
+                    score = aplicar_faixas(valor, faixas)
+                    score_esg_total += score * peso
+                    peso_total_esg += peso
+                score_esg = score_esg_total / peso_total_esg if peso_total_esg else 0
                 
-                    fig.add_trace(go.Scatterpolar(
-                        r=scores_esg,
-                        theta=indicadores_esg,
-                        fill='toself',
-                        name='ESG',
-                        line=dict(color='green')
-                    ))
+                # Score Financeiro
+                score_fin_total = 0
+                peso_total_fin = 0
+                for valor, peso, faixas in respostas_financeiros:
+                    score = aplicar_faixas(valor, faixas)
+                    score_fin_total += score * peso
+                    peso_total_fin += peso
+                score_financeiro = score_fin_total / peso_total_fin if peso_total_fin else 0
                 
-                    fig.add_trace(go.Scatterpolar(
-                        r=scores_fin,
-                        theta=indicadores_financeiros,
-                        fill='toself',
-                        name='Financeiro',
-                        line=dict(color='blue')
-                    ))
+                categorias = ['Binários', 'ESG', 'Financeiro']
+                valores = [score_binarios, score_esg, score_financeiro]
                 
-                    fig.update_layout(
-                        polar=dict(
-                            radialaxis=dict(
-                                visible=True,
-                                range=[0, 100]
-                            )
-                        ),
-                        showlegend=True,
-                        title="Radar de Indicadores ESG e Financeiros"
-                    )
+                # Fechar o ciclo
+                categorias += [categorias[0]]
+                valores += [valores[0]]
                 
-                    st.plotly_chart(fig, use_container_width=True)
+                angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+                angles += angles[:1]
                 
-                # Título do app
-                st.title("Gráfico Radar - Indicadores ESG e Financeiros")
+                fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+                ax.plot(angles, valores, linewidth=2, linestyle='solid', label='Nova Empresa')
+                ax.fill(angles, valores, color='blue', alpha=0.25)
+                
+                ax.set_thetagrids(np.degrees(angles[:-1]), categorias[:-1])
+                ax.set_ylim(0, 100)
+                plt.title("Radar - Triagem ESG e Financeira", size=16)
+                plt.legend(loc='upper right')
+                st.pyplot(fig)
+
                 
                 # Mostrar o gráfico
                 plotar_grafico_radar(respostas_esg, respostas_financeiros, indicadores_esg, indicadores_financeiros)
