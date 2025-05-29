@@ -6,24 +6,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Função para calcular o score ESG
-def calcular_score_esg(respostas):
-    total_score = 0
-    for i, (valor, peso, faixas) in enumerate(respostas):
-        for faixa in faixas:
-            if faixa[0] <= valor <= faixa[1]:
-                total_score += faixa[2] * peso / 100
-                break
-    return total_score
-
-# Função para calcular o score financeiro
-def calcular_score_financeiro(respostas):
-    total_score = 0
-    for i, (valor, peso, faixas) in enumerate(respostas):
-        for faixa in faixas:
-            if faixa[0] <= valor <= faixa[1]:
-                total_score += faixa[2] * peso / 100
-                break
-    return total_score
+def aplicar_faixas(valor, faixas):
+    for faixa in faixas:
+        if faixa[0] <= valor <= faixa[1]:
+            return faixa[2]
+    return 0  # Se o valor não se encaixar em nenhuma faixa
 
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 
@@ -275,7 +262,7 @@ if st.session_state.get('calculado'):
                     return 0
                 
                 # Gráfico Radar: ESG e Financeiro
-                def plotar_grafico_radar(respostas_esg, respostas_financeiros, indicadores_esg, indicadores_fin):
+                def plotar_grafico_radar(respostas_esg, respostas_financeiros, indicadores_esg, indicadores_financeiros):
                     # Calcular scores normalizados (de 0 a 100)
                     scores_esg = [
                         calcular_score_por_indicador(valor, faixas, peso)
@@ -299,7 +286,7 @@ if st.session_state.get('calculado'):
                 
                     fig.add_trace(go.Scatterpolar(
                         r=scores_fin,
-                        theta=indicadores_fin,
+                        theta=indicadores_financeiros,
                         fill='toself',
                         name='Financeiro',
                         line=dict(color='blue')
