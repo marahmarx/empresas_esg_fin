@@ -191,6 +191,26 @@ def carregar_dados_empresas(url):
         st.error(f"Erro ao carregar os dados da planilha: {e}")
         return pd.DataFrame()
 
+# Função para calcular o score ESG
+def calcular_score_esg(respostas):
+    total_score = 0
+    for i, (valor, peso, faixas) in enumerate(respostas):
+        for faixa in faixas:
+            if faixa[0] <= valor <= faixa[1]:
+                total_score += faixa[2] * peso / 100
+                break
+    return total_score
+
+# Função para calcular o score financeiro
+def calcular_score_financeiro(respostas):
+    total_score = 0
+    for i, (valor, peso, faixas) in enumerate(respostas):
+        for faixa in faixas:
+            if faixa[0] <= valor <= faixa[1]:
+                total_score += faixa[2] * peso / 100
+                break
+    return total_score
+    
 if st.button("Calcular Resultado Final"):
     score_financeiro = calcular_score_financeiro(respostas_financeiros)
     score_esg = calcular_score_esg(respostas_esg)
