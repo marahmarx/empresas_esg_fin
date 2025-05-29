@@ -274,16 +274,10 @@ if st.session_state.get('calculado'):
         if mostrar_analise:
             try:
                 # Gráfico Radar                            
-                def calcular_score(valor, faixas):
-                    for faixa in faixas:
-                        min_val, max_val, score = faixa
-                        if min_val <= valor <= max_val:
-                            return score
-                    return 0
     
                 scores_binarios_ind = [100 if x == 1 else 0 for x in respostas_binarias]
-                scores_esg_ind = [calcular_score(v, ind["faixas"]) for v, ind in zip(respostas_esg, indicadores_esg)]
-                scores_fin_ind = [calcular_score(v, ind["faixas"]) for v, ind in zip(respostas_financeiros, indicadores_financeiros)]
+                scores_esg_ind = [aplicar_faixas(v, ind["faixas"]) for v, ind in zip(respostas_esg, indicadores_esg)]
+                scores_fin_ind = [aplicar_faixas(v, ind["faixas"]) for v, ind in zip(respostas_financeiros, indicadores_financeiros)]
                 
                 # Juntando todos os scores
                 scores_totais = scores_binarios_ind + scores_esg_ind + scores_fin_ind
