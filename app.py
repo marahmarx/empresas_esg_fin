@@ -273,50 +273,44 @@ if st.session_state.get('calculado'):
         if mostrar_analise:
             try:
                 #Gráfico Radar
-                def calcular_pontuacao(valor, ranges):
-                    for min_val, max_val, score in ranges:
-                        if min_val <= valor <= max_val:
-                            return score
-                    return 0
-                
                 def avaliar_empresa(nome_empresa, respostas):
                     resultados = []
                     total_score = 0
                     score_esg = 0
                     score_financeiro = 0
-                    
                 
                     for indicador_info, resposta in zip(indicadores, respostas):
-                        score = calcular_pontuacao(resposta, indicador_info["ranges"])
                         try:
                             valor = float(resposta)
+                        except (ValueError, TypeError):
+                            valor = 0.0
+                
+                        try:
                             peso = float(indicador_info["weight"])
                         except (ValueError, TypeError):
-                            valor = 0
-                            peso = 0
-                        
+                            peso = 0.0
+                
                         score = calcular_pontuacao(valor, indicador_info["ranges"])
                         weighted_score = score * peso / 100
-
                 
                         # Classificando ESG ou Financeiro
-                        #scores_binarias = [(100 if nova[col] == "Sim" else 0) for respostas in respostas_binarias]
-                        if indicador_info["indicador"].startswith(( "13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.")):
+                        if indicador_info["indicador"].startswith(("13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.")):
                             score_financeiro += weighted_score
                         else:
                             score_esg += weighted_score
                 
                         resultados.append({
                             "Indicador": indicador_info["indicador"],
-                            "Valor": respostas,
+                            "Valor": valor,
                             "Score": score,
-                            "Peso (%)": indicador_info["weight"],
+                            "Peso (%)": peso,
                             "Score Ponderado": weighted_score
                         })
                         total_score += weighted_score
                 
                     df_resultados = pd.DataFrame(resultados)
                     return df_resultados, total_score, score_esg, score_financeiro
+
 
                 def plotar_radar(df_resultados, nome_empresa):
                     categorias = df_resultados['Indicador']
