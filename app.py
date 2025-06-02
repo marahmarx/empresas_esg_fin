@@ -223,7 +223,6 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         plotar_matriz_interativa(df_empresas)
 
         # Segunda parte: Análise visual completa
-        
         mostrar_analise = st.button("Obter análise completa")
         
         if mostrar_analise:
@@ -254,14 +253,12 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
                             valor = 0.0
         
                         try:
-                            peso_raw = indicador_info["peso"]
-                            peso = float(peso_raw)
-                        except (ValueError, TypeError, IndexError):
+                            peso = float(indicador_info["peso"])
+                        except (ValueError, TypeError):
                             peso = 0.0
         
                         try:
-                            score_raw = calcular_pontuacao(valor, indicador_info["faixas"])
-                            score = float(score_raw)
+                            score = float(calcular_pontuacao(valor, indicador_info["faixas"]))
                         except Exception:
                             score = 0.0
         
@@ -355,3 +352,4 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         
             except Exception as e:
                 st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
+
