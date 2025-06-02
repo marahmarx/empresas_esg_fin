@@ -53,7 +53,46 @@ def carregar_dados_empresas(url):
     except Exception as e:
         st.error(f"Erro ao carregar dados: {e}")
         return pd.DataFrame()
+def plotar_matriz_interativa(df):
+    if df.empty:
+        st.error("Dados não carregados corretamente!")
+        return
 
+    if 'Empresa' not in df.columns or 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
+        st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
+        return
+
+    df["Categoria"] = df["Empresa"].apply(lambda x: "Nova Empresa" if x == "Nova Empresa" else "Empresas Existentes")
+
+    fig = px.scatter(
+        df,
+        x='Score ESG',
+        y='Score Financeiro',
+        text='Empresa',
+        color='Categoria',
+        color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
+        title="Matriz ESG x Financeiro",
+        height=600
+    )
+
+    fig.update_traces(
+        textposition='top center',
+        mode='markers+text',
+        marker=dict(size=12)
+    )
+
+    shapes = [
+        dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
+        dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),
+        dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),
+        dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),
+    ]
+    fig.update_layout(shapes=shapes)
+    fig.update_xaxes(range=[0, 100])
+    fig.update_yaxes(range=[0, 100])
+
+    st.plotly_chart(fig, use_container_width=True)
+    
 # --- Dados fixos ---
 impacto_por_setor = {
     "Beleza / Tecnologia / Serviços": 5,
@@ -138,8 +177,6 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
     })
     df = pd.concat([df, pd.DataFrame([nova])], ignore_index=True)
 
-    plotar_matriz(df)
-
     try:
         url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
 
@@ -184,52 +221,6 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         })
 
         df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_linha])], ignore_index=True)
-        # Função para plotar com Plotly
-        import plotly.graph_objects as go
-        
-        def plotar_matriz_interativa(df):
-            if df.empty:
-                st.error("Dados não carregados corretamente!")
-                return
-        
-            if 'Empresa' not in df.columns or 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
-                st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
-                return
-        
-            fig = px.scatter(
-                df,
-                x='Score ESG',
-                y='Score Financeiro',
-                text='Empresa',
-                color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
-                title="Matriz ESG x Financeiro",
-                height=600
-            )
-        
-            # Mostrar os nomes das empresas sobre os pontos
-            fig.update_traces(
-                textposition='top center',
-                mode='markers+text',  # ESSENCIAL para mostrar os nomes
-                marker=dict(size=12)
-            )
-        
-            # Faixas visuais
-            shapes = [
-            dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),           # Baixo ESG e Financeiro
-            dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),        # ESG alto, Financeiro baixo
-            dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),      # ESG baixo, Financeiro alto
-            dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),   # ESG alto e Financeiro alto
-        ]
-            fig.update_layout(shapes=shapes)
-        
-            # Define limites dos eixos
-            fig.update_xaxes(range=[0, 100])
-            fig.update_yaxes(range=[0, 100])
-        
-            st.plotly_chart(fig, use_container_width=True)
-
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
 
         # Segunda parte: Análise visual completa
         mostrar_analise = st.button("Obter análise completa")
