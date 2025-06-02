@@ -408,9 +408,10 @@ if st.button("Gerar Relatório ESG"):
         salvar_respostas(empresa)
 
         def gerar_relatorio_esg_formatado(nome_empresa, respostas, formato="GRI"):
-            if len(respostas) < 18:
-                st.error("Respostas insuficientes para gerar o relatório.")
-                return
+            if not respostas:
+            st.error("Nenhuma resposta encontrada.")
+            return
+
 
             estrutura = {
                 "GRI": {
