@@ -209,19 +209,15 @@ def calcular_score_esg(respostas):
     return total_score
 
 # Função para calcular o score financeiro
-def calcular_score_financeiro(respostas_financeiros):
+def calcular_score_financeiro(respostas):
     total_score = 0
-    if len(respostas_financeiros) != len(indicadores_financeiros):
-        raise ValueError("Número de respostas financeiras não coincide com o número de indicadores financeiros.")
-
-    for i, valor in enumerate(respostas_financeiros):
-        peso = indicadores_financeiros[i]['peso']
-        faixas = indicadores_financeiros[i]['faixas']
-        score = calcular_pontuacao(valor, faixas)  # função externa que retorna score para o valor e faixas
-        score_ponderado = score * peso / 100
-        total_score += score_ponderado
+    for i, (valor, peso, faixas) in enumerate(respostas):
+        for faixa in faixas:
+            if faixa[0] <= valor <= faixa[1]:
+                total_score += faixa[2] * peso / 100
+                break
     return total_score
-
+    
 if st.button("Calcular Resultado Final"):
     score_financeiro = calcular_score_financeiro(respostas_financeiros)
     score_esg = calcular_score_esg(respostas_esg)
