@@ -331,52 +331,7 @@ if st.session_state.get('calculado'):
                     plt.tight_layout()
                     plt.show()
                     
-                # Gráfico de impacto ESG
-                praticas_esg = [
-                    "Uso de Energia Renovável",
-                    "Diversidade de Gênero na Liderança",
-                    "Práticas Éticas na Cadeia de Suprimentos",
-                    "Satisfação dos Funcionários",
-                    "Redução de Emissões de Carbono"
-                ]
                 
-                impacto_ebitda = [3, 3, 4, 6, 2]  # em pontos percentuais
-                impacto_receita = [0, 2, 0, 5, 1]  # em pontos percentuais
-                
-                x = range(len(praticas_esg))
-                
-                plt.figure(figsize=(12, 6))
-                plt.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
-                plt.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
-                plt.xticks([p + 0.2 for p in x], praticas_esg, rotation=45, ha='right')
-                plt.ylabel('Impacto (%)')
-                plt.title('Impacto das Práticas ESG nos Indicadores Financeiros')
-                plt.legend()
-                plt.tight_layout()
-                plt.show()
-        
-                # Projeção do EBITDA
-                def plotar_projecao_ebitda():
-                    anos = [2025, 2026, 2027, 2028, 2029]
-                    ebitda_atual = [100, 102, 104, 106, 108]
-                    ebitda_melhoria_esg = [100, 105, 110, 115, 120]
-        
-                    plt.figure(figsize=(10, 5))
-                    plt.plot(anos, ebitda_atual, marker='o', label='Sem Melhoria ESG')
-                    plt.plot(anos, ebitda_melhoria_esg, marker='o', label='Com Melhoria ESG')
-                    plt.xlabel('Ano')
-                    plt.ylabel('EBITDA (R$ milhões)')
-                    plt.title('Projeção do EBITDA com e sem Melhoria ESG')
-                    plt.legend()
-                    plt.grid(True)
-                    plt.tight_layout()
-                    st.pyplot(plt.gcf())
-                    plt.close()
-        
-                plotar_projecao_ebitda()
-        
-            except Exception as e:
-                st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
 
         
 
