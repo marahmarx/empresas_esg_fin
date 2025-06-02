@@ -296,7 +296,16 @@ if st.session_state.get('calculado'):
 
         st.write("Dados carregados da planilha:", df_empresas)
 
-        df_empresas = calcular_scores(df_empresas)
+        # Definir o fator redutor baseado no setor da nova empresa
+        setor_empresa = st.session_state.get("setor", "")  # ou use o nome correto do campo
+        if setor_empresa in impacto_por_setor:
+            impacto_setor = impacto_por_setor[setor_empresa]
+        else:
+            impacto_setor = 0
+        fator_redutor = 1 - impacto_setor / 100
+        
+        df_empresas = calcular_scores(df_empresas, fator_redutor)
+
 
         nova_empresa = {
             'Empresa': 'Nova Empresa',
