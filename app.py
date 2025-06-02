@@ -274,61 +274,67 @@ if st.session_state.get('calculado'):
         if mostrar_analise:
             try:
                 # Gráfico Radar
-                nova_linha = [nome_empresa, segmento_empresa, setor_empresa] + respostas_basicas + [r[0] for r in respostas_esg] + [r[0] for r in respostas_financeiros]
-                sheet.append_row(nova_linha)
-            
-                # Mensagem de aprovação
-                st.success("Empresa aprovada e dados salvos com sucesso!")
                 
-            
-                # Cálculo dos scores individuais ESG
-                esg_scores = []
-                esg_labels = []
-            
-                for i, (valor, peso, faixas) in enumerate(respostas_esg):
-                    score = aplicar_faixas(valor, faixas)
-                    esg_scores.append(score)
-                    esg_labels.append(indicadores_esg[i]["indicador"])
-            
-                # Cálculo dos scores individuais Financeiros
-                fin_scores = []
-                fin_labels = []
-            
-                for i, (valor, peso, faixas) in enumerate(respostas_financeiros):
-                    score = aplicar_faixas(valor, faixas)
-                    fin_scores.append(score)
-                    fin_labels.append(indicadores_financeiros[i]["indicador"])
             
                 # Gráfico de Radar
                 st.header("Gráfico de Radar - Indicadores Individuais")
+                import pandas as pd
+
+                # Carrega os dados existentes da planilha (com cabeçalhos fixos)
+                url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+                df = pd.read_csv(url)
+                
+                # Adiciona nova empresa (linha já submetida via sheet.append_row)
+                nome_empresa = nova_linha[0]
+                
+                # Extrai colunas dos indicadores
+                col_binarias = df.columns[3:8]       # 5 perguntas básicas (Sim/Não)
+                col_esg = df.columns[8:16]           # 8 indicadores ESG (quantitativos)
+                col_fin = df.columns[16:25]          # 9 indicadores financeiros (quantitativos)
+                
+                # Localiza a linha da nova empresa
+                nova = df[df["Nome"] == nome_empresa].iloc[0]
+                
+                # Lista de scores
+                scores_binarias = [(100 if nova[col] == "Sim" else 0) for col in col_binarias]
+                
+                # Scores ESG: se for porcentagem, já está no formato correto
+                scores_esg = []
+                for col in col_esg:
+                    valor_empresa = nova[col]
+                    if valor_empresa <= 1.0:  # assume que é proporção tipo 0.85 → 85%
+                        scores_esg.append(valor_empresa * 100)
+                    else:  # é valor absoluto, normalizar pelo maior valor da coluna
+                        max_valor = df[col].max()
+                        score = (valor_empresa / max_valor) * 100 if max_valor > 0 else 0
+                        scores_esg.append(score)
+                
+                # Scores Financeiros: mesma lógica
+                scores_fin = []
+                for col in col_fin:
+                    valor_empresa = nova[col]
+                    if valor_empresa <= 1.0:  # porcentagem já normalizada
+                        scores_fin.append(valor_empresa * 100)
+                    else:
+                        max_valor = df[col].max()
+                        score = (valor_empresa / max_valor) * 100 if max_valor > 0 else 0
+                        scores_fin.append(score)
+                
+                # Junta todos os scores
+                scores_individuais = scores_binarias + scores_esg + scores_fin
+                
+                # Exibe resultados
+                st.subheader("Scores Individuais (em %)")
+                for i, score in enumerate(scores_individuais):
+                    if i < 5:
+                        nome_indicador = col_binarias[i]
+                    elif i < 13:
+                        nome_indicador = col_esg[i - 5]
+                    else:
+                        nome_indicador = col_fin[i - 13]
+                    st.write(f"{nome_indicador}: {score:.1f}%")
+
             
-                radar_fig = go.Figure()
-            
-                # ESG Radar
-                radar_fig.add_trace(go.Scatterpolar(
-                    r=esg_scores + [esg_scores[0]],  # fecha o radar
-                    theta=esg_labels + [esg_labels[0]],
-                    fill='toself',
-                    name='Indicadores ESG'
-                ))
-            
-                # Financeiro Radar
-                radar_fig.add_trace(go.Scatterpolar(
-                    r=fin_scores + [fin_scores[0]],
-                    theta=fin_labels + [fin_labels[0]],
-                    fill='toself',
-                    name='Indicadores Financeiros'
-                ))
-            
-                radar_fig.update_layout(
-                    polar=dict(
-                        radialaxis=dict(visible=True, range=[0, 100])
-                    ),
-                    showlegend=True,
-                    height=700
-                )
-            
-                st.plotly_chart(radar_fig)
 
         
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
