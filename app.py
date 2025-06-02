@@ -273,16 +273,39 @@ if st.session_state.get('calculado'):
         if mostrar_analise:
             try:
                 # Gráfico de impacto ESG
-                praticas_esg = [
-                    "Uso de Energia Renovável",
-                    "Diversidade de Gênero na Liderança",
-                    "Práticas Éticas na Cadeia de Suprimentos",
-                    "Satisfação dos Funcionários",
-                    "Redução de Emissões de Carbono"
-                ]
-                impacto_ebitda = [3, 3, 4, 6, 2]
-                impacto_receita = [0, 2, 0, 5, 1]
-                x = range(len(praticas_esg))
+                def calcular_subscores(respostas_esg, respostas_binarias, respostas_financeiros):
+                    ambiental_idx = [0, 1, 2, 3, 4]
+                    social_idx = [5, 6, 7, 8, 9, 10]
+                    governanca_idx = [11, 12, 13, 14, 15, 16]
+                    financeiro_idx = [17, 18, 19, 20, 21, 22]
+                
+                    grupos = {
+                        "Ambiental": ambiental_idx,
+                        "Social": social_idx,
+                        "Governança": governanca_idx,
+                        "Financeiro": financeiro_idx
+                    }
+                
+                    respostas =  respostas_binarias + respostas_esg + respostas_financeiros
+                
+                    scores = {}
+                    for nome, idxs in grupos.items():
+                        score = 0
+                        peso_total = 0
+                        for i in idxs:
+                            indicador_info = indicadores[i]
+                            peso = float(indicador_info["weight"])  # conversão importante
+                            peso_total += peso
+                
+                            valor = float(respostas[i])  # conversão importante
+                            score_ind = calcular_pontuacao(valor, indicador_info["ranges"])
+                            weighted_score = score_ind * peso / 100
+                            score += weighted_score
+                
+                        scores[nome] = round((score / (peso_total / 100)), 2) if peso_total else 0
+                
+                    return scores
+
         
                 fig, ax = plt.subplots(figsize=(12, 6))
                 ax.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
