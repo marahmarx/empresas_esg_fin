@@ -294,34 +294,37 @@ if st.session_state.get('calculado'):
         url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
 
         df_empresas = carregar_dados_empresas(url)
-        # Corrigir indicadores percentuais (como "%", vírgula e escala)
-        colunas_percentuais = [9, 15, 20, 21, 22]
-        
-        for i in colunas_percentuais:
-            nome_coluna = df_empresas.columns[i]
-            df_empresas[nome_coluna] = (
-                df_empresas[nome_coluna]
-                .astype(str)
-                .str.replace('%', '', regex=False)
-                .str.replace(',', '.', regex=False)
-            )
-            df_empresas[nome_coluna] = pd.to_numeric(df_empresas[nome_coluna], errors='coerce')
-            
-            if df_empresas[nome_coluna].max() <= 1:
-                df_empresas[nome_coluna] *= 100
 
+        # Colunas que precisam ser tratadas (nomes exatos conforme planilha)
+        colunas_percentuais = [
+            "Emissão de CO ( M ton)",               # coluna 9
+            "Investimento em Programas Sociais (R$ M)",  # coluna 15
+            "Posição no MERCO",                      # coluna 20
+            "Participação em Índices ESG (quantidade)", # coluna 21
+            "Lucro Líquido (R$ Bi)"                  # coluna 22
+        ]
+
+        for nome_coluna in colunas_percentuais:
+            if nome_coluna in df_empresas.columns:
+                df_empresas[nome_coluna] = (
+                    df_empresas[nome_coluna]
+                    .astype(str)
+                    .str.replace('%', '', regex=False)
+                    .str.replace(',', '.', regex=False)
+                )
+                df_empresas[nome_coluna] = pd.to_numeric(df_empresas[nome_coluna], errors='coerce')
+                if df_empresas[nome_coluna].max() <= 1:
+                    df_empresas[nome_coluna] *= 100
+        
         st.write("Dados carregados da planilha:", df_empresas)
 
         # Definir o fator redutor baseado no setor da nova empresa
-        setor_empresa = st.session_state.get("setor", "")  # ou use o nome correto do campo
-        if setor_empresa in impacto_por_setor:
-            impacto_setor = impacto_por_setor[setor_empresa]
-        else:
-            impacto_setor = 0
+        setor_empresa = st.session_state.get("setor", "")  # ajuste se necessário
+        impacto_setor = impacto_por_setor.get(setor_empresa, 0)
         fator_redutor = 1 - impacto_setor / 100
         
+        # Aqui a função calcular_scores deve estar preparada para lidar com os nomes reais das colunas
         df_empresas = calcular_scores(df_empresas, fator_redutor)
-
 
         nova_empresa = {
             'Empresa': 'Nova Empresa',
@@ -334,6 +337,7 @@ if st.session_state.get('calculado'):
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
+
 
         
 
