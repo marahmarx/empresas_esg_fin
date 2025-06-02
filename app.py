@@ -279,56 +279,51 @@ if st.session_state.get('calculado'):
                     score_esg = 0
                     score_financeiro = 0
                 
-                    def avaliar_empresa(nome_empresa, respostas):
-                        resultados = []
-                        total_score = 0
-                        score_esg = 0
-                        score_financeiro = 0
-                    
-                        for indicador_info, resposta in zip(indicadores, respostas):
-                            # Ignorar os indicadores problemáticos (não percentuais)
-                            if indicador_info["indicador"].startswith(("6.", "12.", "14.", "17.", "18.", "19.")):
-                                continue
-                    
-                            # Convertendo a resposta em número
-                            try:
-                                valor = float(resposta[0]) if isinstance(resposta, list) else float(resposta)
-                            except (ValueError, TypeError, IndexError):
-                                valor = 0.0
-                    
-                            # Convertendo peso
-                            try:
-                                peso = float(indicador_info["weight"][0]) if isinstance(indicador_info["weight"], list) else float(indicador_info["weight"])
-                            except (ValueError, TypeError, IndexError):
-                                peso = 0.0
-                    
-                            # Calculando score numérico
-                            try:
-                                score = float(calcular_pontuacao(valor, indicador_info["ranges"]))
-                            except Exception:
-                                score = 0.0
-                    
-                            weighted_score = score * peso / 100
-                    
-                            # Classificando
-                            if indicador_info["indicador"].startswith(("13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.")):
-                                score_financeiro += weighted_score
-                            else:
-                                score_esg += weighted_score
-                    
-                            resultados.append({
-                                "Indicador": indicador_info["indicador"],
-                                "Valor": valor,
-                                "Score": score,
-                                "Peso (%)": peso,
-                                "Score Ponderado": weighted_score
-                            })
-                    
-                            total_score += weighted_score
-                    
-                        df_resultados = pd.DataFrame(resultados)
-                        return df_resultados, total_score, score_esg, score_financeiro
-
+                    for indicador_info, resposta in zip(indicadores, respostas):
+                        # Ignorar os indicadores problemáticos (não percentuais)
+                        if indicador_info["indicador"].startswith(("6.", "12.", "14.", "17.", "18.", "19.")):
+                            continue
+                
+                        # Convertendo a resposta em número
+                        try:
+                            valor = float(resposta[0]) if isinstance(resposta, list) else float(resposta)
+                        except (ValueError, TypeError, IndexError):
+                            valor = 0.0
+                
+                        # Convertendo peso
+                        try:
+                            peso_raw = indicador_info["weight"]
+                            peso = float(peso_raw[0]) if isinstance(peso_raw, list) else float(peso_raw)
+                        except (ValueError, TypeError, IndexError):
+                            peso = 0.0
+                
+                        # Calculando score numérico
+                        try:
+                            score_raw = calcular_pontuacao(valor, indicador_info["ranges"])
+                            score = float(score_raw)  # garantir que é float
+                        except Exception:
+                            score = 0.0
+                
+                        weighted_score = score * peso / 100
+                
+                        # Classificando
+                        if indicador_info["indicador"].startswith(("13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.")):
+                            score_financeiro += weighted_score
+                        else:
+                            score_esg += weighted_score
+                
+                        resultados.append({
+                            "Indicador": indicador_info["indicador"],
+                            "Valor": valor,
+                            "Score": score,
+                            "Peso (%)": peso,
+                            "Score Ponderado": weighted_score
+                        })
+                
+                        total_score += weighted_score
+                
+                    df_resultados = pd.DataFrame(resultados)
+                    return df_resultados, total_score, score_esg, score_financeiro
 
                 def plotar_radar(df_resultados, nome_empresa):
                     categorias = df_resultados['Indicador']
@@ -351,7 +346,11 @@ if st.session_state.get('calculado'):
                     ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
                     plt.tight_layout()
                     plt.show()
-                    
+
+                df_resultados, total, esg, financeiro = avaliar_empresa(nome_empresa, respostas)
+                plotar_radar(df_resultados, nome_empresa)
+
+                
                     # Gráfico de impacto ESG
                 praticas_esg = [
                     "Uso de Energia Renovável",
