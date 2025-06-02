@@ -1,3 +1,5 @@
+# Novo arquivo ajustado com correções para normalização e radar
+
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -55,20 +57,17 @@ def carregar_dados_empresas(url):
 
         mapa_colunas = {
             "Emissão de CO ( M ton)": "6. Emissão de CO (M ton)",
-            "Investimento em Programas Sociais (R$ M)": "12. Investimento em Programas Sociais (R$ M)",
-            "EBITDA  (R$ Bi)": "14. EBITDA (R$ Bi)",
-            "Lucro Líquido (R$ Bi)": "19. Lucro Líquido (R$ Bi)"
+            "Investimento em Programas Sociais (R$ M)": "12. Investimento em Programas Sociais (R$ M)"
         }
         df.rename(columns=mapa_colunas, inplace=True)
 
         for col in df.columns[3:]:
             df[col] = pd.to_numeric(df[col], errors='coerce')
 
+        # Apenas normalizar CO e Investimento Social
         colunas_pct = [
             "6. Emissão de CO (M ton)",
-            "12. Investimento em Programas Sociais (R$ M)",
-            "14. EBITDA (R$ Bi)",
-            "19. Lucro Líquido (R$ Bi)"
+            "12. Investimento em Programas Sociais (R$ M)"
         ]
 
         for col in colunas_pct:
@@ -106,12 +105,12 @@ indicadores_esg = [
 
 indicadores_financeiros = [
     {"indicador": "13. Variação da ação YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "14. EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
+    {"indicador": "14. EBITDA (R$ Bi)", "peso": 15, "faixas": [(0, 1, 40), (1.01, 3, 70), (3.01, np.inf, 100)]},
     {"indicador": "15. EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "16. Margem EBITDA (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "19. Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
-    {"indicador": "20. Lucro Líquido YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "21. Margem Líquida (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]}
+    {"indicador": "17. Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(0, 1, 40), (1.01, 3, 70), (3.01, np.inf, 100)]},
+    {"indicador": "18. Lucro Líquido YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "19. Margem Líquida (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]}
 ]
 
 # --- Interface ---
