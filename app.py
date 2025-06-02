@@ -273,46 +273,78 @@ if st.session_state.get('calculado'):
         
         if mostrar_analise:
             try:
-                # Função auxiliar para calcular score individual por indicador
-                def calcular_score_por_indicador(valor, faixas, peso):
-                    for faixa in faixas:
-                        if faixa[0] <= valor <= faixa[1]:
-                            return (faixa[2] * peso / 100)
-                    return 0
+                # Gráfico Radar
                 
-                # Gráfico Radar: ESG e Financeiro
-                scores_binarios = [res * 100 for res in respostas_binarias]
-                nomes_binarios = [f"Binário {i+1}" for i in range(len(scores_binarios))]
+                # Carregar os dados da planilha
+                url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+                df = pd.read_csv(url)
                 
-                # --- ESG quantitativos
-                scores_esg = []
-                nomes_esg = []
-                for i, (valor, peso, faixas) in enumerate(respostas_esg):
-                    score = aplicar_faixas(valor, faixas)
-                    scores_esg.append(score)
-                    nomes_esg.append(indicadores_esg[i]["indicador"])
+                # Última empresa adicionada
+                ultima = df.iloc[-1]
                 
-                # --- Financeiros
-                scores_financeiros = []
-                nomes_fin = []
-                for i, (valor, peso, faixas) in enumerate(respostas_financeiros):
-                    score = aplicar_faixas(valor, faixas)
-                    scores_financeiros.append(score)
-                    nomes_fin.append(indicadores_financeiros[i]["indicador"])
+                # Indicadores por tipo
+                binarios = df.columns[3:8]
+                esg_porcentagem = df.columns[8:12]
+                esg_valores = df.columns[12:16]
+                fin_valores = df.columns[16:22]
+                fin_porcentagem = df.columns[22:25]
                 
-                # --- Concatenar tudo
-                scores = scores_binarios + scores_esg + scores_financeiros
-                nomes = nomes_binarios + nomes_esg + nomes_fin
+                # Normalizar os dados
+                def normalizar_valores(col):
+                    max_val = df[col].max()
+                    if max_val == 0:
+                        return 0
+                    return (ultima[col] / max_val) * 100
                 
-                # --- Fechar o ciclo do radar
-                scores.append(scores[0])
-                nomes.append(nomes[0])
-                angles = np.linspace(0, 2 * np.pi, len(scores), endpoint=False).tolist()
-                angles.append(angles[0])
+                # Calcular scores
+                scores = []
+                
+                # Binários
+                for col in binarios:
+                    scores.append(100 if ultima[col] == 1 else 0)
+                
+                # ESG % direto
+                for col in esg_porcentagem:
+                    scores.append(ultima[col])
+                
+                # ESG valores normalizados
+                for col in esg_valores:
+                    scores.append(normalizar_valores(col))
+                
+                # Financeiros valores normalizados
+                for col in fin_valores:
+                    scores.append(normalizar_valores(col))
+                
+                # Financeiros % direto
+                for col in fin_porcentagem:
+                    scores.append(ultima[col])
+                
+                # Rótulos dos indicadores
+                labels = list(binarios) + list(esg_porcentagem) + list(esg_valores) + list(fin_valores) + list(fin_porcentagem)
+                labels = [label.replace("_", " ").capitalize() for label in labels]
+                
+                # Gráfico radar com Plotly
+                fig = go.Figure()
+                
+                fig.add_trace(go.Scatterpolar(
+                    r=scores,
+                    theta=labels,
+                    fill='toself',
+                    name=ultima['Nome']
+                ))
+                
+                fig.update_layout(
+                    polar=dict(
+                        radialaxis=dict(
+                            visible=True,
+                            range=[0, 100]
+                        )),
+                    showlegend=False,
+                    title=f"Radar de Indicadores - {ultima['Nome']}"
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
 
-
-                # Mostrar o gráfico
-                plotar_grafico_radar(respostas_esg, respostas_financeiros, indicadores_esg, indicadores_financeiros)
         
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
                 # Dados
