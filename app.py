@@ -140,11 +140,25 @@ st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 nome_empresa = st.text_input("Nome da empresa:")
 setor_empresa = st.selectbox("Setor da empresa", list(impacto_por_setor.keys()))
 
+st.header("Dados Básicos")
+perguntas_binarias = [
+    "1. A empresa tem políticas de sustentabilidade?",
+    "2. A empresa possui certificação ambiental?",
+    "3. A empresa divulga suas metas de redução de emissão de CO2?",
+    "4. A empresa adota práticas de reciclagem?",
+    "5. A empresa investe em projetos sociais?"
+]
 if nome_empresa:
     st.session_state["nome_empresa"] = nome_empresa
 if setor_empresa:
     st.session_state["setor"] = setor_empresa
-
+    
+# Etapa Unificada - Coleta de Dados
+respostas_binarias = []
+for i, pergunta in enumerate(perguntas_binarias):
+    resposta = st.radio(pergunta, options=["Sim", "Não"], key=f"pergunta_binaria_{i}")
+    respostas_binarias.append(1 if resposta == "Sim" else 0)
+    
 st.subheader("Indicadores ESG")
 respostas_esg = [
     (st.number_input(ind["indicador"], min_value=0.0, format="%.2f"), ind["peso"], ind["faixas"])
@@ -380,13 +394,15 @@ formato_relatorio = st.selectbox("Formato do Relatório", ["GRI", "SASB", "CSRD"
 
 if st.button("Gerar Relatório ESG"):
     try:
+        # Junta todas as respostas numa única lista
+        entradas = respostas_binarias + [r[0] for r in respostas_esg] + [r[0] for r in respostas_financeiros]
         respostas = []
-        for entrada in respostas_esg + respostas_financeiros:
-            valor = entrada[0]
+
+        for entrada in entradas:
             try:
-                resposta_float = float(valor)
+                resposta_float = float(entrada)
             except ValueError:
-                resposta_float = 0.0
+                resposta_float = 0.0  # fallback se algo der ruim
             respostas.append(resposta_float)
 
         empresa = {
@@ -408,41 +424,46 @@ if st.button("Gerar Relatório ESG"):
         salvar_respostas(empresa)
 
         def gerar_relatorio_esg_formatado(nome_empresa, respostas, formato="GRI"):
-            if not respostas:
-            st.error("Nenhuma resposta encontrada.")
-            return
-
-
+            def safe_get(index):
+                return respostas[index] if index < len(respostas) else "N/A"
+        
             estrutura = {
                 "GRI": {
-                    "GRI-305 (Emissões)": respostas[0],
-                    "GRI-306 (Resíduos)": respostas[1],
-                    "GRI-302 (Energia)": respostas[2],
-                    "GRI-405 (Diversidade)": respostas[4] if len(respostas) > 4 else "N/A",
-                    "GRI-413 (Comunidade)": respostas[5] if len(respostas) > 5 else "N/A",
-                    "GRI-102-18 (Governança)": respostas[6] if len(respostas) > 6 else "N/A",
+                    "GRI-101 (Políticas de Sustentabilidade)": safe_get(0),
+                    "GRI-102 (Certificação Ambiental)": safe_get(1),
+                    "GRI-103 (Metas de CO₂)": safe_get(2),
+                    "GRI-104 (Reciclagem)": safe_get(3),
+                    "GRI-105 (Projetos Sociais)": safe_get(4),
+                    "GRI-305 (Emissão de CO₂)": safe_get(5),
+                    "GRI-306 (Gestão de Resíduos)": safe_get(6),
+                    "GRI-302 (Eficiência Energética)": safe_get(7),
+                    "GRI-405 (Diversidade - Mulheres)": safe_get(8),
+                    "GRI-406 (Diversidade - Pessoas Negras)": safe_get(9),
+                    "GRI-407 (Satisfação dos Funcionários)": safe_get(10),
+                    "GRI-413 (Investimentos Sociais)": safe_get(11),
                 },
                 "SASB": {
-                    "SASB: Uso de Energia Renovável": respostas[2],
-                    "SASB: Engajamento Comunitário": respostas[5] if len(respostas) > 5 else "N/A",
-                    "SASB: Diversidade Estratégica": respostas[4] if len(respostas) > 4 else "N/A",
-                    "SASB: Relatórios Auditados": respostas[7] if len(respostas) > 7 else "N/A",
-                    "SASB: Transparência Financeira": respostas[10] if len(respostas) > 10 else "N/A",
+                    "SASB-101 (Uso de Energia Renovável)": safe_get(7),
+                    "SASB-102 (Diversidade Estratégica)": safe_get(8),
+                    "SASB-103 (Investimento Social)": safe_get(11),
+                    "SASB-201 (EBITDA)": safe_get(13),
+                    "SASB-202 (Lucro Líquido)": safe_get(16),
                 },
                 "CSRD": {
-                    "CSRD: Emissões Escopo 1-3": respostas[0],
-                    "CSRD: Desempenho Social e Turnover": respostas[3] if len(respostas) > 3 else "N/A",
-                    "CSRD: Direitos Humanos": respostas[5] if len(respostas) > 5 else "N/A",
-                    "CSRD: Governança Corporativa": respostas[6] if len(respostas) > 6 else "N/A",
-                    "CSRD: Indicadores Financeiros ESG": respostas[10] if len(respostas) > 10 else "N/A",
+                    "CSRD-301 (Emissões Scope 1-3)": safe_get(5),
+                    "CSRD-302 (Gestão de Resíduos e Energia)": safe_get(6),
+                    "CSRD-303 (Diversidade e Inclusão)": f"{safe_get(8)} / {safe_get(9)}",
+                    "CSRD-304 (Governança Social)": safe_get(10),
+                    "CSRD-305 (Indicadores Financeiros ESG)": f"{safe_get(13)} / {safe_get(14)} / {safe_get(16)}",
                 }
             }
-
+        
             estrutura_escolhida = estrutura.get(formato.upper(), estrutura["GRI"])
             st.subheader(f"📘 Rascunho do Relatório - {formato.upper()}")
             st.markdown(f"**Empresa:** {nome_empresa}")
             for item, valor in estrutura_escolhida.items():
                 st.markdown(f"- **{item}**: {valor}")
+
 
             return estrutura_escolhida
 
