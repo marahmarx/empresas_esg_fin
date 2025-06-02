@@ -376,7 +376,7 @@ if st.session_state.get('calculado'):
                 
                         # Convertendo peso
                         try:
-                            peso_raw = indicador_info["weight"]
+                            peso_raw = indicador_info["peso"]
                             peso = float(peso_raw[0]) if isinstance(peso_raw, list) else float(peso_raw)
                         except (ValueError, TypeError, IndexError):
                             peso = 0.0
