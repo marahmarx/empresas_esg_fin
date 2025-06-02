@@ -7,3 +7,4 @@ gspread
 gspread 
 oauth2client
 google-auth-oauthlib
+reportlab
