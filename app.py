@@ -49,7 +49,8 @@ indicadores_esg = [
     {"indicador": "9. Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
     {"indicador": "10. Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "11. Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
-    {"indicador": "12. Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(np.inf, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
+    {"indicador": "12. Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(0, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]}
+
 ]
 
 indicadores_financeiros = [
@@ -61,7 +62,7 @@ indicadores_financeiros = [
     {"indicador": "18. Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
     {"indicador": "19. Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
     {"indicador": "20. Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "21. Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "21. Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]}
 ]
 
 # Etapa Unificada - Coleta de Dados
@@ -135,18 +136,21 @@ def carregar_dados_empresas(url):
                         return valor
                 df[col_18] = df[col_18].apply(normaliza_18)
         
-            return df 
-            df = normalizar_indicadores(df)
-
+        df = normalizar_indicadores(df)
         return df
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
-        return pd.DataFrame()
+            except Exception as e:
+    st.error(f"Erro ao carregar os dados da planilha: {e}")
+    return pd.DataFrame()
+
 
 #Alteração da nota de acordo com o setor
 
-impacto_setor = impacto_por_setor[setor_empresa]
+if setor_empresa in impacto_por_setor:
+    impacto_setor = impacto_por_setor[setor_empresa]
+else:
+    impacto_setor = 0
 fator_redutor = 1 - impacto_setor / 100
+
 #Scores    
 def calcular_scores(df, fator_redutor):
     esg_total = []
