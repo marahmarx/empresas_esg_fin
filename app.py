@@ -282,71 +282,35 @@ if st.session_state.get('calculado'):
         if mostrar_analise:
             try:
                 # Gráfico Radar 
-
-                # Função para calcular score para perguntas binárias (0 ou 1)
+                # Função para calcular score para binário
                 def calcular_score_binario(resposta):
                     return 100 if resposta == 1 else 0
                 
-                # Função para calcular score baseado em faixas (ranges)
-                def calcular_pontuacao(valor, ranges):
-                    for min_val, max_val, score in ranges:
+                # Função para calcular score baseado em faixas
+                def calcular_pontuacao(valor, faixas):
+                    for min_val, max_val, score in faixas:
                         if min_val <= valor <= max_val:
                             return score
                     return 0
                 
-                # Exemplo de perguntas binárias e pesos
-                perguntas_binarias = ["Possui política ambiental?", "Tem programa de diversidade?"]
-                peso_binario = 5  # peso fixo para todas as binárias (pode ajustar)
-                
-                # Exemplo de indicadores ESG e Financeiros com faixas e pesos
-                # Cada faixa: (min, max, score) onde score é de 0 a 100
-                indicadores_esg = [
-                    {"indicador": "Consumo de energia (kWh)", "weight": 10, "ranges": [(0, 500, 100), (501, 1000, 70), (1001, 1500, 40), (1501, 99999, 0)]},
-                    {"indicador": "Emissões CO2 (ton)", "weight": 15, "ranges": [(0, 50, 100), (51, 100, 70), (101, 150, 30), (151, 99999, 0)]}
-                ]
-                
-                indicadores_financeiros = [
-                    {"indicador": "Margem de lucro (%)", "weight": 20, "ranges": [(30, 100, 100), (20, 29, 70), (10, 19, 40), (0, 9, 0)]},
-                    {"indicador": "Retorno sobre ativo (%)", "weight": 20, "ranges": [(15, 100, 100), (10, 14, 70), (5, 9, 40), (0, 4, 0)]}
-                ]
-                
-                # Função principal para avaliar e retornar DataFrame de resultados
-                def avaliar_empresa(nome_empresa, respostas_binarias, respostas_esg, respostas_financeiros):
+                # Função para avaliar empresa e calcular score de cada indicador
+                def avaliar_empresa(nome_empresa, respostas):
                     resultados = []
-                
-                    # Processar perguntas binárias
-                    for pergunta, resposta in zip(perguntas_binarias, respostas_binarias):
-                        score = calcular_score_binario(resposta)
-                        resultados.append({
-                            "Indicador": pergunta,
-                            "Score": score
-                        })
-                
-                    # Processar indicadores ESG
-                    for indicador, valor in zip(indicadores_esg, respostas_esg):
-                        score = calcular_pontuacao(valor, indicador["ranges"])
-                        resultados.append({
-                            "Indicador": indicador["indicador"],
-                            "Score": score
-                        })
-                
-                    # Processar indicadores financeiros
-                    for indicador, valor in zip(indicadores_financeiros, respostas_financeiros):
-                        score = calcular_pontuacao(valor, indicador["ranges"])
-                        resultados.append({
-                            "Indicador": indicador["indicador"],
-                            "Score": score
-                        })
+                    for indicador, resposta in zip(indicadores, respostas):
+                        if indicador["tipo"] == "binario":
+                            score = calcular_score_binario(resposta)
+                        else:
+                            score = calcular_pontuacao(resposta, indicador["faixas"])
+                        resultados.append({"Indicador": indicador["nome"], "Score": score})
                 
                     df_resultados = pd.DataFrame(resultados)
                     return nome_empresa, df_resultados
                 
-                # Função para plotar gráfico radar de scores individuais
+                # Função para plotar gráfico radar
                 def plotar_grafico_radar(df_resultados, nome_empresa):
                     categorias = df_resultados["Indicador"].tolist()
                     valores = df_resultados["Score"].tolist()
                 
-                    # Fechar o círculo no radar
                     categorias += [categorias[0]]
                     valores += [valores[0]]
                 
@@ -355,12 +319,12 @@ if st.session_state.get('calculado'):
                     angulos = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
                     angulos += [angulos[0]]
                 
-                    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+                    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
                     ax.plot(angulos, valores, color="blue", linewidth=2)
                     ax.fill(angulos, valores, color="skyblue", alpha=0.4)
                 
                     ax.set_xticks(angulos[:-1])
-                    ax.set_xticklabels(categorias, fontsize=10, rotation=45, ha='right')
+                    ax.set_xticklabels(categorias, fontsize=9, rotation=45, ha='right')
                 
                     ax.set_yticks([20, 40, 60, 80, 100])
                     ax.set_yticklabels(["20", "40", "60", "80", "100"])
@@ -371,10 +335,11 @@ if st.session_state.get('calculado'):
                     plt.tight_layout()
                     plt.show()
                 
-                    nome, df_scores = avaliar_empresa("Empresa Exemplo", respostas_binarias, respostas_esg, respostas_financeiros)
+                nome_empresa, df_scores = avaliar_empresa("Empresa Exemplo", respostas_exemplo)
                 
-                print(df_scores)  # tabela com scores individuais
-                plotar_grafico_radar(df_scores, nome)
+                print(df_scores)
+                plotar_grafico_radar(df_scores, nome_empresa)
+
         
                 # Função para plotar evolução do EBITDA
                 def plotar_projecao_ebitda():
