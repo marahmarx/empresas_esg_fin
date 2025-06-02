@@ -369,10 +369,10 @@ if mostrar_analise:
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
 
-
 #Gerar relatórios
 import json
 import os
+import streamlit as st
 
 st.subheader("📄 Relatório ESG Automatizado")
 
@@ -386,16 +386,15 @@ if st.button("Gerar Relatório ESG"):
             try:
                 resposta_float = float(valor)
             except ValueError:
-                resposta_float = 0.0  # Valor padrão se inválido
+                resposta_float = 0.0
             respostas.append(resposta_float)
 
         empresa = {
             "nome_empresa": nome_empresa,
             "respostas": respostas,
-            "respostas_textuais": []  # Placeholder se quiser textos depois
+            "respostas_textuais": []
         }
 
-        # Salvamento local (simulado)
         def salvar_respostas(dados, arquivo="respostas_empresas.json"):
             if os.path.exists(arquivo):
                 with open(arquivo, "r", encoding="utf-8") as f:
@@ -408,90 +407,87 @@ if st.button("Gerar Relatório ESG"):
 
         salvar_respostas(empresa)
 
-        # Geração do relatório
         def gerar_relatorio_esg_formatado(nome_empresa, respostas, formato="GRI"):
+            if len(respostas) < 18:
+                st.error("Respostas insuficientes para gerar o relatório.")
+                return
+
             estrutura = {
                 "GRI": {
                     "GRI-305 (Emissões)": respostas[0],
                     "GRI-306 (Resíduos)": respostas[1],
                     "GRI-302 (Energia)": respostas[2],
-                    "GRI-405 (Diversidade)": respostas[11],
-                    "GRI-413 (Comunidade)": respostas[8],
-                    "GRI-102-18 (Governança)": respostas[12],
+                    "GRI-405 (Diversidade)": respostas[4] if len(respostas) > 4 else "N/A",
+                    "GRI-413 (Comunidade)": respostas[5] if len(respostas) > 5 else "N/A",
+                    "GRI-102-18 (Governança)": respostas[6] if len(respostas) > 6 else "N/A",
                 },
                 "SASB": {
                     "SASB: Uso de Energia Renovável": respostas[2],
-                    "SASB: Engajamento Comunitário": respostas[8],
-                    "SASB: Diversidade Estratégica": respostas[11],
-                    "SASB: Relatórios Auditados": respostas[14],
-                    "SASB: Transparência Financeira": respostas[17],
+                    "SASB: Engajamento Comunitário": respostas[5] if len(respostas) > 5 else "N/A",
+                    "SASB: Diversidade Estratégica": respostas[4] if len(respostas) > 4 else "N/A",
+                    "SASB: Relatórios Auditados": respostas[7] if len(respostas) > 7 else "N/A",
+                    "SASB: Transparência Financeira": respostas[10] if len(respostas) > 10 else "N/A",
                 },
                 "CSRD": {
                     "CSRD: Emissões Escopo 1-3": respostas[0],
-                    "CSRD: Desempenho Social e Turnover": respostas[7],
-                    "CSRD: Direitos Humanos": respostas[9],
-                    "CSRD: Governança Corporativa": respostas[12],
-                    "CSRD: Indicadores Financeiros ESG": respostas[24],
+                    "CSRD: Desempenho Social e Turnover": respostas[3] if len(respostas) > 3 else "N/A",
+                    "CSRD: Direitos Humanos": respostas[5] if len(respostas) > 5 else "N/A",
+                    "CSRD: Governança Corporativa": respostas[6] if len(respostas) > 6 else "N/A",
+                    "CSRD: Indicadores Financeiros ESG": respostas[10] if len(respostas) > 10 else "N/A",
                 }
             }
+
             estrutura_escolhida = estrutura.get(formato.upper(), estrutura["GRI"])
             st.subheader(f"📘 Rascunho do Relatório - {formato.upper()}")
             st.markdown(f"**Empresa:** {nome_empresa}")
             for item, valor in estrutura_escolhida.items():
                 st.markdown(f"- **{item}**: {valor}")
 
-        gerar_relatorio_esg_formatado(nome_empresa, respostas, formato_relatorio)
+            return estrutura_escolhida
+
+        estrutura_relatorio = gerar_relatorio_esg_formatado(nome_empresa, respostas, formato_relatorio)
+
+        # PDF
+        try:
+            from reportlab.lib.pagesizes import A4
+            from reportlab.pdfgen import canvas
+
+            def gerar_pdf_relatorio(nome_empresa, estrutura_relatorio, formato="GRI"):
+                nome_arquivo = f"Relatorio_ESG_{nome_empresa.replace(' ', '_')}.pdf"
+                c = canvas.Canvas(nome_arquivo, pagesize=A4)
+                largura, altura = A4
+
+                y = altura - 50
+                c.setFont("Helvetica-Bold", 16)
+                c.drawString(50, y, f"Relatório ESG - Formato {formato.upper()}")
+                y -= 30
+                c.setFont("Helvetica", 12)
+                c.drawString(50, y, f"Empresa: {nome_empresa}")
+                y -= 40
+
+                for item, valor in estrutura_relatorio.items():
+                    if y < 80:
+                        c.showPage()
+                        y = altura - 50
+                    c.drawString(50, y, f"- {item}: {valor}")
+                    y -= 20
+
+                c.save()
+                return nome_arquivo
+
+            if estrutura_relatorio:
+                pdf_path = gerar_pdf_relatorio(nome_empresa, estrutura_relatorio, formato_relatorio)
+                with open(pdf_path, "rb") as f:
+                    st.download_button(
+                        label="📥 Baixar Relatório em PDF",
+                        data=f,
+                        file_name=os.path.basename(pdf_path),
+                        mime="application/pdf"
+                    )
+
+        except ModuleNotFoundError:
+            st.warning("PDF não gerado: biblioteca 'reportlab' não instalada.")
 
     except Exception as e:
         st.error(f"Ocorreu um erro ao gerar o relatório: {e}")
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
 
-def gerar_pdf_relatorio(nome_empresa, estrutura_relatorio, formato="GRI"):
-    nome_arquivo = f"Relatorio_ESG_{nome_empresa.replace(' ', '_')}.pdf"
-    c = canvas.Canvas(nome_arquivo, pagesize=A4)
-    largura, altura = A4
-
-    y = altura - 50
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, y, f"Relatório ESG - Formato {formato.upper()}")
-    y -= 30
-    c.setFont("Helvetica", 12)
-    c.drawString(50, y, f"Empresa: {nome_empresa}")
-    y -= 40
-
-    for item, valor in estrutura_relatorio.items():
-        if y < 80:
-            c.showPage()
-            y = altura - 50
-        c.drawString(50, y, f"- {item}: {valor}")
-        y -= 20
-
-    c.save()
-    return nome_arquivo
-    
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-
-def gerar_pdf_relatorio(nome_empresa, estrutura_relatorio, formato="GRI"):
-    nome_arquivo = f"Relatorio_ESG_{nome_empresa.replace(' ', '_')}.pdf"
-    c = canvas.Canvas(nome_arquivo, pagesize=A4)
-    largura, altura = A4
-
-    y = altura - 50
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, y, f"Relatório ESG - Formato {formato.upper()}")
-    y -= 30
-    c.setFont("Helvetica", 12)
-    c.drawString(50, y, f"Empresa: {nome_empresa}")
-    y -= 40
-
-    for item, valor in estrutura_relatorio.items():
-        if y < 80:
-            c.showPage()
-            y = altura - 50
-        c.drawString(50, y, f"- {item}: {valor}")
-        y -= 20
-
-    c.save()
-    return nome_arquivo
