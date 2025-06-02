@@ -50,9 +50,11 @@ def carregar_dados_empresas(url):
             df[col] = pd.to_numeric(df[col], errors='coerce')
 
         return df
+        
     except Exception as e:
         st.error(f"Erro ao carregar dados: {e}")
         return pd.DataFrame()
+        
 def plotar_matriz_interativa(df):
     if df.empty:
         st.error("Dados não carregados corretamente!")
@@ -224,6 +226,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
 
         except Exception as e:
     st.error(f"Erro ao carregar os dados da planilha: {e}")
+
 
         # Segunda parte: Análise visual completa
         mostrar_analise = st.button("Obter análise completa")
