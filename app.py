@@ -20,18 +20,24 @@ def calcular_score(lista):
         total += aplicar_faixas(valor, faixas) * peso / 100
     return total
 
-def calcular_scores(df, indicadores, tipo, fator_redutor):
+def calcular_scores(df, indicadores, tipo, impacto_setor):
     total_scores = []
     for _, row in df.iterrows():
-        total = 0
+        score_puro = 0
         for indicador in indicadores:
             valor = row.get(indicador["indicador"], np.nan)
             if pd.notna(valor):
-                total += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
-        total *= fator_redutor
-        total_scores.append(total)
+                score_puro += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
+
+        # Aplicar redução setorial de apenas 5%
+        fator_ajuste = 1 - (impacto_setor / 100) * 0.05
+        score_ajustado = score_puro * fator_ajuste
+
+        total_scores.append(score_ajustado)
+
     df[f"Score {tipo}"] = total_scores
     return df
+
 
 def carregar_dados_empresas(url):
     try:
@@ -168,9 +174,12 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
     url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
     df = carregar_dados_empresas(url)
     setor = st.session_state.get("setor", "")
-    fator = 1 - impacto_por_setor.get(setor, 0)/100
-    df = calcular_scores(df, indicadores_esg, "ESG", fator)
-    df = calcular_scores(df, indicadores_financeiros, "Financeiro", fator)
+    impacto_setor = impacto_por_setor.get(setor, 0)  # Pega o impacto total (ex: 25)
+
+    # Aqui aplicamos a função atualizada
+    df = calcular_scores(df, indicadores_esg, "ESG", impacto_setor)
+    df = calcular_scores(df, indicadores_financeiros, "Financeiro", impacto_setor)
+
 
     nova = {col: None for col in df.columns}
     nova.update({
