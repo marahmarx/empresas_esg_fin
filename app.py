@@ -1,6 +1,3 @@
-# Novo arquivo completo com correções essenciais e melhorias
-# (continua a partir da estrutura que você já tinha, com ajustes onde precisava)
-
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -178,8 +175,6 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
 
         df_empresas = carregar_dados_empresas(url)
-
-        st.write("Colunas do DataFrame:", df_empresas.columns.tolist())
 
         # Colunas para tratamento
         colunas_percentuais = [
