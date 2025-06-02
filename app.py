@@ -280,56 +280,40 @@ if st.session_state.get('calculado'):
                     score_financeiro = 0
                 
                     for indicador_info, resposta in zip(indicadores, respostas):
+                        # Convertendo a resposta em número
                         try:
-                            valor = float(resposta)
-                        except (ValueError, TypeError):
+                            valor = float(resposta[0]) if isinstance(resposta, list) else float(resposta)
+                        except (ValueError, TypeError, IndexError):
                             valor = 0.0
-                
+                    
+                        # Convertendo peso
                         try:
-                            peso = float(indicador_info["weight"])
-                        except (ValueError, TypeError):
+                            peso = float(indicador_info["weight"][0]) if isinstance(indicador_info["weight"], list) else float(indicador_info["weight"])
+                        except (ValueError, TypeError, IndexError):
                             peso = 0.0
-                
-                        score = calcular_pontuacao(valor, indicador_info["ranges"])
-                        weighted_score = score * peso / 100
-                
-                        # Classificando ESG ou Financeiro
-                        for indicador_info, resposta in zip(indicadores, respostas):
-                            # Corrigindo valor
-                            if isinstance(resposta, list):
-                                if resposta:
-                                    valor = float(resposta[0])
-                                else:
-                                    valor = 0.0
-                            else:
-                                try:
-                                    valor = float(resposta)
-                                except (ValueError, TypeError):
-                                    valor = 0.0
-                        
-                            # Corrigindo peso
-                            try:
-                                peso = float(indicador_info["weight"][0]) if isinstance(indicador_info["weight"], list) else float(indicador_info["weight"])
-                            except (ValueError, TypeError, IndexError):
-                                peso = 0.0
-                        
-                            score = calcular_pontuacao(valor, indicador_info["ranges"])
-                            weighted_score = score * peso / 100
-                        
-                            if indicador_info["indicador"].startswith(("13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.")):
-                                score_financeiro += weighted_score
-                            else:
-                                score_esg += weighted_score
-                        
-                            resultados.append({
-                                "Indicador": indicador_info["indicador"],
-                                "Valor": valor,
-                                "Score": score,
-                                "Peso (%)": peso,
-                                "Score Ponderado": weighted_score
-                            })
-
+                    
+                        # Calculando score numérico
+                        try:
+                            score = float(calcular_pontuacao(valor, indicador_info["ranges"]))
+                        except Exception:
+                            score = 0.0
+                    
+                        weighted_score = score * peso / 100  # agora 100% seguro
+                    
+                        # Classificando
+                        if indicador_info["indicador"].startswith(("13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.")):
+                            score_financeiro += weighted_score
+                        else:
+                            score_esg += weighted_score
+                    
+                        resultados.append({
+                            "Indicador": indicador_info["indicador"],
+                            "Valor": valor,
+                            "Score": score,
+                            "Peso (%)": peso,
+                            "Score Ponderado": weighted_score
                         })
+
                         total_score += weighted_score
                 
                     df_resultados = pd.DataFrame(resultados)
