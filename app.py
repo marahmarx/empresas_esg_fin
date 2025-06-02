@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 
-#Primeira Parte
+# Primeira Parte
 # Função para calcular o score ESG
 def aplicar_faixas(valor, faixas):
     for faixa in faixas:
@@ -40,7 +40,7 @@ perguntas_binarias = [
     "5. A empresa investe em projetos sociais?"
 ]
 
-# Lista de indicadores com pesos e faixas (os mesmos da sua definição)
+# Lista de indicadores com pesos e faixas
 
 indicadores_esg = [
     {"indicador": "6. Emissão de CO2 (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
@@ -50,60 +50,55 @@ indicadores_esg = [
     {"indicador": "10. Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "11. Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
     {"indicador": "12. Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(0, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]}
-
 ]
 
 indicadores_financeiros = [
     {"indicador": "13. Variação da ação YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "14. EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
     {"indicador": "15. EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "16. Margem EBITDA (%)", "peso": 5.5 , "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "16. Margem EBITDA (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "17. Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
     {"indicador": "18. Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
     {"indicador": "19. Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
-    {"indicador": "20. Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "21. Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]}
+    {"indicador": "20. Lucro Líquido YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "21. Margem Líquida (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]}
 ]
 
 # Etapa Unificada - Coleta de Dados
-
 respostas_binarias = []
 for i, pergunta in enumerate(perguntas_binarias):
     resposta = st.radio(pergunta, options=["Sim", "Não"], key=f"pergunta_binaria_{i}")
     respostas_binarias.append(1 if resposta == "Sim" else 0)
 
 st.header("Indicadores ESG Quantitativos")
-
 respostas_esg = []
 for indicador in indicadores_esg:
     st.subheader(indicador["indicador"])
     valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", min_value=0.0, format="%.2f", key=f"esg_{indicador['indicador']}")
     respostas_esg.append((valor, indicador["peso"], indicador["faixas"]))
 
-
 st.header("Indicadores Financeiros")
 respostas_financeiros = []
 for indicador in indicadores_financeiros:
     st.subheader(indicador["indicador"])
     valor = st.number_input(f"Digite o valor para {indicador['indicador']}:", format="%.2f", key=f"fin_{indicador['indicador']}")
-    respostas_financeiros.append((valor, indicador["peso"], indicador["faixas"]))     
+    respostas_financeiros.append((valor, indicador["peso"], indicador["faixas"]))
 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
-
 def carregar_dados_empresas(url):
     try:
         df = pd.read_csv(url)
         df.columns = df.columns.str.strip()  # Remover espaços nas colunas
-        
+
         # Converter as colunas para numérico (forçando erros a se tornarem NaN)
         for coluna in df.columns[3:]:
             df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
 
         def normalizar_indicadores(df):
             # Indicadores que normalizam pelo maior valor
-            indicadores_pct = ["6. Emissão de CO2 (M ton)", "12. Investimento em Programas Sociais (R$ M)", 
+            indicadores_pct = ["6. Emissão de CO2 (M ton)", "12. Investimento em Programas Sociais (R$ M)",
                                "14. EBITDA (R$ Bi)", "19. Lucro Líquido (R$ Bi)"]
-        
+
             for indicador in indicadores_pct:
                 if indicador in df.columns:
                     max_val = df[indicador].max()
@@ -111,7 +106,7 @@ def carregar_dados_empresas(url):
                         df[indicador] = df[indicador].apply(lambda x: (x / max_val) * 100 if pd.notna(x) else x)
                     else:
                         df[indicador] = 0  # Se não tiver max válido, zera tudo
-        
+
             # Indicador 17 - Posição MERCO (inverter escala)
             col_17 = "17. Posição no MERCO"
             if col_17 in df.columns:
@@ -121,27 +116,26 @@ def carregar_dados_empresas(url):
                     else:
                         return ((100 - (pos - 1)) / 99) * 100
                 df[col_17] = df[col_17].apply(normaliza_merco)
-        
+
             # Indicador 18 - Participação em Índices ESG
             col_18 = "18. Participação em Índices ESG"
             if col_18 in df.columns:
                 def normaliza_18(valor):
                     if pd.isna(valor) or valor == 0:
                         return 0.0
-                    # Se valor > 100, normaliza para 0-100, senão mantém
                     elif valor > 100:
                         max_18 = df[col_18].max()
                         return (valor / max_18) * 100 if max_18 > 0 else 0.0
                     else:
                         return valor
                 df[col_18] = df[col_18].apply(normaliza_18)
-        
-        df = normalizar_indicadores(df)
-        return df
-            except Exception as e:
-    st.error(f"Erro ao carregar os dados da planilha: {e}")
-    return pd.DataFrame()
 
+        normalizar_indicadores(df)
+        return df
+
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+        return None
 
 #Alteração da nota de acordo com o setor
 
