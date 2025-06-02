@@ -209,14 +209,28 @@ def calcular_score_esg(respostas):
     return total_score
 
 # Função para calcular o score financeiro
-def calcular_score_financeiro(respostas):
+def calcular_score(respostas):
     total_score = 0
     for i, (valor, peso, faixas) in enumerate(respostas):
+        # Ignora valores que não sejam números
+        if valor is None:
+            continue
+        try:
+            valor_num = float(valor)
+        except (TypeError, ValueError):
+            continue
+        
         for faixa in faixas:
-            if faixa[0] <= valor <= faixa[1]:
+            if faixa[0] <= valor_num <= faixa[1]:
                 total_score += faixa[2] * peso / 100
                 break
     return total_score
+
+def calcular_score_esg(respostas):
+    return calcular_score(respostas)
+
+def calcular_score_financeiro(respostas):
+    return calcular_score(respostas)
     
 if st.button("Calcular Resultado Final"):
     score_financeiro = calcular_score_financeiro(respostas_financeiros)
@@ -226,14 +240,6 @@ if st.button("Calcular Resultado Final"):
     st.session_state.calculado = True
     st.metric("Score ESG", score_esg)
     st.metric("Score Financeiro", score_financeiro)
-
-    if score_financeiro > 70 and score_esg > 70:
-        st.success("✅ Empresa aprovada na triagem financeira.")
-        st.balloons()
-        st.write("### Resultado final: Empresa Aprovada 🎉")
-    else:
-        st.error("❌ Empresa reprovada na triagem financeira.")
-        st.write("### Resultado final: Empresa Reprovada.")
 
 # Função para carregar dados sem cache
 def carregar_dados_empresas(url):
