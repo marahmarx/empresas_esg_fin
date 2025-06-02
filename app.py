@@ -199,6 +199,7 @@ def carregar_dados_empresas(url):
         return pd.DataFrame()
 
 # Função para calcular o score ESG
+# Função para calcular o score ESG
 def calcular_score_esg(respostas):
     total_score = 0
     for i, (valor, peso, faixas) in enumerate(respostas):
@@ -214,11 +215,11 @@ def calcular_score_financeiro(respostas_financeiros):
     for i, valor in enumerate(respostas_financeiros):
         peso = indicadores_financeiros[i]['peso']
         faixas = indicadores_financeiros[i]['faixas']
-        score = calcular_pontuacao(valor, faixas)  # <-- chama função correta
+        score = calcular_pontuacao(valor, faixas)  # função externa para pontuação
         score_ponderado = score * peso / 100
-        score_total += score_ponderado
+        total_score += score_ponderado
     return total_score
-    
+
 if st.button("Calcular Resultado Final"):
     score_financeiro = calcular_score_financeiro(respostas_financeiros)
     score_esg = calcular_score_esg(respostas_esg)
@@ -235,7 +236,6 @@ if st.button("Calcular Resultado Final"):
     else:
         st.error("❌ Empresa reprovada na triagem financeira.")
         st.write("### Resultado final: Empresa Reprovada.")
-
 
 # Função para carregar dados sem cache
 def carregar_dados_empresas(url):
