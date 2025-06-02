@@ -353,8 +353,8 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         
                 plotar_projecao_ebitda()
         
-            except Exception as e:
-                st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
+                except Exception as e:
+                    st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
 
 
             
