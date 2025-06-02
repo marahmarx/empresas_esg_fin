@@ -222,9 +222,6 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
 
         plotar_matriz_interativa(df_empresas)
 
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
-
         # Segunda parte: Análise visual completa
         
         mostrar_analise = st.button("Obter análise completa")
@@ -258,7 +255,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         
                         try:
                             peso_raw = indicador_info["peso"]
-                            peso = float(peso_raw[0]) if isinstance(peso_raw, list) else float(peso_raw)
+                            peso = float(peso_raw)
                         except (ValueError, TypeError, IndexError):
                             peso = 0.0
         
