@@ -1,10 +1,9 @@
-# Novo arquivo ajustado com correções para normalização e radar
-
 import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
+import plotly.graph_objects as go
 
 st.set_page_config(layout="wide")
 
@@ -34,22 +33,6 @@ def calcular_scores(df, indicadores, tipo, fator_redutor):
     df[f"Score {tipo}"] = total_scores
     return df
 
-def plotar_matriz(df):
-    df["Categoria"] = df["Empresa"].apply(lambda x: "Nova" if x == "Nova Empresa" else "Existente")
-    fig = px.scatter(
-        df,
-        x="Score ESG",
-        y="Score Financeiro",
-        text="Empresa",
-        color="Categoria",
-        color_discrete_map={"Nova": "red", "Existente": "blue"},
-        title="Matriz ESG x Financeiro",
-        height=600
-    )
-    fig.update_traces(textposition='top center', mode='markers+text', marker=dict(size=12))
-    fig.update_layout(xaxis=dict(range=[0, 100]), yaxis=dict(range=[0, 100]))
-    st.plotly_chart(fig, use_container_width=True)
-
 def carregar_dados_empresas(url):
     try:
         df = pd.read_csv(url)
@@ -57,26 +40,14 @@ def carregar_dados_empresas(url):
 
         mapa_colunas = {
             "Emissão de CO ( M ton)": "6. Emissão de CO (M ton)",
-            "Investimento em Programas Sociais (R$ M)": "12. Investimento em Programas Sociais (R$ M)"
+            "Investimento em Programas Sociais (R$ M)": "12. Investimento em Programas Sociais (R$ M)",
+            "EBITDA  (R$ Bi)": "14. EBITDA (R$ Bi)",
+            "Lucro Líquido (R$ Bi)": "17. Lucro Líquido (R$ Bi)"
         }
         df.rename(columns=mapa_colunas, inplace=True)
 
         for col in df.columns[3:]:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-
-        # Apenas normalizar CO e Investimento Social
-        colunas_pct = [
-            "6. Emissão de CO (M ton)",
-            "12. Investimento em Programas Sociais (R$ M)"
-        ]
-
-        for col in colunas_pct:
-            if col in df.columns:
-                max_val = df[col].max()
-                if pd.notna(max_val) and max_val > 0:
-                    df[col] = df[col] / max_val * 100
-                else:
-                    df[col] = 0
 
         return df
     except Exception as e:
@@ -112,7 +83,6 @@ indicadores_financeiros = [
     {"indicador": "18. Lucro Líquido YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "19. Margem Líquida (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]}
 ]
-
 # --- Interface ---
 st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
@@ -180,8 +150,6 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
             "Emissão de CO ( M ton)",
             "Investimento em Programas Sociais (R$ M)",
             "EBITDA  (R$ Bi)",
-            "Posição no MERCO",
-            "Participação em Índices ESG (quantidade)",
             "Lucro Líquido (R$ Bi)"
         ]
 
@@ -216,11 +184,49 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         })
 
         df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_linha])], ignore_index=True)
-
-        st.write("Dados com nova empresa adicionada:", df_empresas.tail())
-
-        # Plota a matriz interativa
-        st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
+        # Função para plotar com Plotly
+        import plotly.graph_objects as go
+        
+        def plotar_matriz_interativa(df):
+            if df.empty:
+                st.error("Dados não carregados corretamente!")
+                return
+        
+            if 'Empresa' not in df.columns or 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
+                st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
+                return
+        
+            fig = px.scatter(
+                df,
+                x='Score ESG',
+                y='Score Financeiro',
+                text='Empresa',
+                color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
+                title="Matriz ESG x Financeiro",
+                height=600
+            )
+        
+            # Mostrar os nomes das empresas sobre os pontos
+            fig.update_traces(
+                textposition='top center',
+                mode='markers+text',  # ESSENCIAL para mostrar os nomes
+                marker=dict(size=12)
+            )
+        
+            # Faixas visuais
+            shapes = [
+            dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),           # Baixo ESG e Financeiro
+            dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),        # ESG alto, Financeiro baixo
+            dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),      # ESG baixo, Financeiro alto
+            dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),   # ESG alto e Financeiro alto
+        ]
+            fig.update_layout(shapes=shapes)
+        
+            # Define limites dos eixos
+            fig.update_xaxes(range=[0, 100])
+            fig.update_yaxes(range=[0, 100])
+        
+            st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
