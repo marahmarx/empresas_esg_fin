@@ -5,12 +5,40 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 
+#Primeira Parte
 # Função para calcular o score ESG
 def aplicar_faixas(valor, faixas):
     for faixa in faixas:
         if faixa[0] <= valor <= faixa[1]:
             return faixa[2]
     return 0  # Se o valor não se encaixar em nenhuma faixa
+
+st.title("Triagem ESG e Financeira - Avaliação da Empresa")
+
+# Perguntas iniciais
+st.header("Dados da Empresa")
+nome_empresa = st.text_input("Nome da empresa:")
+segmento_empresa = st.selectbox("Segmento da empresa:", ["Primário", "Secundário", "Terciário"])
+
+impacto_por_setor = {
+    "Beleza / Tecnologia / Serviços": 5,
+    "Indústria Leve / Moda": 10,
+    "Transporte / Logística": 15,
+    "Químico / Agropecuário": 20,
+    "Metalurgia": 25,
+    "Petróleo e Gás": 30
+}
+
+setor_empresa = st.selectbox("Setor da empresa", list(impacto_por_setor.keys()))
+
+st.header("Dados Básicos")
+perguntas_binarias = [
+    "1. A empresa tem políticas de sustentabilidade?",
+    "2. A empresa possui certificação ambiental?",
+    "3. A empresa divulga suas metas de redução de emissão de CO2?",
+    "4. A empresa adota práticas de reciclagem?",
+    "5. A empresa investe em projetos sociais?"
+]
 
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 
@@ -35,36 +63,8 @@ indicadores_financeiros = [
     {"indicador": "20. Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "21. Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
 ]
-st.title("Triagem ESG e Financeira - Avaliação da Empresa")
-
-# Perguntas iniciais
-st.header("Dados da Empresa")
-nome_empresa = st.text_input("Nome da empresa:")
-segmento_empresa = st.selectbox("Segmento da empresa:", ["Primário", "Secundário", "Terciário"])
-
-impacto_por_setor = {
-    "Beleza / Tecnologia / Serviços": 5,
-    "Indústria Leve / Moda": 10,
-    "Transporte / Logística": 15,
-    "Químico / Agropecuário": 20,
-    "Metalurgia": 25,
-    "Petróleo e Gás": 30
-}
-
-setor_empresa = st.selectbox("Setor da empresa", list(impacto_por_setor.keys()))
-impacto_setor = impacto_por_setor[setor_empresa]
-fator_redutor = 1 - impacto_setor / 100
 
 # Etapa Unificada - Coleta de Dados
-
-st.header("Dados Básicos")
-perguntas_binarias = [
-    "1. A empresa tem políticas de sustentabilidade?",
-    "2. A empresa possui certificação ambiental?",
-    "3. A empresa divulga suas metas de redução de emissão de CO2?",
-    "4. A empresa adota práticas de reciclagem?",
-    "5. A empresa investe em projetos sociais?"
-]
 
 respostas_binarias = []
 for i, pergunta in enumerate(perguntas_binarias):
@@ -103,6 +103,10 @@ def carregar_dados_empresas(url):
         st.error(f"Erro ao carregar os dados da planilha: {e}")
         return pd.DataFrame()
 
+#Alteração da nota de acordo com o setor
+
+impacto_setor = impacto_por_setor[setor_empresa]
+fator_redutor = 1 - impacto_setor / 100
 #Scores    
 def calcular_scores(df, fator_redutor):
     esg_total = []
