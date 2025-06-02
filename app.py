@@ -42,7 +42,7 @@ def calcular_scores(df, indicadores, tipo, impacto_setor):
 def carregar_dados_empresas(url):
     try:
         df = pd.read_csv(url)
-        df.columns = df.columns.str.strip()  # Tira espaços escondidos
+        df.columns = df.columns.str.strip()
 
         mapa_colunas = {
             "Emissão de CO ( M ton)": "6. Emissão de CO (M ton)",
@@ -52,14 +52,17 @@ def carregar_dados_empresas(url):
         }
         df.rename(columns=mapa_colunas, inplace=True)
 
-        for col in df.columns[3:]:  # ignora 'Empresa', 'Setor' etc.
-            df[col] = pd.to_numeric(df[col].astype(str).str.replace('%', '').str.replace(',', '.'), errors='coerce')
+        for col in df.columns[3:]:
+            df[col] = df[col].astype(str).str.replace('%', '', regex=False)
+            df[col] = df[col].str.replace(',', '.', regex=False)
+            df[col] = pd.to_numeric(df[col], errors='coerce')
 
         return df
 
     except Exception as e:
         st.error(f"Erro ao carregar dados: {e}")
         return pd.DataFrame()
+
         
 def plotar_matriz_interativa(df):
     if df.empty:
@@ -100,6 +103,9 @@ def plotar_matriz_interativa(df):
     fig.update_yaxes(range=[0, 100])
 
     st.plotly_chart(fig, use_container_width=True)
+    st.dataframe(df.head())  
+    st.write(df.columns)  
+
     
 # --- Dados fixos ---
 impacto_por_setor = {
