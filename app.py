@@ -61,9 +61,6 @@ def carregar_dados_empresas(url):
         st.error(f"Erro ao carregar dados: {e}")
         return pd.DataFrame()
         
-st.write("📋 Prévia dos dados da planilha:")
-st.dataframe(df.head())
-        
 def plotar_matriz_interativa(df):
     if df.empty:
         st.error("Dados não carregados corretamente!")
