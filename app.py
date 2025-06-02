@@ -215,7 +215,7 @@ def calcular_score_financeiro(respostas_financeiros):
     for i, valor in enumerate(respostas_financeiros):
         peso = indicadores_financeiros[i]['peso']
         faixas = indicadores_financeiros[i]['faixas']
-        score = calcular_pontuacao(valor, faixas)
+        score = calcular_score_financeiro(valor, faixas)
         score_ponderado = score * peso / 100
         score_total += score_ponderado
     return total_score
