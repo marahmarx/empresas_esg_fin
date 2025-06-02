@@ -288,7 +288,16 @@ if st.session_state.get('calculado'):
                 
                     for indicador_info, resposta in zip(indicadores, respostas):
                         score = calcular_pontuacao(resposta, indicador_info["ranges"])
-                        weighted_score = score * indicador_info["weight"] / 100
+                        try:
+                            valor = float(resposta)
+                            peso = float(indicador_info["weight"])
+                        except (ValueError, TypeError):
+                            valor = 0
+                            peso = 0
+                        
+                        score = calcular_pontuacao(valor, indicador_info["ranges"])
+                        weighted_score = score * peso / 100
+
                 
                         # Classificando ESG ou Financeiro
                         #scores_binarias = [(100 if nova[col] == "Sim" else 0) for respostas in respostas_binarias]
