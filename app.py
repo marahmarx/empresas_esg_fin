@@ -209,13 +209,15 @@ def calcular_score_esg(respostas):
     return total_score
 
 # Função para calcular o score financeiro
-def calcular_score_financeiro(respostas):
+def calcular_score_financeiro(respostas_financeiros):
     total_score = 0
-    for i, (valor, peso, faixas) in enumerate(respostas):
-        for faixa in faixas:
-            if faixa[0] <= valor <= faixa[1]:
-                total_score += faixa[2] * peso / 100
-                break
+    # supondo que indicadores_financeiros seja uma lista global com dicionários que tem peso e faixas
+    for i, valor in enumerate(respostas_financeiros):
+        peso = indicadores_financeiros[i]['peso']
+        faixas = indicadores_financeiros[i]['faixas']
+        score = calcular_pontuacao(valor, faixas)
+        score_ponderado = score * peso / 100
+        score_total += score_ponderado
     return total_score
     
 if st.button("Calcular Resultado Final"):
