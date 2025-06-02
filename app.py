@@ -15,25 +15,25 @@ def aplicar_faixas(valor, faixas):
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 
 indicadores_esg = [
-    {"indicador": "Emissão de CO2 (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
-    {"indicador": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
-    {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(np.inf, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
+    {"indicador": "6. Emissão de CO2 (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
+    {"indicador": "7. Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "8. Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "9. Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "10. Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "11. Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
+    {"indicador": "12. Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(np.inf, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
 ]
 
 indicadores_financeiros = [
-    {"indicador": "Variação da ação YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
-    {"indicador": "EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Margem EBITDA (%)", "peso": 5.5 , "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
-    {"indicador": "Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
-    {"indicador": "Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
-    {"indicador": "Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "13. Variação da ação YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "14. EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
+    {"indicador": "15. EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "16. Margem EBITDA (%)", "peso": 5.5 , "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "17. Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
+    {"indicador": "18. Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
+    {"indicador": "19. Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
+    {"indicador": "20. Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "21. Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
 ]
 st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
@@ -272,51 +272,88 @@ if st.session_state.get('calculado'):
         mostrar_analise = st.button("Obter análise completa")
         if mostrar_analise:
             try:
-                # Gráfico de impacto ESG
-                def calcular_subscores(respostas_esg, respostas_binarias, respostas_financeiros):
-                    ambiental_idx = [0, 1, 2, 3, 4]
-                    social_idx = [5, 6, 7, 8, 9, 10]
-                    governanca_idx = [11, 12, 13, 14, 15, 16]
-                    financeiro_idx = [17, 18, 19, 20, 21, 22]
+                #Gráfico Radar
+                def calcular_pontuacao(valor, ranges):
+                    for min_val, max_val, score in ranges:
+                        if min_val <= valor <= max_val:
+                            return score
+                    return 0
                 
-                    grupos = {
-                        "Ambiental": ambiental_idx,
-                        "Social": social_idx,
-                        "Governança": governanca_idx,
-                        "Financeiro": financeiro_idx
-                    }
+                def avaliar_empresa(nome_empresa, respostas):
+                    resultados = []
+                    total_score = 0
+                    score_esg = 0
+                    score_financeiro = 0
+                    
                 
-                    respostas =  respostas_binarias + respostas_esg + respostas_financeiros
+                    for indicador_info, resposta in zip(indicadores, respostas):
+                        score = calcular_pontuacao(resposta, indicador_info["ranges"])
+                        weighted_score = score * indicador_info["weight"] / 100
                 
-                    scores = {}
-                    for nome, idxs in grupos.items():
-                        score = 0
-                        peso_total = 0
-                        for i in idxs:
-                            indicador_info = indicadores[i]
-                            peso = float(indicador_info["weight"])  # conversão importante
-                            peso_total += peso
+                        # Classificando ESG ou Financeiro
+                        #scores_binarias = [(100 if nova[col] == "Sim" else 0) for respostas in respostas_binarias]
+                        if indicador_info["indicador"].startswith(( "13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.")):
+                            score_financeiro += weighted_score
+                        else:
+                            score_esg += weighted_score
                 
-                            valor = float(respostas[i])  # conversão importante
-                            score_ind = calcular_pontuacao(valor, indicador_info["ranges"])
-                            weighted_score = score_ind * peso / 100
-                            score += weighted_score
+                        resultados.append({
+                            "Indicador": indicador_info["indicador"],
+                            "Valor": respostas,
+                            "Score": score,
+                            "Peso (%)": indicador_info["weight"],
+                            "Score Ponderado": weighted_score
+                        })
+                        total_score += weighted_score
                 
-                        scores[nome] = round((score / (peso_total / 100)), 2) if peso_total else 0
-                
-                    return scores
+                    df_resultados = pd.DataFrame(resultados)
+                    return df_resultados, total_score, score_esg, score_financeiro
 
-        
-                fig, ax = plt.subplots(figsize=(12, 6))
-                ax.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
-                ax.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
-                ax.set_xticks([p + 0.2 for p in x])
-                ax.set_xticklabels(praticas_esg, rotation=45, ha='right')
-                ax.set_ylabel('Impacto (%)')
-                ax.set_title('Impacto das Práticas ESG nos Indicadores Financeiros')
-                ax.legend()
+                def plotar_radar(df_resultados, nome_empresa):
+                    categorias = df_resultados['Indicador']
+                    valores = df_resultados['Score']
+                
+                    # Normalização dos dados para escala 0-100 e prepara para o radar
+                    categorias = list(categorias)
+                    valores = list(valores)
+                    valores += valores[:1]  # fechar o gráfico
+                
+                    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+                    angles += angles[:1]
+                
+                    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+                    ax.fill(angles, valores, color='red', alpha=0.25)
+                    ax.plot(angles, valores, color='red', linewidth=2)
+                    ax.set_yticklabels([])
+                    ax.set_xticks(angles[:-1])
+                    ax.set_xticklabels(categorias, fontsize=9, rotation=90)
+                    ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
+                    plt.tight_layout()
+                    plt.show()
+                    
+                # Gráfico de impacto ESG
+                praticas_esg = [
+                    "Uso de Energia Renovável",
+                    "Diversidade de Gênero na Liderança",
+                    "Práticas Éticas na Cadeia de Suprimentos",
+                    "Satisfação dos Funcionários",
+                    "Redução de Emissões de Carbono"
+                ]
+                
+                impacto_ebitda = [3, 3, 4, 6, 2]  # em pontos percentuais
+                impacto_receita = [0, 2, 0, 5, 1]  # em pontos percentuais
+                
+                x = range(len(praticas_esg))
+                
+                plt.figure(figsize=(12, 6))
+                plt.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
+                plt.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
+                plt.xticks([p + 0.2 for p in x], praticas_esg, rotation=45, ha='right')
+                plt.ylabel('Impacto (%)')
+                plt.title('Impacto das Práticas ESG nos Indicadores Financeiros')
+                plt.legend()
                 plt.tight_layout()
-                st.pyplot(fig)
+                plt.show()
         
                 # Projeção do EBITDA
                 def plotar_projecao_ebitda():
