@@ -44,14 +44,6 @@ def carregar_dados_empresas(url):
         df = pd.read_csv(url)
         df.columns = df.columns.str.strip()
 
-        mapa_colunas = {
-            "Emissão de CO ( M ton)": "6. Emissão de CO (M ton)",
-            "Investimento em Programas Sociais (R$ M)": "12. Investimento em Programas Sociais (R$ M)",
-            "EBITDA  (R$ Bi)": "14. EBITDA (R$ Bi)",
-            "Lucro Líquido (R$ Bi)": "17. Lucro Líquido (R$ Bi)"
-        }
-        df.rename(columns=mapa_colunas, inplace=True)
-
         for col in df.columns[3:]:
             df[col] = df[col].astype(str).str.replace('%', '', regex=False)
             df[col] = df[col].str.replace(',', '.', regex=False)
@@ -118,7 +110,7 @@ impacto_por_setor = {
 }
 
 indicadores_esg = [
-    {"indicador": "6. Emissão de CO (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
+    {"indicador": "6. Emissão de CO2 (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
     {"indicador": "7. Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "8. Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "9. Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
