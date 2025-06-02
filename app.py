@@ -128,7 +128,7 @@ indicadores_financeiros = [
 # --- Interface ---
 st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
-nome_empresa = st.text_input("Nome da empresa:")
+nome_empresa = st.text_input("Nome da empresa:", key="nome_empresa_input")
 setor_empresa = st.selectbox("Setor da empresa", list(impacto_por_setor.keys()))
 
 if nome_empresa:
