@@ -211,11 +211,10 @@ def calcular_score_esg(respostas):
 # Função para calcular o score financeiro
 def calcular_score_financeiro(respostas_financeiros):
     total_score = 0
-    # supondo que indicadores_financeiros seja uma lista global com dicionários que tem peso e faixas
     for i, valor in enumerate(respostas_financeiros):
         peso = indicadores_financeiros[i]['peso']
         faixas = indicadores_financeiros[i]['faixas']
-        score = calcular_score_financeiro(valor, faixas)
+        score = calcular_pontuacao(valor, faixas)  # <-- chama função correta
         score_ponderado = score * peso / 100
         score_total += score_ponderado
     return total_score
