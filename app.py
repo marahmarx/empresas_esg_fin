@@ -62,7 +62,7 @@ def carregar_dados_empresas(url):
         return pd.DataFrame()
         
 st.write("📋 Prévia dos dados da planilha:")
-        st.dataframe(df.head())
+    st.dataframe(df.head())
         
 def plotar_matriz_interativa(df):
     if df.empty:
