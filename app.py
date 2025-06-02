@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 st.set_page_config(layout="wide")
 
-# --- Funções de apoio ---
+# --- Fun��es de apoio ---
 def aplicar_faixas(valor, faixas):
     for faixa in faixas:
         if faixa[0] <= valor <= faixa[1]:
@@ -94,6 +94,55 @@ def plotar_matriz_interativa(df):
     fig.update_yaxes(range=[0, 100])
 
     st.plotly_chart(fig, use_container_width=True)
+
+# --- Interface --- (continua igual)
+
+# Corrigir o bloco try/except final
+    try:
+        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
+
+        df_empresas = carregar_dados_empresas(url)
+
+        colunas_percentuais = [
+            "Emissão de CO ( M ton)",
+            "Investimento em Programas Sociais (R$ M)",
+            "EBITDA  (R$ Bi)",
+            "Lucro Líquido (R$ Bi)"
+        ]
+
+        for nome_coluna in colunas_percentuais:
+            if nome_coluna in df_empresas.columns:
+                df_empresas[nome_coluna] = df_empresas[nome_coluna].astype(str).str.replace('%', '', regex=False)
+                df_empresas[nome_coluna] = df_empresas[nome_coluna].str.replace(',', '.', regex=False)
+                df_empresas[nome_coluna] = pd.to_numeric(df_empresas[nome_coluna], errors='coerce')
+                max_val = df_empresas[nome_coluna].max()
+                if pd.notna(max_val) and max_val <= 1:
+                    df_empresas[nome_coluna] *= 100
+
+        setor_empresa = st.session_state.get("setor", "")
+        impacto_setor = impacto_por_setor.get(setor_empresa, 0)
+        fator_redutor = 1 - impacto_setor / 100
+
+        df_empresas = calcular_scores(df_empresas, indicadores_esg, "ESG", fator_redutor)
+        df_empresas = calcular_scores(df_empresas, indicadores_financeiros, "Financeiro", fator_redutor)
+
+        score_esg = st.session_state.get('score_esg', 0)
+        score_financeiro = st.session_state.get('score_fin', 0)
+
+        nova_linha = {col: None for col in df_empresas.columns}
+        nova_linha.update({
+            'Empresa': 'Nova Empresa',
+            'Score ESG': score_esg,
+            'Score Financeiro': score_financeiro
+        })
+
+        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_linha])], ignore_index=True)
+
+        plotar_matriz_interativa(df_empresas)
+
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+
     
 # --- Dados fixos ---
 impacto_por_setor = {
@@ -161,71 +210,6 @@ if st.button("Calcular Resultado"):
         st.balloons()
     else:
         st.error("Empresa reprovada")
-
-# --- Comparativo ---
-if "score_esg" in st.session_state and "score_fin" in st.session_state:
-    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
-    df = carregar_dados_empresas(url)
-    setor = st.session_state.get("setor", "")
-    fator = 1 - impacto_por_setor.get(setor, 0)/100
-    df = calcular_scores(df, indicadores_esg, "ESG", fator)
-    df = calcular_scores(df, indicadores_financeiros, "Financeiro", fator)
-
-    nova = {col: None for col in df.columns}
-    nova.update({
-        "Empresa": "Nova Empresa",
-        "Score ESG": st.session_state["score_esg"],
-        "Score Financeiro": st.session_state["score_fin"]
-    })
-    df = pd.concat([df, pd.DataFrame([nova])], ignore_index=True)
-
-    try:
-        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
-
-        df_empresas = carregar_dados_empresas(url)
-
-        # Colunas para tratamento
-        colunas_percentuais = [
-            "Emissão de CO ( M ton)",
-            "Investimento em Programas Sociais (R$ M)",
-            "EBITDA  (R$ Bi)",
-            "Lucro Líquido (R$ Bi)"
-        ]
-
-        for nome_coluna in colunas_percentuais:
-            if nome_coluna in df_empresas.columns:
-                # Converte para string para manipular
-                df_empresas[nome_coluna] = df_empresas[nome_coluna].astype(str).str.replace('%', '', regex=False)
-                df_empresas[nome_coluna] = df_empresas[nome_coluna].str.replace(',', '.', regex=False)
-                df_empresas[nome_coluna] = pd.to_numeric(df_empresas[nome_coluna], errors='coerce')
-                max_val = df_empresas[nome_coluna].max()
-                if pd.notna(max_val) and max_val <= 1:
-                    df_empresas[nome_coluna] *= 100
-
-        # Recupera o setor da nova empresa do session_state
-        setor_empresa = st.session_state.get("setor", "")
-        impacto_setor = impacto_por_setor.get(setor_empresa, 0)
-        fator_redutor = 1 - impacto_setor / 100
-
-        # Chama a função para calcular scores (substitua pela sua)
-        df_empresas = calcular_scores(df_empresas, fator_redutor)
-
-        # Verifica se os scores estão no session_state, usa 0 como padrão
-        score_esg = st.session_state.get('score_esg', 0)
-        score_financeiro = st.session_state.get('score_financeiro', 0)
-
-        # Cria a nova linha alinhada com todas as colunas
-        nova_linha = {col: None for col in df_empresas.columns}
-        nova_linha.update({
-            'Empresa': 'Nova Empresa',
-            'Score ESG': score_esg,
-            'Score Financeiro': score_financeiro
-        })
-
-        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_linha])], ignore_index=True)
-
-        except Exception as e:
-    st.error(f"Erro ao carregar os dados da planilha: {e}")
 
 
         # Segunda parte: Análise visual completa
