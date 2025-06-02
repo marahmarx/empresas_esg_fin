@@ -354,48 +354,90 @@ if st.session_state.get('calculado'):
         if mostrar_analise:
             try:
                 # Função auxiliar para calcular score individual por indicador
-                def calcular_score_por_indicador(valor, faixas, peso):
-                    for faixa in faixas:
-                        if faixa[0] <= valor <= faixa[1]:
-                            return (faixa[2] * peso / 100)
-                    return 0
+                # Segunda parte: Análise visual completa
+        mostrar_analise = st.button("Obter análise completa")
+        if mostrar_analise:
+            try:
+                #Gráfico Radar
+                def avaliar_empresa(nome_empresa, respostas):
+                    resultados = []
+                    total_score = 0
+                    score_esg = 0
+                    score_financeiro = 0
                 
-                # Gráfico Radar: ESG e Financeiro
-                scores_binarios = [res * 100 for res in respostas_binarias]
-                nomes_binarios = [f"Binário {i+1}" for i in range(len(scores_binarios))]
+                    for indicador_info, resposta in zip(indicadores, respostas):
+                        # Ignorar os indicadores problemáticos (não percentuais)
+                        if indicador_info["indicador"].startswith(("6.", "12.", "14.", "17.", "18.", "19.")):
+                            continue
                 
-                # --- ESG quantitativos
-                scores_esg = []
-                nomes_esg = []
-                for i, (valor, peso, faixas) in enumerate(respostas_esg):
-                    score = aplicar_faixas(valor, faixas)
-                    scores_esg.append(score)
-                    nomes_esg.append(indicadores_esg[i]["indicador"])
+                        # Convertendo a resposta em número
+                        try:
+                            valor = float(resposta[0]) if isinstance(resposta, list) else float(resposta)
+                        except (ValueError, TypeError, IndexError):
+                            valor = 0.0
                 
-                # --- Financeiros
-                scores_financeiros = []
-                nomes_fin = []
-                for i, (valor, peso, faixas) in enumerate(respostas_financeiros):
-                    score = aplicar_faixas(valor, faixas)
-                    scores_financeiros.append(score)
-                    nomes_fin.append(indicadores_financeiros[i]["indicador"])
+                        # Convertendo peso
+                        try:
+                            peso_raw = indicador_info["weight"]
+                            peso = float(peso_raw[0]) if isinstance(peso_raw, list) else float(peso_raw)
+                        except (ValueError, TypeError, IndexError):
+                            peso = 0.0
                 
-                # --- Concatenar tudo
-                scores = scores_binarios + scores_esg + scores_financeiros
-                nomes = nomes_binarios + nomes_esg + nomes_fin
+                        # Calculando score numérico
+                        try:
+                            score_raw = calcular_pontuacao(valor, indicador_info["ranges"])
+                            score = float(score_raw)  # garantir que é float
+                        except Exception:
+                            score = 0.0
                 
-                # --- Fechar o ciclo do radar
-                scores.append(scores[0])
-                nomes.append(nomes[0])
-                angles = np.linspace(0, 2 * np.pi, len(scores), endpoint=False).tolist()
-                angles.append(angles[0])
+                        weighted_score = score * peso / 100
+                
+                        # Classificando
+                        if indicador_info["indicador"].startswith(("13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.")):
+                            score_financeiro += weighted_score
+                        else:
+                            score_esg += weighted_score
+                
+                        resultados.append({
+                            "Indicador": indicador_info["indicador"],
+                            "Valor": valor,
+                            "Score": score,
+                            "Peso (%)": peso,
+                            "Score Ponderado": weighted_score
+                        })
+                
+                        total_score += weighted_score
+                
+                    df_resultados = pd.DataFrame(resultados)
+                    return df_resultados, total_score, score_esg, score_financeiro
 
+                def plotar_radar(df_resultados, nome_empresa):
+                    categorias = df_resultados['Indicador']
+                    valores = df_resultados['Score']
+                
+                    # Normalização dos dados para escala 0-100 e prepara para o radar
+                    categorias = list(categorias)
+                    valores = list(valores)
+                    valores += valores[:1]  # fechar o gráfico
+                
+                    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+                    angles += angles[:1]
+                
+                    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+                    ax.fill(angles, valores, color='red', alpha=0.25)
+                    ax.plot(angles, valores, color='red', linewidth=2)
+                    ax.set_yticklabels([])
+                    ax.set_xticks(angles[:-1])
+                    ax.set_xticklabels(categorias, fontsize=9, rotation=90)
+                    ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
+                    plt.tight_layout()
+                    plt.show()
 
-                # Mostrar o gráfico
-                plotar_grafico_radar(respostas_esg, respostas_financeiros, indicadores_esg, indicadores_financeiros)
-        
-                # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
-                # Dados
+                df_resultados, total, esg, financeiro = avaliar_empresa(nome_empresa, respostas)
+                plotar_radar(df_resultados, nome_empresa)
+
+                
+                    # Gráfico de impacto ESG
                 praticas_esg = [
                     "Uso de Energia Renovável",
                     "Diversidade de Gênero na Liderança",
@@ -407,23 +449,19 @@ if st.session_state.get('calculado'):
                 impacto_ebitda = [3, 3, 4, 6, 2]  # em pontos percentuais
                 impacto_receita = [0, 2, 0, 5, 1]  # em pontos percentuais
                 
-                # Criar gráfico com matplotlib
                 x = range(len(praticas_esg))
                 
-                fig, ax = plt.subplots(figsize=(12, 6))
-                ax.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
-                ax.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
-                ax.set_xticks([p + 0.2 for p in x])
-                ax.set_xticklabels(praticas_esg, rotation=45, ha='right')
-                ax.set_ylabel('Impacto (%)')
-                ax.set_title('Impacto das Práticas ESG nos Indicadores Financeiros')
-                ax.legend()
+                plt.figure(figsize=(12, 6))
+                plt.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
+                plt.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
+                plt.xticks([p + 0.2 for p in x], praticas_esg, rotation=45, ha='right')
+                plt.ylabel('Impacto (%)')
+                plt.title('Impacto das Práticas ESG nos Indicadores Financeiros')
+                plt.legend()
                 plt.tight_layout()
-                
-                # Exibir no Streamlit
-                st.pyplot(fig)
+                plt.show()
         
-                # Função para plotar evolução do EBITDA
+                # Projeção do EBITDA
                 def plotar_projecao_ebitda():
                     anos = [2025, 2026, 2027, 2028, 2029]
                     ebitda_atual = [100, 102, 104, 106, 108]
@@ -441,38 +479,6 @@ if st.session_state.get('calculado'):
                     st.pyplot(plt.gcf())
                     plt.close()
         
-                # Criar dataframe com resultados ESG e Financeiros
-                def calcular_subscores(respostas_esg, respostas_binarias, respostas_financeiros):
-                    ambiental_idx = [0, 1, 2, 3, 4]  # índices das perguntas ambientais
-                    social_idx = [5, 6, 7, 8, 9, 10]  # perguntas sociais
-                    governanca_idx = [11, 12, 13, 14, 15, 16]  # perguntas de governança
-                    financeiro_idx = [17, 18, 19, 20, 21, 22]  # perguntas financeiras
-                
-                    grupos = {
-                        "Ambiental": ambiental_idx,
-                        "Social": social_idx,
-                        "Governança": governanca_idx,
-                        "Financeiro": financeiro_idx
-                    }
-                
-                    scores = {}
-                    for nome, idxs in grupos.items():
-                        score = 0
-                        peso_total = 0
-                        for i in idxs:
-                            indicador_info = indicadores[i]
-                            peso_total += indicador_info["weight"]
-                            valor = respostas[i]
-                            score_ind = calcular_pontuacao(valor, indicador_info["ranges"])
-                            weighted_score = score_ind * indicador_info["weight"] / 100
-                            score += weighted_score
-                        scores[nome] = round((score / (peso_total / 100)), 2)
-                    
-                    return scores               
-
-
-                plotar_impacto_melhoria_esg(score_esg, min(score_esg + 10, 100), "Nova Empresa")  # exemplo de melhoria
-                plotar_impacto_praticas_esg()
                 plotar_projecao_ebitda()
         
             except Exception as e:
