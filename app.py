@@ -57,11 +57,9 @@ indicadores_financeiros = [
     {"indicador": "14. EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
     {"indicador": "15. EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "16. Margem EBITDA (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "17. Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
-    {"indicador": "18. Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
-    {"indicador": "19. Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
-    {"indicador": "20. Lucro Líquido YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "21. Margem Líquida (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]}
+    {"indicador": "17. Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
+    {"indicador": "18. Lucro Líquido YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "19. Margem Líquida (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]}
 ]
 
 # Etapa Unificada - Coleta de Dados
@@ -98,7 +96,7 @@ def carregar_dados_empresas(url):
         def normalizar_indicadores(df):
             # Indicadores que normalizam pelo maior valor
             indicadores_pct = ["6. Emissão de CO2 (M ton)", "12. Investimento em Programas Sociais (R$ M)",
-                               "14. EBITDA (R$ Bi)", "19. Lucro Líquido (R$ Bi)"]
+                               "14. EBITDA (R$ Bi)", "17. Lucro Líquido (R$ Bi)"]
 
             for indicador in indicadores_pct:
                 if indicador in df.columns:
@@ -107,29 +105,6 @@ def carregar_dados_empresas(url):
                         df[indicador] = df[indicador].apply(lambda x: (x / max_val) * 100 if pd.notna(x) else x)
                     else:
                         df[indicador] = 0  # Se não tiver max válido, zera tudo
-
-            # Indicador 17 - Posição MERCO (inverter escala)
-            col_17 = "17. Posição no MERCO"
-            if col_17 in df.columns:
-                def normaliza_merco(pos):
-                    if pd.isna(pos) or pos == 0 or pos > 100 or pos < 1:
-                        return 0.0
-                    else:
-                        return ((100 - (pos - 1)) / 99) * 100
-                df[col_17] = df[col_17].apply(normaliza_merco)
-
-            # Indicador 18 - Participação em Índices ESG
-            col_18 = "18. Participação em Índices ESG"
-            if col_18 in df.columns:
-                def normaliza_18(valor):
-                    if pd.isna(valor) or valor == 0:
-                        return 0.0
-                    elif valor > 100:
-                        max_18 = df[col_18].max()
-                        return (valor / max_18) * 100 if max_18 > 0 else 0.0
-                    else:
-                        return valor
-                df[col_18] = df[col_18].apply(normaliza_18)
 
         normalizar_indicadores(df)
         return df
@@ -365,7 +340,7 @@ if st.session_state.get('calculado'):
                 
                     for indicador_info, resposta in zip(indicadores, respostas):
                         # Ignorar os indicadores problemáticos (não percentuais)
-                        if indicador_info["indicador"].startswith(("6.", "12.", "14.", "17.", "18.", "19.")):
+                        if indicador_info["indicador"].startswith(("6.", "12.", "14.", "17.")):
                             continue
                 
                         # Convertendo a resposta em número
