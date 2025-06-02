@@ -97,7 +97,47 @@ def carregar_dados_empresas(url):
         # Converter as colunas para numérico (forçando erros a se tornarem NaN)
         for coluna in df.columns[3:]:
             df[coluna] = pd.to_numeric(df[coluna], errors='coerce')
+
+        def normalizar_indicadores(df):
+            # Indicadores que normalizam pelo maior valor
+            indicadores_pct = ["6. Emissão de CO2 (M ton)", "12. Investimento em Programas Sociais (R$ M)", 
+                               "14. EBITDA (R$ Bi)", "19. Lucro Líquido (R$ Bi)"]
         
+            for indicador in indicadores_pct:
+                if indicador in df.columns:
+                    max_val = df[indicador].max()
+                    if pd.notna(max_val) and max_val > 0:
+                        df[indicador] = df[indicador].apply(lambda x: (x / max_val) * 100 if pd.notna(x) else x)
+                    else:
+                        df[indicador] = 0  # Se não tiver max válido, zera tudo
+        
+            # Indicador 17 - Posição MERCO (inverter escala)
+            col_17 = "17. Posição no MERCO"
+            if col_17 in df.columns:
+                def normaliza_merco(pos):
+                    if pd.isna(pos) or pos == 0 or pos > 100 or pos < 1:
+                        return 0.0
+                    else:
+                        return ((100 - (pos - 1)) / 99) * 100
+                df[col_17] = df[col_17].apply(normaliza_merco)
+        
+            # Indicador 18 - Participação em Índices ESG
+            col_18 = "18. Participação em Índices ESG"
+            if col_18 in df.columns:
+                def normaliza_18(valor):
+                    if pd.isna(valor) or valor == 0:
+                        return 0.0
+                    # Se valor > 100, normaliza para 0-100, senão mantém
+                    elif valor > 100:
+                        max_18 = df[col_18].max()
+                        return (valor / max_18) * 100 if max_18 > 0 else 0.0
+                    else:
+                        return valor
+                df[col_18] = df[col_18].apply(normaliza_18)
+        
+            return df 
+            df = normalizar_indicadores(df)
+
         return df
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
@@ -272,136 +312,7 @@ if st.session_state.get('calculado'):
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
 
-        # Segunda parte: Análise visual completa
-        mostrar_analise = st.button("Obter análise completa")
-        if mostrar_analise:
-            try:
-                #Gráfico Radar
-                def avaliar_empresa(nome_empresa, respostas):
-                    resultados = []
-                    total_score = 0
-                    score_esg = 0
-                    score_financeiro = 0
-                
-                    for indicador_info, resposta in zip(indicadores, respostas):
-                        # Ignorar os indicadores problemáticos (não percentuais)
-                        if indicador_info["indicador"].startswith(("6.", "12.", "14.", "17.", "18.", "19.")):
-                            continue
-                
-                        # Convertendo a resposta em número
-                        try:
-                            valor = float(resposta[0]) if isinstance(resposta, list) else float(resposta)
-                        except (ValueError, TypeError, IndexError):
-                            valor = 0.0
-                
-                        # Convertendo peso
-                        try:
-                            peso_raw = indicador_info["weight"]
-                            peso = float(peso_raw[0]) if isinstance(peso_raw, list) else float(peso_raw)
-                        except (ValueError, TypeError, IndexError):
-                            peso = 0.0
-                
-                        # Calculando score numérico
-                        try:
-                            score_raw = calcular_pontuacao(valor, indicador_info["ranges"])
-                            score = float(score_raw)  # garantir que é float
-                        except Exception:
-                            score = 0.0
-                
-                        weighted_score = score * peso / 100
-                
-                        # Classificando
-                        if indicador_info["indicador"].startswith(("13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.")):
-                            score_financeiro += weighted_score
-                        else:
-                            score_esg += weighted_score
-                
-                        resultados.append({
-                            "Indicador": indicador_info["indicador"],
-                            "Valor": valor,
-                            "Score": score,
-                            "Peso (%)": peso,
-                            "Score Ponderado": weighted_score
-                        })
-                
-                        total_score += weighted_score
-                
-                    df_resultados = pd.DataFrame(resultados)
-                    return df_resultados, total_score, score_esg, score_financeiro
-
-                def plotar_radar(df_resultados, nome_empresa):
-                    categorias = df_resultados['Indicador']
-                    valores = df_resultados['Score']
-                
-                    # Normalização dos dados para escala 0-100 e prepara para o radar
-                    categorias = list(categorias)
-                    valores = list(valores)
-                    valores += valores[:1]  # fechar o gráfico
-                
-                    angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-                    angles += angles[:1]
-                
-                    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
-                    ax.fill(angles, valores, color='red', alpha=0.25)
-                    ax.plot(angles, valores, color='red', linewidth=2)
-                    ax.set_yticklabels([])
-                    ax.set_xticks(angles[:-1])
-                    ax.set_xticklabels(categorias, fontsize=9, rotation=90)
-                    ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
-                    plt.tight_layout()
-                    plt.show()
-
-                df_resultados, total, esg, financeiro = avaliar_empresa(nome_empresa, respostas)
-                plotar_radar(df_resultados, nome_empresa)
-
-                
-                    # Gráfico de impacto ESG
-                praticas_esg = [
-                    "Uso de Energia Renovável",
-                    "Diversidade de Gênero na Liderança",
-                    "Práticas Éticas na Cadeia de Suprimentos",
-                    "Satisfação dos Funcionários",
-                    "Redução de Emissões de Carbono"
-                ]
-                
-                impacto_ebitda = [3, 3, 4, 6, 2]  # em pontos percentuais
-                impacto_receita = [0, 2, 0, 5, 1]  # em pontos percentuais
-                
-                x = range(len(praticas_esg))
-                
-                plt.figure(figsize=(12, 6))
-                plt.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
-                plt.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
-                plt.xticks([p + 0.2 for p in x], praticas_esg, rotation=45, ha='right')
-                plt.ylabel('Impacto (%)')
-                plt.title('Impacto das Práticas ESG nos Indicadores Financeiros')
-                plt.legend()
-                plt.tight_layout()
-                plt.show()
         
-                # Projeção do EBITDA
-                def plotar_projecao_ebitda():
-                    anos = [2025, 2026, 2027, 2028, 2029]
-                    ebitda_atual = [100, 102, 104, 106, 108]
-                    ebitda_melhoria_esg = [100, 105, 110, 115, 120]
-        
-                    plt.figure(figsize=(10, 5))
-                    plt.plot(anos, ebitda_atual, marker='o', label='Sem Melhoria ESG')
-                    plt.plot(anos, ebitda_melhoria_esg, marker='o', label='Com Melhoria ESG')
-                    plt.xlabel('Ano')
-                    plt.ylabel('EBITDA (R$ milhões)')
-                    plt.title('Projeção do EBITDA com e sem Melhoria ESG')
-                    plt.legend()
-                    plt.grid(True)
-                    plt.tight_layout()
-                    st.pyplot(plt.gcf())
-                    plt.close()
-        
-                plotar_projecao_ebitda()
-        
-            except Exception as e:
-                st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
-
 
                     
                 
