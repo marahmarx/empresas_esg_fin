@@ -274,35 +274,62 @@ if st.session_state.get('calculado'):
         if mostrar_analise:
             try:
                 # Gráfico Radar
-                def calcular_score_individual(valor, faixas):
-                    for faixa in faixas:
-                        if len(faixa) == 3:
-                            minimo, maximo, score = faixa
-                            if minimo <= valor <= maximo:
-                                return score
-                        elif len(faixa) == 4:
-                            max_valor, score_min, score_max, _ = faixa
-                            if valor <= max_valor:
-                                return score_max
-                    return 0
+                nova_linha = [nome_empresa, segmento_empresa, setor_empresa] + respostas_basicas + [r[0] for r in respostas_esg] + [r[0] for r in respostas_financeiros]
+                sheet.append_row(nova_linha)
+            
+                # Mensagem de aprovação
+                st.success("Empresa aprovada e dados salvos com sucesso!")
                 
-                def calcular_scores_individuais(respostas_binarias, respostas_esg, respostas_financeiros):
-                    # Scores 
-                    scores_binarios = [100 if r else 0 for r in respostas_binarias]
-                    scores_esg = [
-                        calcular_score_individual(valor, indicador["faixas"])
-                        for valor, indicador in zip(respostas_esg, indicadores_esg)
-                    ]
-                    scores_financeiros = [
-                        calcular_score_individual(valor, indicador["faixas"])
-                        for valor, indicador in zip(respostas_financeiros, indicadores_financeiros)
-                    ]
-                
-                    # Lista final com 22 scores separados
-                    scores_individuais = scores_binarios + scores_esg + scores_financeiros
-                    return scores_individuais
+            
+                # Cálculo dos scores individuais ESG
+                esg_scores = []
+                esg_labels = []
+            
+                for i, (valor, peso, faixas) in enumerate(respostas_esg):
+                    score = aplicar_faixas(valor, faixas)
+                    esg_scores.append(score)
+                    esg_labels.append(indicadores_esg[i]["indicador"])
+            
+                # Cálculo dos scores individuais Financeiros
+                fin_scores = []
+                fin_labels = []
+            
+                for i, (valor, peso, faixas) in enumerate(respostas_financeiros):
+                    score = aplicar_faixas(valor, faixas)
+                    fin_scores.append(score)
+                    fin_labels.append(indicadores_financeiros[i]["indicador"])
+            
+                # Gráfico de Radar
+                st.header("Gráfico de Radar - Indicadores Individuais")
+            
+                radar_fig = go.Figure()
+            
+                # ESG Radar
+                radar_fig.add_trace(go.Scatterpolar(
+                    r=esg_scores + [esg_scores[0]],  # fecha o radar
+                    theta=esg_labels + [esg_labels[0]],
+                    fill='toself',
+                    name='Indicadores ESG'
+                ))
+            
+                # Financeiro Radar
+                radar_fig.add_trace(go.Scatterpolar(
+                    r=fin_scores + [fin_scores[0]],
+                    theta=fin_labels + [fin_labels[0]],
+                    fill='toself',
+                    name='Indicadores Financeiros'
+                ))
+            
+                radar_fig.update_layout(
+                    polar=dict(
+                        radialaxis=dict(visible=True, range=[0, 100])
+                    ),
+                    showlegend=True,
+                    height=700
+                )
+            
+                st.plotly_chart(radar_fig)
 
-                print("Scores para gráfico radar:", scores_individuais)
         
                 # Gráfico sobre o impacto das práticas ESG nos indicadores financeiros
                 # Dados
