@@ -199,7 +199,6 @@ def carregar_dados_empresas(url):
         return pd.DataFrame()
 
 # Função para calcular o score ESG
-# Função para calcular o score ESG
 def calcular_score_esg(respostas):
     total_score = 0
     for i, (valor, peso, faixas) in enumerate(respostas):
@@ -212,10 +211,13 @@ def calcular_score_esg(respostas):
 # Função para calcular o score financeiro
 def calcular_score_financeiro(respostas_financeiros):
     total_score = 0
+    if len(respostas_financeiros) != len(indicadores_financeiros):
+        raise ValueError("Número de respostas financeiras não coincide com o número de indicadores financeiros.")
+
     for i, valor in enumerate(respostas_financeiros):
         peso = indicadores_financeiros[i]['peso']
         faixas = indicadores_financeiros[i]['faixas']
-        score = calcular_pontuacao(valor, faixas)  # função externa para pontuação
+        score = calcular_pontuacao(valor, faixas)  # função externa que retorna score para o valor e faixas
         score_ponderado = score * peso / 100
         total_score += score_ponderado
     return total_score
