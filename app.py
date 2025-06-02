@@ -351,12 +351,7 @@ if st.session_state.get('calculado'):
 
         # Segunda parte: Análise visual completa
         mostrar_analise = st.button("Obter análise completa")
-        
-        if mostrar_analise:
-            try:
-                # Função auxiliar para calcular score individual por indicador
-                # Segunda parte: Análise visual completa
-        mostrar_analise = st.button("Obter análise completa")
+
         if mostrar_analise:
             try:
                 #Gráfico Radar
