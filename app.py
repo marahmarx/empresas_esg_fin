@@ -301,6 +301,7 @@ if st.session_state.get('calculado'):
         colunas_percentuais = [
             "Emissão de CO ( M ton)",
             "Investimento em Programas Sociais (R$ M)",
+            "EBITDA  (R$ Bi)",
             "Posição no MERCO",
             "Participação em Índices ESG (quantidade)",
             "Lucro Líquido (R$ Bi)"
