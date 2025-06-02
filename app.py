@@ -356,6 +356,7 @@ if st.session_state.get('calculado'):
             try:
                 #Gráfico Radar
                 respostas = respostas_esg + respostas_financeiros
+                indicadores = indicadores_esg + indicadores_financeiros
                 def avaliar_empresa(nome_empresa, respostas):
                     resultados = []
                     total_score = 0
