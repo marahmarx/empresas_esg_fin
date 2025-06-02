@@ -14,27 +14,31 @@ def aplicar_faixas(valor, faixas):
 
 # Lista de indicadores com pesos e faixas (os mesmos da sua definição)
 
-indicadores_esg = [
-    {"indicador 6": "Emissão de CO2 (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
-    {"indicador 7": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador 8": "Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador 9": "Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
-    {"indicador 10": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador 11": "Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
-    {"indicador 12": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(np.inf, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
+indicadores = [
+    # ESG
+    {"indicador": "6. Emissão de CO2 (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
+    {"indicador": "7. Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "8. Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "9. Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "10. Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "11. Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
+    {"indicador": "12. Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(0, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]},
+
+    # Financeiros
+    {"indicador": "13. Variação da ação YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "14. EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
+    {"indicador": "15. EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "16. Margem EBITDA (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "17. Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
+    {"indicador": "18. Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
+    {"indicador": "19. Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
+    {"indicador": "20. Lucro Líquido YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "21. Margem Líquida (%)", "peso": 5.5, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
 ]
 
-indicadores_financeiros = [
-    {"indicador 13": "Variação da ação YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador 14": "EBITDA (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 29.99, 40), (30, 49.99, 70), (50, np.inf, 100)]},
-    {"indicador 15": "EBITDA YoY (%)", "peso": 11, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador 16": "Margem EBITDA (%)", "peso": 5.5 , "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador 17": "Posição no MERCO", "peso": 11, "faixas": [(1, 30, 100), (31, 60, 70), (61, 100, 40), (0, np.inf, 0)]},
-    {"indicador 18": "Participação em Índices ESG", "peso": 11, "faixas": [(0, 0, 40), (1, 1, 80), (2, np.inf, 100)]},
-    {"indicador 19": "Lucro Líquido (R$ Bi)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0, 9.99, 80), (10, 19.99, 90), (20, np.inf, 100)]},
-    {"indicador 20": "Lucro Líquido YoY (%)", "peso": 11, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador 21": "Margem Líquida (%)", "peso": 5.5, "faixas":  [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-]
+indicadores_esg = indicadores[0:7]       # Indicadores 6 a 12
+indicadores_financeiros = indicadores[7:]  # Indicadores 13 a 21
+
 st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
 # Perguntas iniciais
@@ -52,8 +56,6 @@ impacto_por_setor = {
 }
 
 setor_empresa = st.selectbox("Setor da empresa", list(impacto_por_setor.keys()))
-impacto_setor = impacto_por_setor[setor_empresa]
-fator_redutor = 1 - impacto_setor / 100
 
 # Etapa Unificada - Coleta de Dados
 
@@ -73,22 +75,19 @@ for i, pergunta in enumerate(perguntas_binarias):
 
 st.header("Indicadores ESG Quantitativos")
 respostas_esg = []
-for indicador in indicadores_esg:
-    nome_chave = list(indicador.keys())[0]  # Ex: "indicador 6"
-    nome_indicador = indicador[nome_chave]  # Ex: "Emissão de CO2 (M ton)"
-    st.subheader(f"{nome_chave} - {nome_indicador}")
-    valor = st.number_input(f"Digite o valor para {nome_chave} - {nome_indicador}:", min_value=0.0, format="%.2f", key=f"esg_{nome_chave}")
+for i, indicador in enumerate(indicadores_esg):
+    indicador = indicador["indicador"]
+    st.subheader(indicador)
+    valor = st.number_input(f"Digite o valor para {indicador}:", min_value=0.0, format="%.2f", key=f"esg_{i}")
     respostas_esg.append(valor)
 
 st.header("Indicadores Financeiros")
 respostas_financeiros = []
-for indicador in indicadores_financeiros:
-    nome_chave = list(indicador.keys())[0]  # Ex: "indicador 13"
-    nome_indicador = indicador[nome_chave]  # Ex: "Variação da ação YoY (%)"
-    st.subheader(f"{nome_chave} - {nome_indicador}")
-    valor = st.number_input(f"Digite o valor para {nome_chave} - {nome_indicador}:", format="%.2f", key=f"fin_{nome_chave}")
-    respostas_financeiros.append(valor)
-  
+for i, indicador in enumerate(indicadores_financeiros):
+    indicador = indicador["indicador"]
+    st.subheader(indicador)
+    valor = st.number_input(f"Digite o valor para {indicador}:", format="%.2f", key=f"fin_{i}")
+    respostas_financeiros.append(valor) 
 
 # Mostrar matriz ESG x Financeiro sempre que os scores estiverem disponíveis
 
@@ -106,8 +105,6 @@ def carregar_dados_empresas(url):
         st.error(f"Erro ao carregar os dados da planilha: {e}")
         return pd.DataFrame()
 
-    
-# Função para calcular os scores
 def calcular_scores(df):
     esg_total = []
     financeiro_total = []
@@ -116,17 +113,25 @@ def calcular_scores(df):
         score_esg1 = 0
         score_financeiro1 = 0
 
+        setor = row.get("Setor", "")
+        impacto_setor = impacto_por_setor.get(setor, 0)  # Se não achar, impacto 0
+        fator_redutor = 1 - impacto_setor / 100
+
+        # Calcular score ESG
         for indicador in indicadores_esg:
             valor = row.get(indicador["indicador"], np.nan)
             if pd.notna(valor):
                 score_esg1 += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
-                score_esg = score_esg1 * fator_redutor
-                
+
+        score_esg = score_esg1 * fator_redutor
+
+        # Calcular score Financeiro
         for indicador in indicadores_financeiros:
             valor = row.get(indicador["indicador"], np.nan)
             if pd.notna(valor):
                 score_financeiro1 += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
-                score_financeiro = score_financeiro1 * fator_redutor
+
+        score_financeiro = score_financeiro1 * fator_redutor
 
         esg_total.append(score_esg)
         financeiro_total.append(score_financeiro)
@@ -134,7 +139,7 @@ def calcular_scores(df):
     df["Score ESG"] = esg_total
     df["Score Financeiro"] = financeiro_total
     return df
-        
+
 # Função para plotar com Plotly
 import plotly.graph_objects as go
 
@@ -278,75 +283,75 @@ if st.session_state.get('calculado'):
             try:
                 # Gráfico Radar 
 
+                # Função para calcular score para perguntas binárias (0 ou 1)
+                def calcular_score_binario(resposta):
+                    return 100 if resposta == 1 else 0
+                
+                # Função para calcular score baseado em faixas (ranges)
+                def calcular_pontuacao(valor, ranges):
+                    for min_val, max_val, score in ranges:
+                        if min_val <= valor <= max_val:
+                            return score
+                    return 0
+                
+                # Exemplo de perguntas binárias e pesos
+                perguntas_binarias = ["Possui política ambiental?", "Tem programa de diversidade?"]
+                peso_binario = 5  # peso fixo para todas as binárias (pode ajustar)
+                
+                # Exemplo de indicadores ESG e Financeiros com faixas e pesos
+                # Cada faixa: (min, max, score) onde score é de 0 a 100
+                indicadores_esg = [
+                    {"indicador": "Consumo de energia (kWh)", "weight": 10, "ranges": [(0, 500, 100), (501, 1000, 70), (1001, 1500, 40), (1501, 99999, 0)]},
+                    {"indicador": "Emissões CO2 (ton)", "weight": 15, "ranges": [(0, 50, 100), (51, 100, 70), (101, 150, 30), (151, 99999, 0)]}
+                ]
+                
+                indicadores_financeiros = [
+                    {"indicador": "Margem de lucro (%)", "weight": 20, "ranges": [(30, 100, 100), (20, 29, 70), (10, 19, 40), (0, 9, 0)]},
+                    {"indicador": "Retorno sobre ativo (%)", "weight": 20, "ranges": [(15, 100, 100), (10, 14, 70), (5, 9, 40), (0, 4, 0)]}
+                ]
+                
+                # Função principal para avaliar e retornar DataFrame de resultados
                 def avaliar_empresa(nome_empresa, respostas_binarias, respostas_esg, respostas_financeiros):
                     resultados = []
-                    total_score = 0
-                    total_peso = 0
                 
-                    # Processa perguntas binárias (peso fixo, ex: 5)
-                    peso_binario = 5
+                    # Processar perguntas binárias
                     for pergunta, resposta in zip(perguntas_binarias, respostas_binarias):
                         score = calcular_score_binario(resposta)
-                        weighted_score = score * peso_binario / 100
-                        total_score += weighted_score
-                        total_peso += peso_binario
                         resultados.append({
                             "Indicador": pergunta,
-                            "Valor": "Sim" if resposta == 1 else "Não",
-                            "Score": score,
-                            "Peso (%)": peso_binario,
-                            "Score Ponderado": weighted_score
+                            "Score": score
                         })
                 
-                    # Processa indicadores ESG
-                    for (valor, peso, faixas), indicador in zip(respostas_esg, indicadores_esg):
-                        nome_chave = [k for k in indicador if k not in ["peso", "faixas"]][0]
-                        nome_indicador = indicador[nome_chave]
-                        score = calcular_score_faixas(valor, faixas)
-                        weighted_score = score * peso / 100
-                        total_score += weighted_score
-                        total_peso += peso
+                    # Processar indicadores ESG
+                    for indicador, valor in zip(indicadores_esg, respostas_esg):
+                        score = calcular_pontuacao(valor, indicador["ranges"])
                         resultados.append({
-                            "Indicador": f"{nome_chave} - {nome_indicador}",
-                            "Valor": valor,
-                            "Score": score,
-                            "Peso (%)": peso,
-                            "Score Ponderado": weighted_score
+                            "Indicador": indicador["indicador"],
+                            "Score": score
                         })
                 
-                    # Processa indicadores financeiros
-                    for (valor, peso, faixas), indicador in zip(respostas_financeiros, indicadores_financeiros):
-                        nome_chave = [k for k in indicador if k not in ["peso", "faixas"]][0]
-                        nome_indicador = indicador[nome_chave]
-                        score = calcular_score_faixas(valor, faixas)
-                        weighted_score = score * peso / 100
-                        total_score += weighted_score
-                        total_peso += peso
+                    # Processar indicadores financeiros
+                    for indicador, valor in zip(indicadores_financeiros, respostas_financeiros):
+                        score = calcular_pontuacao(valor, indicador["ranges"])
                         resultados.append({
-                            "Indicador": f"{nome_chave} - {nome_indicador}",
-                            "Valor": valor,
-                            "Score": score,
-                            "Peso (%)": peso,
-                            "Score Ponderado": weighted_score
+                            "Indicador": indicador["indicador"],
+                            "Score": score
                         })
                 
                     df_resultados = pd.DataFrame(resultados)
-                    score_final_normalizado = total_score / (total_peso / 100)
+                    return nome_empresa, df_resultados
                 
-                    return {
-                        "nome": nome_empresa,
-                        "score_total": score_final_normalizado,
-                        "resultados": df_resultados
-                    }
-                
+                # Função para plotar gráfico radar de scores individuais
                 def plotar_grafico_radar(df_resultados, nome_empresa):
                     categorias = df_resultados["Indicador"].tolist()
                     valores = df_resultados["Score"].tolist()
                 
+                    # Fechar o círculo no radar
                     categorias += [categorias[0]]
                     valores += [valores[0]]
                 
                     num_vars = len(categorias)
+                
                     angulos = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
                     angulos += [angulos[0]]
                 
@@ -355,17 +360,21 @@ if st.session_state.get('calculado'):
                     ax.fill(angulos, valores, color="skyblue", alpha=0.4)
                 
                     ax.set_xticks(angulos[:-1])
-                    ax.set_xticklabels(categorias, fontsize=9, rotation=45, ha='right')
+                    ax.set_xticklabels(categorias, fontsize=10, rotation=45, ha='right')
                 
                     ax.set_yticks([20, 40, 60, 80, 100])
                     ax.set_yticklabels(["20", "40", "60", "80", "100"])
-                    ax.set_title(f"Desempenho por Indicador - {nome_empresa}", size=14, y=1.1)
+                    ax.set_ylim(0, 100)
+                
+                    ax.set_title(f"Radar de Scores por Indicador - {nome_empresa}", size=14, y=1.1)
                 
                     plt.tight_layout()
                     plt.show()
-
-                empresa = avaliar_empresa("Empresa Exemplo", respostas_binarias, respostas_esg, respostas_financeiros)
-                plotar_grafico_radar(empresa["resultados"], empresa["nome"])
+                
+                    nome, df_scores = avaliar_empresa("Empresa Exemplo", respostas_binarias, respostas_esg, respostas_financeiros)
+                
+                print(df_scores)  # tabela com scores individuais
+                plotar_grafico_radar(df_scores, nome)
         
                 # Função para plotar evolução do EBITDA
                 def plotar_projecao_ebitda():
