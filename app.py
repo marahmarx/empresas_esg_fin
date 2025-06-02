@@ -295,55 +295,58 @@ if st.session_state.get('calculado'):
 
         df_empresas = carregar_dados_empresas(url)
 
-        # Colunas que precisam ser tratadas (nomes exatos conforme planilha)
+        st.write("Colunas do DataFrame:", df_empresas.columns.tolist())
+
+        # Colunas para tratamento
         colunas_percentuais = [
-            "Emissão de CO ( M ton)",               # coluna 9
-            "Investimento em Programas Sociais (R$ M)",  # coluna 15
-            "Posição no MERCO",                      # coluna 20
-            "Participação em Índices ESG (quantidade)", # coluna 21
-            "Lucro Líquido (R$ Bi)"                  # coluna 22
+            "Emissão de CO ( M ton)",
+            "Investimento em Programas Sociais (R$ M)",
+            "Posição no MERCO",
+            "Participação em Índices ESG (quantidade)",
+            "Lucro Líquido (R$ Bi)"
         ]
 
         for nome_coluna in colunas_percentuais:
             if nome_coluna in df_empresas.columns:
-                df_empresas[nome_coluna] = (
-                    df_empresas[nome_coluna]
-                    .astype(str)
-                    .str.replace('%', '', regex=False)
-                    .str.replace(',', '.', regex=False)
-                )
+                # Converte para string para manipular
+                df_empresas[nome_coluna] = df_empresas[nome_coluna].astype(str).str.replace('%', '', regex=False)
+                df_empresas[nome_coluna] = df_empresas[nome_coluna].str.replace(',', '.', regex=False)
                 df_empresas[nome_coluna] = pd.to_numeric(df_empresas[nome_coluna], errors='coerce')
-                if df_empresas[nome_coluna].max() <= 1:
+                max_val = df_empresas[nome_coluna].max()
+                if pd.notna(max_val) and max_val <= 1:
                     df_empresas[nome_coluna] *= 100
-        
-        st.write("Dados carregados da planilha:", df_empresas)
 
-        # Definir o fator redutor baseado no setor da nova empresa
-        setor_empresa = st.session_state.get("setor", "")  # ajuste se necessário
+        st.write("Dados tratados:", df_empresas.head())
+
+        # Recupera o setor da nova empresa do session_state
+        setor_empresa = st.session_state.get("setor", "")
         impacto_setor = impacto_por_setor.get(setor_empresa, 0)
         fator_redutor = 1 - impacto_setor / 100
-        
-        # Aqui a função calcular_scores deve estar preparada para lidar com os nomes reais das colunas
+
+        # Chama a função para calcular scores (substitua pela sua)
         df_empresas = calcular_scores(df_empresas, fator_redutor)
 
-        nova_empresa = {
-            'Empresa': 'Nova Empresa',
-            'Score ESG': st.session_state.score_esg,
-            'Score Financeiro': st.session_state.score_financeiro
-        }
-        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_empresa])], ignore_index=True)
+        # Verifica se os scores estão no session_state, usa 0 como padrão
+        score_esg = st.session_state.get('score_esg', 0)
+        score_financeiro = st.session_state.get('score_financeiro', 0)
 
+        # Cria a nova linha alinhada com todas as colunas
+        nova_linha = {col: None for col in df_empresas.columns}
+        nova_linha.update({
+            'Empresa': 'Nova Empresa',
+            'Score ESG': score_esg,
+            'Score Financeiro': score_financeiro
+        })
+
+        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_linha])], ignore_index=True)
+
+        st.write("Dados com nova empresa adicionada:", df_empresas.tail())
+
+        # Plota a matriz interativa
         st.plotly_chart(plotar_matriz_interativa(df_empresas), use_container_width=True)
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
-
-
-        
-
-                    
-                
-
         
 
 
