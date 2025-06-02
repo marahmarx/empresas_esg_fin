@@ -222,6 +222,9 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
 
         df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_linha])], ignore_index=True)
 
+        except Exception as e:
+    st.error(f"Erro ao carregar os dados da planilha: {e}")
+
         # Segunda parte: Análise visual completa
         mostrar_analise = st.button("Obter análise completa")
 
