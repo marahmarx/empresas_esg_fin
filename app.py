@@ -88,7 +88,8 @@ for indicador in indicadores_financeiros:
 def carregar_dados_empresas(url):
     try:
         df = pd.read_csv(url)
-        df.columns = df.columns.str.strip()  # Remover espaços nas colunas
+        df.columns = df.columns.str.strip()
+        
 
         # Converter as colunas para numérico (forçando erros a se tornarem NaN)
         for coluna in df.columns[3:]:
@@ -293,6 +294,23 @@ if st.session_state.get('calculado'):
         url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
 
         df_empresas = carregar_dados_empresas(url)
+        # Corrigir indicadores percentuais (como "%", vírgula e escala)
+        colunas_percentuais = [9, 15, 20, 21, 22]
+        
+        for i in colunas_percentuais:
+            nome_coluna = df.columns[i]
+            df[nome_coluna] = (
+                df[nome_coluna]
+                .astype(str)
+                .str.replace('%', '', regex=False)
+                .str.replace(',', '.', regex=False)
+            )
+            df[nome_coluna] = pd.to_numeric(df[nome_coluna], errors='coerce')
+            
+            # Converter de decimal para percentual se necessário
+            if df[nome_coluna].max() <= 1:
+                df[nome_coluna] *= 100
+
 
         st.write("Dados carregados da planilha:", df_empresas)
 
