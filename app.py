@@ -42,7 +42,7 @@ def calcular_scores(df, indicadores, tipo, impacto_setor):
 def carregar_dados_empresas(url):
     try:
         df = pd.read_csv(url)
-        df.columns = df.columns.str.strip()
+        df.columns = df.columns.str.strip()  # Tira espaços escondidos
 
         mapa_colunas = {
             "Emissão de CO ( M ton)": "6. Emissão de CO (M ton)",
@@ -52,14 +52,17 @@ def carregar_dados_empresas(url):
         }
         df.rename(columns=mapa_colunas, inplace=True)
 
-        for col in df.columns[3:]:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
+        for col in df.columns[3:]:  # ignora 'Empresa', 'Setor' etc.
+            df[col] = pd.to_numeric(df[col].astype(str).str.replace('%', '').str.replace(',', '.'), errors='coerce')
 
         return df
-        
+        st.write("📋 Prévia dos dados da planilha:")
+        st.dataframe(df.head())
+
     except Exception as e:
         st.error(f"Erro ao carregar dados: {e}")
         return pd.DataFrame()
+
         
 def plotar_matriz_interativa(df):
     if df.empty:
