@@ -195,8 +195,6 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
                 if pd.notna(max_val) and max_val <= 1:
                     df_empresas[nome_coluna] *= 100
 
-        st.write("Dados tratados:", df_empresas.head())
-
         # Recupera o setor da nova empresa do session_state
         setor_empresa = st.session_state.get("setor", "")
         impacto_setor = impacto_por_setor.get(setor_empresa, 0)
