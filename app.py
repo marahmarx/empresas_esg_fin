@@ -83,17 +83,28 @@ def plotar_matriz_interativa(df):
         mode='markers+text',
         marker=dict(size=12)
     )
-
+    
     shapes = [
-        dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
-        dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),
-        dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),
-        dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),
+        # Linha 1: Baixo ESG (x), Baixo Financeiro (y)
+        dict(type="rect", x0=0, x1=33.3, y0=0, y1=33.3, fillcolor="rgba(255, 0, 0, 0.15)", line=dict(width=0)),  # Vermelho
+        dict(type="rect", x0=33.3, x1=66.6, y0=0, y1=33.3, fillcolor="rgba(255, 140, 0, 0.15)", line=dict(width=0)),  # Laranja escuro
+        dict(type="rect", x0=66.6, x1=100, y0=0, y1=33.3, fillcolor="rgba(255, 215, 0, 0.15)", line=dict(width=0)),  # Amarelo
+    
+        # Linha 2: Médio ESG (x), Médio Financeiro (y)
+        dict(type="rect", x0=0, x1=33.3, y0=33.3, y1=66.6, fillcolor="rgba(255, 165, 0, 0.15)", line=dict(width=0)),  # Laranja
+        dict(type="rect", x0=33.3, x1=66.6, y0=33.3, y1=66.6, fillcolor="rgba(173, 216, 230, 0.15)", line=dict(width=0)),  # Azul claro
+        dict(type="rect", x0=66.6, x1=100, y0=33.3, y1=66.6, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),  # Verde claro
+    
+        # Linha 3: Alto ESG (x), Alto Financeiro (y)
+        dict(type="rect", x0=0, x1=33.3, y0=66.6, y1=100, fillcolor="rgba(152, 251, 152, 0.15)", line=dict(width=0)),  # Verde amarelado
+        dict(type="rect", x0=33.3, x1=66.6, y0=66.6, y1=100, fillcolor="rgba(144, 238, 144, 0.2)", line=dict(width=0)),  # Verde médio
+        dict(type="rect", x0=66.6, x1=100, y0=66.6, y1=100, fillcolor="rgba(0, 128, 0, 0.15)", line=dict(width=0)),  # Verde escuro
     ]
+    
     fig.update_layout(shapes=shapes)
-    fig.update_xaxes(range=[0, 100])
-    fig.update_yaxes(range=[0, 100])
-
+    fig.update_xaxes(range=[0, 100], title="Score ESG")
+    fig.update_yaxes(range=[0, 100], title="Score Financeiro")
+    
     st.plotly_chart(fig, use_container_width=True)
     st.dataframe(df.head())  
 
