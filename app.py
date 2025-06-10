@@ -55,7 +55,7 @@ def carregar_dados_empresas(url):
         st.error(f"Erro ao carregar dados: {e}")
         return pd.DataFrame()
 
-        
+
 def plotar_matriz_interativa(df):
     if df.empty:
         st.error("Dados não carregados corretamente!")
@@ -83,32 +83,21 @@ def plotar_matriz_interativa(df):
         mode='markers+text',
         marker=dict(size=12)
     )
-    
-    shapes = [
-        # Linha 1: Baixo ESG (x), Baixo Financeiro (y)
-        dict(type="rect", x0=0, x1=33.3, y0=0, y1=33.3, fillcolor="rgba(255, 0, 0, 0.15)", line=dict(width=0)),  # Vermelho
-        dict(type="rect", x0=33.3, x1=66.6, y0=0, y1=33.3, fillcolor="rgba(255, 140, 0, 0.15)", line=dict(width=0)),  # Laranja escuro
-        dict(type="rect", x0=66.6, x1=100, y0=0, y1=33.3, fillcolor="rgba(255, 215, 0, 0.15)", line=dict(width=0)),  # Amarelo
-    
-        # Linha 2: Médio ESG (x), Médio Financeiro (y)
-        dict(type="rect", x0=0, x1=33.3, y0=33.3, y1=66.6, fillcolor="rgba(255, 165, 0, 0.15)", line=dict(width=0)),  # Laranja
-        dict(type="rect", x0=33.3, x1=66.6, y0=33.3, y1=66.6, fillcolor="rgba(173, 216, 230, 0.15)", line=dict(width=0)),  # Azul claro
-        dict(type="rect", x0=66.6, x1=100, y0=33.3, y1=66.6, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),  # Verde claro
-    
-        # Linha 3: Alto ESG (x), Alto Financeiro (y)
-        dict(type="rect", x0=0, x1=33.3, y0=66.6, y1=100, fillcolor="rgba(152, 251, 152, 0.15)", line=dict(width=0)),  # Verde amarelado
-        dict(type="rect", x0=33.3, x1=66.6, y0=66.6, y1=100, fillcolor="rgba(144, 238, 144, 0.2)", line=dict(width=0)),  # Verde médio
-        dict(type="rect", x0=66.6, x1=100, y0=66.6, y1=100, fillcolor="rgba(0, 128, 0, 0.15)", line=dict(width=0)),  # Verde escuro
-    ]
-    
-    fig.update_layout(shapes=shapes)
-    fig.update_xaxes(range=[0, 100], title="Score ESG")
-    fig.update_yaxes(range=[0, 100], title="Score Financeiro")
-    
-    st.plotly_chart(fig, use_container_width=True)
-    st.dataframe(df.head())  
 
-    
+    shapes = [
+        dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
+        dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),
+        dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),
+        dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),
+    ]
+    fig.update_layout(shapes=shapes)
+    fig.update_xaxes(range=[0, 100])
+    fig.update_yaxes(range=[0, 100])
+
+    st.plotly_chart(fig, use_container_width=True)
+    st.dataframe(df.head())
+
+
 # --- Dados fixos ---
 impacto_por_setor = {
     "Beleza / Tecnologia / Serviços": 5,
@@ -157,13 +146,13 @@ if nome_empresa:
     st.session_state["nome_empresa"] = nome_empresa
 if setor_empresa:
     st.session_state["setor"] = setor_empresa
-    
+
 # Etapa Unificada - Coleta de Dados
 respostas_binarias = []
 for i, pergunta in enumerate(perguntas_binarias):
     resposta = st.radio(pergunta, options=["Sim", "Não"], key=f"pergunta_binaria_{i}")
     respostas_binarias.append(1 if resposta == "Sim" else 0)
-    
+
 st.subheader("Indicadores ESG")
 respostas_esg = [
     (st.number_input(ind["indicador"], min_value=0.0, format="%.2f"), ind["peso"], ind["faixas"])
@@ -252,7 +241,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_linha])], ignore_index=True)
 
         plotar_matriz_interativa(df_empresas)
-        
+
     except Exception as e:
         st.error(f"Erro ao carregar os dados da planilha: {e}")
 
@@ -331,10 +320,20 @@ if mostrar_analise:
             fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
             ax.fill(angles, valores, color='red', alpha=0.25)
             ax.plot(angles, valores, color='red', linewidth=2)
+            # Ajuste de layout
             ax.set_yticklabels([])
             ax.set_xticks(angles[:-1])
             ax.set_xticklabels(categorias, fontsize=9, rotation=90)
             ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
+
+            # --- Adiciona os valores diretamente nos pontos ---
+            for angle, value in zip(angles, valores):
+                ax.annotate(f"{value:.0f}",
+                            xy=(angle, value),
+                            xytext=(5, 5),
+                            textcoords='offset points',
+                            ha='center', va='center', fontsize=9, color='black', weight='bold')
+
             st.pyplot(fig)
             plt.close(fig)
 
@@ -431,7 +430,7 @@ if st.button("Gerar Relatório ESG"):
         def gerar_relatorio_esg_formatado(nome_empresa, respostas, formato="GRI"):
             def safe_get(index):
                 return respostas[index] if index < len(respostas) else "N/A"
-        
+
             estrutura = {
                 "GRI": {
                     "GRI-101 (Políticas de Sustentabilidade)": safe_get(0),
@@ -462,7 +461,7 @@ if st.button("Gerar Relatório ESG"):
                     "CSRD-305 (Indicadores Financeiros ESG)": f"{safe_get(13)} / {safe_get(14)} / {safe_get(16)}",
                 }
             }
-        
+
             estrutura_escolhida = estrutura.get(formato.upper(), estrutura["GRI"])
             st.subheader(f"📘 Rascunho do Relatório - {formato.upper()}")
             st.markdown(f"**Empresa:** {nome_empresa}")
@@ -517,4 +516,3 @@ if st.button("Gerar Relatório ESG"):
 
     except Exception as e:
         st.error(f"Ocorreu um erro ao gerar o relatório: {e}")
-
