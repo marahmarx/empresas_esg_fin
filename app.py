@@ -340,131 +340,82 @@ if mostrar_analise:
         df_resultados, total, esg, financeiro = avaliar_empresa(nome_empresa, respostas)
         plotar_radar(df_resultados, nome_empresa)
 
-        # Gráfico de impacto ESG
-        praticas_esg = [
-            "Uso de Energia Renovável",
-            "Diversidade de Gênero na Liderança",
-            "Práticas Éticas na Cadeia de Suprimentos",
-            "Satisfação dos Funcionários",
-            "Redução de Emissões de Carbono"
-        ]
-
-        impacto_ebitda = [3, 3, 4, 6, 2]
-        impacto_receita = [0, 2, 0, 5, 1]
-
-        x = range(len(praticas_esg))
-
-        fig, ax = plt.subplots(figsize=(12, 6))
-        ax.bar(x, impacto_ebitda, width=0.4, label='Impacto no EBITDA', align='center')
-        ax.bar([p + 0.4 for p in x], impacto_receita, width=0.4, label='Impacto na Receita', align='center')
-        ax.set_xticks([p + 0.2 for p in x])
-        ax.set_xticklabels(praticas_esg, rotation=45, ha='right')
-        ax.set_ylabel('Impacto (%)')
-        ax.set_title('Impacto das Práticas ESG nos Indicadores Financeiros')
-        ax.legend()
-        st.pyplot(fig)
-        plt.close(fig)
-
-        # Projeção do EBITDA
-        def plotar_projecao_ebitda():
+        if mostrar_projecao:
+            # Faturamento base hipotético
+            faturamento_base = 100_000_000  # R$ 100 milhões
+        
+            # Extração das métricas financeiras a partir das respostas
+            margem_ebitda = respostas_financeiros[3][0] / 100         # Margem EBITDA (%)
+            roi_inicial = respostas_financeiros[4][0] / 100            # ROI (%)
+            margem_lucro_liquida = respostas_financeiros[6][0] / 100   # Margem líquida (%)
+        
+            ebitda_inicial = faturamento_base * margem_ebitda
+            lucro_liquido_inicial = faturamento_base * margem_lucro_liquida
+        
+            # Leitura das práticas ESG binárias
+            respostas_bin_dict = {
+                'emissoes_carbono': respostas_binarias[2] == 1,
+                'diversidade_genero': respostas_binarias[3] == 1,
+                'transparencia_fornecedores': respostas_binarias[1] == 1,
+                'eficiencia_energetica': respostas_binarias[0] == 1
+            }
+        
+            # Impacto percentual estimado por prática ESG
+            impacto_percentual = {
+                'emissoes_carbono': 0.015,
+                'diversidade_genero': 0.005,
+                'transparencia_fornecedores': 0.01,
+                'eficiencia_energetica': 0.02
+            }
+        
+            # Cálculo dos ajustes de performance
+            ajuste_ebitda = 1 + sum([impacto_percentual[key] for key in respostas_bin_dict if respostas_bin_dict[key]])
+            ajuste_lucro = 1 + (0.6 * (ajuste_ebitda - 1))
+            ajuste_roi = 1 + (0.3 * (ajuste_ebitda - 1))
+        
+            # Projeção de 5 anos
             anos = [2025, 2026, 2027, 2028, 2029]
-            ebitda_atual = [100, 102, 104, 106, 108]
-            ebitda_melhoria_esg = [100, 105, 110, 115, 120]
-
-            fig, ax = plt.subplots(figsize=(10, 5))
-            ax.plot(anos, ebitda_atual, marker='o', label='Sem Melhoria ESG')
-            ax.plot(anos, ebitda_melhoria_esg, marker='o', label='Com Melhoria ESG')
+            crescimento_base = 0.05
+        
+            ebitda_proj = []
+            lucro_proj = []
+            roi_proj = []
+        
+            for i in range(5):
+                ebitda_atual = ebitda_inicial * ((1 + crescimento_base) ** i) * (ajuste_ebitda ** i)
+                lucro_atual = lucro_liquido_inicial * ((1 + crescimento_base) ** i) * (ajuste_lucro ** i)
+                roi_atual = roi_inicial * (ajuste_roi ** i)
+        
+                ebitda_proj.append(round(ebitda_atual, 2))
+                lucro_proj.append(round(lucro_atual, 2))
+                roi_proj.append(round(roi_atual, 4))
+        
+            # Plotagem com matplotlib
+            fig, ax = plt.subplots(figsize=(10, 6))
+            ax.plot(anos, ebitda_proj, label='EBITDA (R$)', marker='o')
+            ax.plot(anos, lucro_proj, label='Lucro Líquido (R$)', marker='s')
+            ax.plot(anos, [r * 100 for r in roi_proj], label='ROI (%)', marker='^')
+            ax.set_title('Projeção Financeira com Base nas Práticas ESG')
             ax.set_xlabel('Ano')
-            ax.set_ylabel('EBITDA (R$ milhões)')
-            ax.set_title('Projeção do EBITDA com e sem Melhoria ESG')
+            ax.set_ylabel('Valores Projetados')
             ax.legend()
             ax.grid(True)
             st.pyplot(fig)
-            plt.close(fig)
-
-        plotar_projecao_ebitda()
-
+        
+            # Recomendação específica
+            if not respostas_bin_dict['eficiencia_energetica']:
+                st.markdown(
+                    "📌 **Recomendação ESG:**\n"
+                    "Sua empresa ainda **não investe fortemente em eficiência energética**. Estudos de caso como os da Unilever, Ambev e Schneider Electric mostram que implementar práticas de eficiência energética "
+                    "pode reduzir custos operacionais significativamente, elevando o EBITDA em até **10% ao ano**. Além disso, essas ações podem gerar acesso a **financiamentos verdes** e melhorar a **imagem da marca**."
+                )
+            else:
+                st.markdown(
+                    "✅ **Prática ESG já implementada:**\n"
+                    "Sua empresa já investe em **eficiência energética**, uma das práticas ESG com maior impacto no EBITDA. Continue monitorando resultados e ampliando suas iniciativas para **maximizar o retorno financeiro**."
+                )
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
-
-# --- Projeção Financeira com Base em Práticas ESG ---
-mostrar_projecao = st.button("Ver Projeção Financeira")
-
-if mostrar_projecao:
-    # Faturamento base hipotético
-    faturamento_base = 100_000_000  # R$ 100 milhões
-
-    # Extração das métricas financeiras a partir das respostas
-    margem_ebitda = respostas_financeiros[3][0] / 100         # Margem EBITDA (%)
-    roi_inicial = respostas_financeiros[4][0] / 100            # ROI (%)
-    margem_lucro_liquida = respostas_financeiros[6][0] / 100   # Margem líquida (%)
-
-    ebitda_inicial = faturamento_base * margem_ebitda
-    lucro_liquido_inicial = faturamento_base * margem_lucro_liquida
-
-    # Leitura das práticas ESG binárias
-    respostas_bin_dict = {
-        'emissoes_carbono': respostas_binarias[2] == 1,
-        'diversidade_genero': respostas_binarias[3] == 1,
-        'transparencia_fornecedores': respostas_binarias[1] == 1,
-        'eficiencia_energetica': respostas_binarias[0] == 1
-    }
-
-    # Impacto percentual estimado por prática ESG
-    impacto_percentual = {
-        'emissoes_carbono': 0.015,
-        'diversidade_genero': 0.005,
-        'transparencia_fornecedores': 0.01,
-        'eficiencia_energetica': 0.02
-    }
-
-    # Cálculo dos ajustes de performance
-    ajuste_ebitda = 1 + sum([impacto_percentual[key] for key in respostas_bin_dict if respostas_bin_dict[key]])
-    ajuste_lucro = 1 + (0.6 * (ajuste_ebitda - 1))
-    ajuste_roi = 1 + (0.3 * (ajuste_ebitda - 1))
-
-    # Projeção de 5 anos
-    anos = [2025, 2026, 2027, 2028, 2029]
-    crescimento_base = 0.05
-
-    ebitda_proj = []
-    lucro_proj = []
-    roi_proj = []
-
-    for i in range(5):
-        ebitda_atual = ebitda_inicial * ((1 + crescimento_base) ** i) * (ajuste_ebitda ** i)
-        lucro_atual = lucro_liquido_inicial * ((1 + crescimento_base) ** i) * (ajuste_lucro ** i)
-        roi_atual = roi_inicial * (ajuste_roi ** i)
-
-        ebitda_proj.append(round(ebitda_atual, 2))
-        lucro_proj.append(round(lucro_atual, 2))
-        roi_proj.append(round(roi_atual, 4))
-
-    # Plotagem com matplotlib
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(anos, ebitda_proj, label='EBITDA (R$)', marker='o')
-    ax.plot(anos, lucro_proj, label='Lucro Líquido (R$)', marker='s')
-    ax.plot(anos, [r * 100 for r in roi_proj], label='ROI (%)', marker='^')
-    ax.set_title('Projeção Financeira com Base nas Práticas ESG')
-    ax.set_xlabel('Ano')
-    ax.set_ylabel('Valores Projetados')
-    ax.legend()
-    ax.grid(True)
-    st.pyplot(fig)
-
-    # Recomendação específica
-    if not respostas_bin_dict['eficiencia_energetica']:
-        st.markdown(
-            "📌 **Recomendação ESG:**\n"
-            "Sua empresa ainda **não investe fortemente em eficiência energética**. Estudos de caso como os da Unilever, Ambev e Schneider Electric mostram que implementar práticas de eficiência energética "
-            "pode reduzir custos operacionais significativamente, elevando o EBITDA em até **10% ao ano**. Além disso, essas ações podem gerar acesso a **financiamentos verdes** e melhorar a **imagem da marca**."
-        )
-    else:
-        st.markdown(
-            "✅ **Prática ESG já implementada:**\n"
-            "Sua empresa já investe em **eficiência energética**, uma das práticas ESG com maior impacto no EBITDA. Continue monitorando resultados e ampliando suas iniciativas para **maximizar o retorno financeiro**."
-        )
-
 
 #Gerar relatórios
 import json
