@@ -2,17 +2,118 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.express as px
 import plotly.graph_objects as go
 
 st.set_page_config(layout="wide")
 
-# --- Indicadores ESG e Financeiros ---
+# --- Funções de apoio ---
+def aplicar_faixas(valor, faixas):
+    for faixa in faixas:
+        if faixa[0] <= valor <= faixa[1]:
+            return faixa[2]
+    return 0
+
+def calcular_score(lista):
+    total = 0
+    for valor, peso, faixas in lista:
+        total += aplicar_faixas(valor, faixas) * peso / 100
+    return total
+
+def calcular_scores(df, indicadores, tipo, impacto_setor):
+    total_scores = []
+    for _, row in df.iterrows():
+        score_puro = 0
+        for indicador in indicadores:
+            valor = row.get(indicador["indicador"], np.nan)
+            if pd.notna(valor):
+                score_puro += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
+
+        # Aplicar redução setorial de apenas 5%
+        fator_ajuste = 1 - (impacto_setor / 100) * 0.05
+        score_ajustado = score_puro * fator_ajuste
+
+        total_scores.append(score_ajustado)
+
+    df[f"Score {tipo}"] = total_scores
+    return df
+
+
+def carregar_dados_empresas(url):
+    try:
+        df = pd.read_csv(url)
+        df.columns = df.columns.str.strip()
+
+        for col in df.columns[3:]:
+            df[col] = df[col].astype(str).str.replace('%', '', regex=False)
+            df[col] = df[col].str.replace(',', '.', regex=False)
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+
+        return df
+
+    except Exception as e:
+        st.error(f"Erro ao carregar dados: {e}")
+        return pd.DataFrame()
+
+
+def plotar_matriz_interativa(df):
+    if df.empty:
+        st.error("Dados não carregados corretamente!")
+        return
+
+    if 'Empresa' not in df.columns or 'Score ESG' not in df.columns or 'Score Financeiro' not in df.columns:
+        st.error("As colunas necessárias ('Empresa', 'Score ESG', 'Score Financeiro') não estão presentes.")
+        return
+
+    df["Categoria"] = df["Empresa"].apply(lambda x: "Nova Empresa" if x == "Nova Empresa" else "Empresas Existentes")
+
+    fig = px.scatter(
+        df,
+        x='Score ESG',
+        y='Score Financeiro',
+        text='Empresa',
+        color='Categoria',
+        color_discrete_map={'Nova Empresa': 'red', 'Empresas Existentes': 'blue'},
+        title="Matriz ESG x Financeiro",
+        height=600
+    )
+
+    fig.update_traces(
+        textposition='top center',
+        mode='markers+text',
+        marker=dict(size=12)
+    )
+
+    shapes = [
+        dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
+        dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),
+        dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),
+        dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),
+    ]
+    fig.update_layout(shapes=shapes)
+    fig.update_xaxes(range=[0, 100])
+    fig.update_yaxes(range=[0, 100])
+
+    st.plotly_chart(fig, use_container_width=True)
+    st.dataframe(df.head())
+
+
+# --- Dados fixos ---
+impacto_por_setor = {
+    "Beleza / Tecnologia / Serviços": 5,
+    "Indústria Leve / Moda": 10,
+    "Transporte / Logística": 15,
+    "Químico / Agropecuário": 20,
+    "Metalurgia": 25,
+    "Petróleo e Gás": 30
+}
+
 indicadores_esg = [
     {"indicador": "Emissão de CO2 (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
-    {"indicador": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (0, 59.99, 30)]},
-    {"indicador": "Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (0, 59.99, 30)]},
-    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (20, 49.99, 60), (0, 19.99, 20)]},
-    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (20, 49.99, 60), (0, 19.99, 20)]},
+    {"indicador": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
+    {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
     {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(0, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]}
 ]
@@ -27,38 +128,42 @@ indicadores_financeiros = [
     {"indicador": "Margem Líquida (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]}
 ]
 
-# --- Funções auxiliares ---
-def aplicar_faixas(valor, faixas):
-    for faixa in faixas:
-        if faixa[0] <= valor <= faixa[1]:
-            return faixa[2]
-    return 0
+# --- Interface ---
+st.title("Triagem ESG e Financeira - Avaliação da Empresa")
 
-def calcular_score(lista):
-    total = 0
-    for valor, peso, faixas in lista:
-        total += aplicar_faixas(valor, faixas) * peso / 100
-    return total
+nome_empresa = st.text_input("Nome da empresa:")
+setor_empresa = st.selectbox("Setor da empresa", list(impacto_por_setor.keys()))
 
-# --- Entrada do usuário ---
-st.title("Análise ESG e Financeira")
-
-nome_empresa = st.text_input("Nome da empresa")
-
+st.header("Dados Básicos")
 perguntas_binarias = [
-    "A empresa tem políticas de sustentabilidade?",
-    "Possui certificação ambiental?",
-    "Divulga metas de CO₂?",
-    "Adota reciclagem?",
-    "Investe em projetos sociais?"
+    "1. A empresa tem políticas de sustentabilidade?",
+    "2. A empresa possui certificação ambiental?",
+    "3. A empresa divulga suas metas de redução de emissão de CO2?",
+    "4. A empresa adota práticas de reciclagem?",
+    "5. A empresa investe em projetos sociais?"
 ]
-respostas_binarias = [1 if st.radio(p, ["Sim", "Não"], key=p) == "Sim" else 0 for p in perguntas_binarias]
+if nome_empresa:
+    st.session_state["nome_empresa"] = nome_empresa
+if setor_empresa:
+    st.session_state["setor"] = setor_empresa
+
+# Etapa Unificada - Coleta de Dados
+respostas_binarias = []
+for i, pergunta in enumerate(perguntas_binarias):
+    resposta = st.radio(pergunta, options=["Sim", "Não"], key=f"pergunta_binaria_{i}")
+    respostas_binarias.append(1 if resposta == "Sim" else 0)
 
 st.subheader("Indicadores ESG")
-respostas_esg = [(st.number_input(ind["indicador"], min_value=0.0, format="%.2f"), ind["peso"], ind["faixas"]) for ind in indicadores_esg]
+respostas_esg = [
+    (st.number_input(ind["indicador"], min_value=0.0, format="%.2f"), ind["peso"], ind["faixas"])
+    for ind in indicadores_esg
+]
 
 st.subheader("Indicadores Financeiros")
-respostas_financeiros = [(st.number_input(ind["indicador"], format="%.2f"), ind["peso"], ind["faixas"]) for ind in indicadores_financeiros]
+respostas_financeiros = [
+    (st.number_input(ind["indicador"], format="%.2f"), ind["peso"], ind["faixas"])
+    for ind in indicadores_financeiros
+]
 
 # --- Análise e Gráficos ---
 if st.button("Calcular Resultado"):
