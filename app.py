@@ -408,6 +408,20 @@ if mostrar_projecao:
     ax.grid(True)
     st.pyplot(fig)
 
+    # Recomendação específica
+    if not respostas_bin_dict['eficiencia_energetica']:
+        st.markdown(
+            "📌 **Recomendação ESG:**\n"
+            "Sua empresa ainda **não investe fortemente em eficiência energética**. Estudos de caso como os da Unilever, Ambev e Schneider Electric mostram que implementar práticas de eficiência energética "
+            "pode reduzir custos operacionais significativamente, elevando o EBITDA em até **10% ao ano**. Além disso, essas ações podem gerar acesso a **financiamentos verdes** e melhorar a **imagem da marca**."
+        )
+    else:
+        st.markdown(
+            "✅ **Prática ESG já implementada:**\n"
+            "Sua empresa já investe em **eficiência energética**, uma das práticas ESG com maior impacto no EBITDA. Continue monitorando resultados e ampliando suas iniciativas para **maximizar o retorno financeiro**."
+        )
+
+
 # Função principal para gerar gráfico de barras com impacto ESG
 def gerar_grafico_impacto_esg(respostas):
     praticas_info = [
@@ -474,21 +488,7 @@ def gerar_grafico_impacto_esg(respostas):
     )
 
     fig.show()
-
-
-    # Recomendação específica
-    if not respostas_bin_dict['eficiencia_energetica']:
-        st.markdown(
-            "📌 **Recomendação ESG:**\n"
-            "Sua empresa ainda **não investe fortemente em eficiência energética**. Estudos de caso como os da Unilever, Ambev e Schneider Electric mostram que implementar práticas de eficiência energética "
-            "pode reduzir custos operacionais significativamente, elevando o EBITDA em até **10% ao ano**. Além disso, essas ações podem gerar acesso a **financiamentos verdes** e melhorar a **imagem da marca**."
-        )
-    else:
-        st.markdown(
-            "✅ **Prática ESG já implementada:**\n"
-            "Sua empresa já investe em **eficiência energética**, uma das práticas ESG com maior impacto no EBITDA. Continue monitorando resultados e ampliando suas iniciativas para **maximizar o retorno financeiro**."
-        )
-
+    
 #Gerar relatórios
 import json
 import os
