@@ -343,14 +343,15 @@ if mostrar_analise:
         # Função principal para gerar gráfico de barras com impacto ESG
         def gerar_grafico_impacto_esg(respostas):
             praticas_info = [
-                ("Uso de Energia Renovável", 2, lambda x: x >= 70),
-                ("Redução de Emissões de Carbono", 0, lambda x: x < 5000),
-                ("Diversidade no Conselho de Administração", 15, lambda x: x >= 30),
-                ("Remuneração Atrelada a Metas ESG", 13, lambda x: x == 1),
-                ("Monitoramento ESG da Cadeia de Suprimentos", 10, lambda x: x >= 1),
-                ("Inovação em Produtos Sustentáveis", 11, lambda x: x >= 20),
+                ("Uso de Energia Renovável", 2, lambda x: float(x) >= 70),
+                ("Redução de Emissões de Carbono", 0, lambda x: float(x) < 5000),
+                ("Diversidade no Conselho de Administração", 15, lambda x: float(x) >= 30),
+                ("Remuneração Atrelada a Metas ESG", 13, lambda x: int(x) == 1),
+                ("Monitoramento ESG da Cadeia de Suprimentos", 10, lambda x: int(x) >= 1),
+                ("Inovação em Produtos Sustentáveis", 11, lambda x: float(x) >= 20),
             ]
         
+            # Impactos estimados por prática ESG (EBITDA %, Receita %)
             impactos = {
                 "Uso de Energia Renovável": (2.5, 1.2),
                 "Redução de Emissões de Carbono": (3.0, 1.8),
@@ -365,10 +366,13 @@ if mostrar_analise:
             impacto_receita = []
         
             for nome, idx, condicao in praticas_info:
-                if idx < len(respostas) and condicao(respostas[idx]):
-                    praticas_ativas.append(nome)
-                    impacto_ebitda.append(impactos[nome][0])
-                    impacto_receita.append(impactos[nome][1])
+                try:
+                    if idx < len(respostas) and condicao(respostas[idx]):
+                        praticas_ativas.append(nome)
+                        impacto_ebitda.append(impactos[nome][0])
+                        impacto_receita.append(impactos[nome][1])
+                except Exception:
+                    continue  # Evita erro caso a resposta não seja numérica, por exemplo
         
             if not praticas_ativas:
                 print("❌ Nenhuma prática ESG suficiente foi identificada nas respostas.")
@@ -406,7 +410,7 @@ if mostrar_analise:
             )
         
             fig.show()
-            gerar_grafico_impacto_esg(respostas)
+
 
         # Faturamento base hipotético
         faturamento_base = 100_000_000  # R$ 100 milhões
