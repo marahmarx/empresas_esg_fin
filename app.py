@@ -339,6 +339,73 @@ if mostrar_analise:
 
         df_resultados, total, esg, financeiro = avaliar_empresa(nome_empresa, respostas)
         plotar_radar(df_resultados, nome_empresa)
+        
+        # Função principal para gerar gráfico de barras com impacto ESG
+        def gerar_grafico_impacto_esg(respostas):
+            praticas_info = [
+                ("Uso de Energia Renovável", 2, lambda x: x >= 70),
+                ("Redução de Emissões de Carbono", 0, lambda x: x < 5000),
+                ("Diversidade no Conselho de Administração", 15, lambda x: x >= 30),
+                ("Remuneração Atrelada a Metas ESG", 13, lambda x: x == 1),
+                ("Monitoramento ESG da Cadeia de Suprimentos", 10, lambda x: x >= 1),
+                ("Inovação em Produtos Sustentáveis", 11, lambda x: x >= 20),
+            ]
+        
+            impactos = {
+                "Uso de Energia Renovável": (2.5, 1.2),
+                "Redução de Emissões de Carbono": (3.0, 1.8),
+                "Diversidade no Conselho de Administração": (1.8, 0.8),
+                "Remuneração Atrelada a Metas ESG": (1.5, 0.5),
+                "Monitoramento ESG da Cadeia de Suprimentos": (2.2, 1.0),
+                "Inovação em Produtos Sustentáveis": (3.5, 5.5),
+            }
+        
+            praticas_ativas = []
+            impacto_ebitda = []
+            impacto_receita = []
+        
+            for nome, idx, condicao in praticas_info:
+                if idx < len(respostas) and condicao(respostas[idx]):
+                    praticas_ativas.append(nome)
+                    impacto_ebitda.append(impactos[nome][0])
+                    impacto_receita.append(impactos[nome][1])
+        
+            if not praticas_ativas:
+                print("❌ Nenhuma prática ESG suficiente foi identificada nas respostas.")
+                return
+        
+            fig = go.Figure(data=[
+                go.Bar(
+                    name='Impacto no EBITDA (%)',
+                    x=praticas_ativas,
+                    y=impacto_ebitda,
+                    text=[f'{v}%' for v in impacto_ebitda],
+                    textposition='outside',
+                    marker_color='rgba(26, 118, 255, 0.8)'
+                ),
+                go.Bar(
+                    name='Impacto na Receita (%)',
+                    x=praticas_ativas,
+                    y=impacto_receita,
+                    text=[f'{v}%' for v in impacto_receita],
+                    textposition='outside',
+                    marker_color='rgba(255, 158, 44, 0.8)'
+                )
+            ])
+        
+            fig.update_layout(
+                title='Impacto Financeiro das Práticas ESG Ativas',
+                xaxis_title='Práticas ESG',
+                yaxis_title='Impacto Estimado (%)',
+                barmode='group',
+                bargap=0.25,
+                plot_bgcolor='white',
+                font=dict(size=12),
+                height=500,
+                legend=dict(x=0.85, y=1.1),
+            )
+        
+            fig.show()
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
@@ -420,74 +487,6 @@ if mostrar_projecao:
             "✅ **Prática ESG já implementada:**\n"
             "Sua empresa já investe em **eficiência energética**, uma das práticas ESG com maior impacto no EBITDA. Continue monitorando resultados e ampliando suas iniciativas para **maximizar o retorno financeiro**."
         )
-
-
-# Função principal para gerar gráfico de barras com impacto ESG
-def gerar_grafico_impacto_esg(respostas):
-    praticas_info = [
-        ("Uso de Energia Renovável", 2, lambda x: x >= 70),
-        ("Redução de Emissões de Carbono", 0, lambda x: x < 5000),
-        ("Diversidade no Conselho de Administração", 15, lambda x: x >= 30),
-        ("Remuneração Atrelada a Metas ESG", 13, lambda x: x == 1),
-        ("Monitoramento ESG da Cadeia de Suprimentos", 10, lambda x: x >= 1),
-        ("Inovação em Produtos Sustentáveis", 11, lambda x: x >= 20),
-    ]
-
-    impactos = {
-        "Uso de Energia Renovável": (2.5, 1.2),
-        "Redução de Emissões de Carbono": (3.0, 1.8),
-        "Diversidade no Conselho de Administração": (1.8, 0.8),
-        "Remuneração Atrelada a Metas ESG": (1.5, 0.5),
-        "Monitoramento ESG da Cadeia de Suprimentos": (2.2, 1.0),
-        "Inovação em Produtos Sustentáveis": (3.5, 5.5),
-    }
-
-    praticas_ativas = []
-    impacto_ebitda = []
-    impacto_receita = []
-
-    for nome, idx, condicao in praticas_info:
-        if idx < len(respostas) and condicao(respostas[idx]):
-            praticas_ativas.append(nome)
-            impacto_ebitda.append(impactos[nome][0])
-            impacto_receita.append(impactos[nome][1])
-
-    if not praticas_ativas:
-        print("❌ Nenhuma prática ESG suficiente foi identificada nas respostas.")
-        return
-
-    fig = go.Figure(data=[
-        go.Bar(
-            name='Impacto no EBITDA (%)',
-            x=praticas_ativas,
-            y=impacto_ebitda,
-            text=[f'{v}%' for v in impacto_ebitda],
-            textposition='outside',
-            marker_color='rgba(26, 118, 255, 0.8)'
-        ),
-        go.Bar(
-            name='Impacto na Receita (%)',
-            x=praticas_ativas,
-            y=impacto_receita,
-            text=[f'{v}%' for v in impacto_receita],
-            textposition='outside',
-            marker_color='rgba(255, 158, 44, 0.8)'
-        )
-    ])
-
-    fig.update_layout(
-        title='Impacto Financeiro das Práticas ESG Ativas',
-        xaxis_title='Práticas ESG',
-        yaxis_title='Impacto Estimado (%)',
-        barmode='group',
-        bargap=0.25,
-        plot_bgcolor='white',
-        font=dict(size=12),
-        height=500,
-        legend=dict(x=0.85, y=1.1),
-    )
-
-    fig.show()
     
 #Gerar relatórios
 import json
