@@ -406,6 +406,7 @@ if mostrar_analise:
             )
         
             fig.show()
+            gerar_grafico_impacto_esg(respostas)
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
