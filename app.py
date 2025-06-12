@@ -345,17 +345,17 @@ if mostrar_analise:
 
         st.markdown("### Ajuste de melhoria nos indicadores ESG")
 
-            melhoria_eficiencia = st.slider("Melhoria esperada em Eficiência Energética (%)", 0, 50, 10)
-            melhoria_div_mulheres = st.slider("Melhoria esperada em Diversidade (Mulheres) (%)", 0, 50, 10)
-            melhoria_div_negras = st.slider("Melhoria esperada em Diversidade (Pessoas Negras) (%)", 0, 50, 10)
-        
-            st.markdown(
-                f"""
-                🔋 *Eficiência Energética:* aumento de {melhoria_eficiencia}%  
-                👩‍💼 *Diversidade Mulheres:* aumento de {melhoria_div_mulheres}%  
-                ✊🏾 *Diversidade Negras:* aumento de {melhoria_div_negras}%
-                """
-            )
+        melhoria_eficiencia = st.slider("Melhoria esperada em Eficiência Energética (%)", 0, 50, 10)
+        melhoria_div_mulheres = st.slider("Melhoria esperada em Diversidade (Mulheres) (%)", 0, 50, 10)
+        melhoria_div_negras = st.slider("Melhoria esperada em Diversidade (Pessoas Negras) (%)", 0, 50, 10)
+    
+        st.markdown(
+            f"""
+            🔋 *Eficiência Energética:* aumento de {melhoria_eficiencia}%  
+            👩‍💼 *Diversidade Mulheres:* aumento de {melhoria_div_mulheres}%  
+            ✊🏾 *Diversidade Negras:* aumento de {melhoria_div_negras}%
+            """
+        )
     
         anos = np.arange(0, 6)
     
