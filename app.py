@@ -342,52 +342,52 @@ if mostrar_analise:
         
         
         def simular_impacto_indicadores(indicadores_simular, respostas_atuais):
-            st.subheader("Impacto de Indicadores Individuais sobre o Score ESG")
-        
-            resultados = {}
-            valores_simulados = np.linspace(0, 100, 21)  # de 0 a 100% em passos de 5
-        
-            for nome_indicador in indicadores_simular:
-                score_simulado = []
-        
-                for valor in valores_simulados:
-                    respostas_simuladas = []
-        
-                    for indicador in indicadores_esg:
-                        if indicador["indicador"] == nome_indicador:
-                            respostas_simuladas.append((valor, indicador["peso"], indicador["faixas"]))
-                        else:
-                            # Pega a resposta atual para esse indicador
-                            idx = next(i for i, ind in enumerate(indicadores_esg) if ind["indicador"] == indicador["indicador"])
-                            respostas_simuladas.append(respostas_atuais[idx])
-        
-                    score = calcular_score(respostas_simuladas)
-                    score_simulado.append(score)
-        
-                resultados[nome_indicador] = score_simulado
-        
-            # Plot
-            fig = go.Figure()
-            for indicador, scores in resultados.items():
-                fig.add_trace(go.Scatter(x=valores_simulados, y=scores, mode='lines+markers', name=indicador))
-        
-            fig.update_layout(
-                title="Impacto dos Indicadores ESG no Score ESG (e Receita, indiretamente)",
-                xaxis_title="Valor do Indicador (%)",
-                yaxis_title="Score ESG Simulado",
-                height=600
-            )
-        
-            st.plotly_chart(fig, use_container_width=True)
-        
-        # --- Chamada da função com os indicadores específicos
-        if "score_esg" in st.session_state:
-            indicadores_foco = [
-                "Eficiência energética (%)",
-                "Diversidade e Inclusão Mulheres (%)",
-                "Diversidade e Inclusão Pessoas Negras (%)"
-            ]
-            simular_impacto_indicadores(indicadores_foco, respostas_esg)
+        st.subheader("Impacto de Indicadores Individuais sobre o Score ESG")
+    
+        resultados = {}
+        valores_simulados = np.linspace(0, 100, 21)  # de 0 a 100% em passos de 5
+    
+        for nome_indicador in indicadores_simular:
+            score_simulado = []
+    
+            for valor in valores_simulados:
+                respostas_simuladas = []
+    
+                for indicador in indicadores_esg:
+                    if indicador["indicador"] == nome_indicador:
+                        respostas_simuladas.append((valor, indicador["peso"], indicador["faixas"]))
+                    else:
+                        # Pega a resposta atual para esse indicador
+                        idx = next(i for i, ind in enumerate(indicadores_esg) if ind["indicador"] == indicador["indicador"])
+                        respostas_simuladas.append(respostas_atuais[idx])
+    
+                score = calcular_score(respostas_simuladas)
+                score_simulado.append(score)
+    
+            resultados[nome_indicador] = score_simulado
+    
+        # Plot
+        fig = go.Figure()
+        for indicador, scores in resultados.items():
+            fig.add_trace(go.Scatter(x=valores_simulados, y=scores, mode='lines+markers', name=indicador))
+    
+        fig.update_layout(
+            title="Impacto dos Indicadores ESG no Score ESG (e Receita, indiretamente)",
+            xaxis_title="Valor do Indicador (%)",
+            yaxis_title="Score ESG Simulado",
+            height=600
+        )
+    
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # --- Chamada da função com os indicadores específicos
+    if "score_esg" in st.session_state:
+        indicadores_foco = [
+            "Eficiência energética (%)",
+            "Diversidade e Inclusão Mulheres (%)",
+            "Diversidade e Inclusão Pessoas Negras (%)"
+        ]
+        simular_impacto_indicadores(indicadores_foco, respostas_esg)
     
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
