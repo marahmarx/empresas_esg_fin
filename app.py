@@ -360,7 +360,20 @@ if mostrar_analise:
             impacto_individual = calcular_impacto_individual(indicadores_de_interesse, respostas_esg)
         
             df_impacto = pd.DataFrame({
-
+                 "Indicador": list(impacto_individual.keys()),
+                "Contribuição no Score ESG": list(impacto_individual.values())
+            })
+        
+            fig = px.bar(
+                df_impacto,
+                x="Indicador",
+                y="Contribuição no Score ESG",
+                title="Impacto de Indicadores ESG na Pontuação da Empresa",
+                text_auto='.2f',
+                labels={"Contribuição no Score ESG": "Impacto no Score ESG (%)"}
+            )
+        
+            st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
