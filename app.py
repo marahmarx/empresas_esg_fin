@@ -341,150 +341,59 @@ if mostrar_analise:
         plotar_radar(df_resultados, nome_empresa)
         
         # Gráfico de impacto esg
-        def gerar_grafico_impacto_esg(respostas):
-            praticas_info = [
-                ("Uso de Energia Renovável", 2, lambda x: float(x) >= 70),
-                ("Redução de Emissões de Carbono", 0, lambda x: float(x) < 5000),
-                ("Diversidade no Conselho de Administração", 15, lambda x: float(x) >= 30),
-                ("Remuneração Atrelada a Metas ESG", 13, lambda x: int(x) == 1),
-                ("Monitoramento ESG da Cadeia de Suprimentos", 10, lambda x: int(x) >= 1),
-                ("Inovação em Produtos Sustentáveis", 11, lambda x: float(x) >= 20),
+        def gerar_grafico_barras_duplas_com_setor_alinhado(respostas, nome_empresa, setor_empresa, impacto_por_setor):
+        
+            idx_base = 5
+            idx_mulheres = idx_base + 3
+            idx_negras = idx_base + 4
+            idx_co2 = idx_base
+            idx_eficiencia = idx_base + 2
+        
+            indicadores = [
+                ("Diversidade Mulheres", respostas[idx_mulheres]),
+                ("Diversidade Pessoas Negras", respostas[idx_negras]),
+                ("Redução CO₂", respostas[idx_co2]),
+                ("Eficiência Energética", respostas[idx_eficiencia])
             ]
         
-            # Impactos estimados por prática ESG (EBITDA %, Receita %)
-            impactos = {
-                "Uso de Energia Renovável": (2.5, 1.2),
-                "Redução de Emissões de Carbono": (3.0, 1.8),
-                "Diversidade no Conselho de Administração": (1.8, 0.8),
-                "Remuneração Atrelada a Metas ESG": (1.5, 0.5),
-                "Monitoramento ESG da Cadeia de Suprimentos": (2.2, 1.0),
-                "Inovação em Produtos Sustentáveis": (3.5, 5.5),
-            }
-        
-            praticas_ativas = []
+            impacto_esg = []
             impacto_ebitda = []
-            impacto_receita = []
+            nomes = []
         
-            for nome, idx, condicao in praticas_info:
-                try:
-                    if idx < len(respostas) and condicao(respostas[idx]):
-                        praticas_ativas.append(nome)
-                        impacto_ebitda.append(impactos[nome][0])
-                        impacto_receita.append(impactos[nome][1])
-                except Exception:
-                    continue  # Evita erro caso a resposta não seja numérica, por exemplo
+            fator_setor = impacto_por_setor.get(setor_empresa, 0)
+            multiplicador_setor = 1 + (fator_setor / 100)
         
-            if not praticas_ativas:
-                print("❌ Nenhuma prática ESG suficiente foi identificada nas respostas.")
-                return
+            for nome, valor in indicadores:
+                nomes.append(nome)
+        
+                if nome == "Redução CO₂":
+                    esg = max(0, min(100, (10 - valor) / 10 * 100))
+                    ebitda = max(0, min(5, (10 - valor) / 10 * 5)) * multiplicador_setor
+                else:
+                    esg = max(0, min(100, valor))
+                    ebitda = max(0, min(5, valor / 100 * 5)) * multiplicador_setor
+        
+                impacto_esg.append(round(esg, 1))
+                impacto_ebitda.append(round(ebitda, 2))
         
             fig = go.Figure(data=[
-                go.Bar(
-                    name='Impacto no EBITDA (%)',
-                    x=praticas_ativas,
-                    y=impacto_ebitda,
-                    text=[f'{v}%' for v in impacto_ebitda],
-                    textposition='outside',
-                    marker_color='rgba(26, 118, 255, 0.8)'
-                ),
-                go.Bar(
-                    name='Impacto na Receita (%)',
-                    x=praticas_ativas,
-                    y=impacto_receita,
-                    text=[f'{v}%' for v in impacto_receita],
-                    textposition='outside',
-                    marker_color='rgba(255, 158, 44, 0.8)'
-                )
+                go.Bar(name='Impacto ESG (%)', x=nomes, y=impacto_esg, marker_color='green',
+                       text=[f"{v:.1f}%" for v in impacto_esg], textposition='outside'),
+                go.Bar(name='Impacto EBITDA (%)', x=nomes, y=impacto_ebitda, marker_color='blue',
+                       text=[f"{v:.2f}%" for v in impacto_ebitda], textposition='outside')
             ])
         
             fig.update_layout(
-                title='Impacto Financeiro das Práticas ESG Ativas',
-                xaxis_title='Práticas ESG',
-                yaxis_title='Impacto Estimado (%)',
                 barmode='group',
-                bargap=0.25,
-                plot_bgcolor='white',
-                font=dict(size=12),
+                title=f"Impacto ESG e Financeiro por Indicador - {nome_empresa} ({setor_empresa})",
+                xaxis_title="Indicador",
+                yaxis_title="Impacto Estimado (%)",
                 height=500,
-                legend=dict(x=0.85, y=1.1),
+                plot_bgcolor='white',
+                font=dict(size=13)
             )
         
-            fig.show()
-
-
-        # Gráfico do faturamento
-        faturamento_base = 100_000_000  # R$ 100 milhões
-    
-        # Extração das métricas financeiras a partir das respostas
-        margem_ebitda = respostas_financeiros[3][0] / 100         # Margem EBITDA (%)
-        roi_inicial = respostas_financeiros[4][0] / 100            # ROI (%)
-        margem_lucro_liquida = respostas_financeiros[6][0] / 100   # Margem líquida (%)
-    
-        ebitda_inicial = faturamento_base * margem_ebitda
-        lucro_liquido_inicial = faturamento_base * margem_lucro_liquida
-    
-        # Leitura das práticas ESG binárias
-        respostas_bin_dict = {
-            'emissoes_carbono': respostas_binarias[2] == 1,
-            'diversidade_genero': respostas_binarias[3] == 1,
-            'transparencia_fornecedores': respostas_binarias[1] == 1,
-            'eficiencia_energetica': respostas_binarias[0] == 1
-        }
-    
-        # Impacto percentual estimado por prática ESG
-        impacto_percentual = {
-            'emissoes_carbono': 0.015,
-            'diversidade_genero': 0.005,
-            'transparencia_fornecedores': 0.01,
-            'eficiencia_energetica': 0.02
-        }
-    
-        # Cálculo dos ajustes de performance
-        ajuste_ebitda = 1 + sum([impacto_percentual[key] for key in respostas_bin_dict if respostas_bin_dict[key]])
-        ajuste_lucro = 1 + (0.6 * (ajuste_ebitda - 1))
-        ajuste_roi = 1 + (0.3 * (ajuste_ebitda - 1))
-    
-        # Projeção de 5 anos
-        anos = [2025, 2026, 2027, 2028, 2029]
-        crescimento_base = 0.05
-    
-        ebitda_proj = []
-        lucro_proj = []
-        roi_proj = []
-    
-        for i in range(5):
-            ebitda_atual = ebitda_inicial * ((1 + crescimento_base) ** i) * (ajuste_ebitda ** i)
-            lucro_atual = lucro_liquido_inicial * ((1 + crescimento_base) ** i) * (ajuste_lucro ** i)
-            roi_atual = roi_inicial * (ajuste_roi ** i)
-    
-            ebitda_proj.append(round(ebitda_atual, 2))
-            lucro_proj.append(round(lucro_atual, 2))
-            roi_proj.append(round(roi_atual, 4))
-    
-        # Plotagem com matplotlib
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(anos, ebitda_proj, label='EBITDA (R$)', marker='o')
-        ax.plot(anos, lucro_proj, label='Lucro Líquido (R$)', marker='s')
-        ax.plot(anos, [r * 100 for r in roi_proj], label='ROI (%)', marker='^')
-        ax.set_title('Projeção Financeira com Base nas Práticas ESG')
-        ax.set_xlabel('Ano')
-        ax.set_ylabel('Valores Projetados')
-        ax.legend()
-        ax.grid(True)
-        st.pyplot(fig)
-    
-        # Recomendação específica
-        if not respostas_bin_dict['eficiencia_energetica']:
-            st.markdown(
-                "📌 *Recomendação ESG:*\n"
-                "Sua empresa ainda *não investe fortemente em eficiência energética*. Estudos de caso como os da Unilever, Ambev e Schneider Electric mostram que implementar práticas de eficiência energética "
-                "pode reduzir custos operacionais significativamente, elevando o EBITDA em até *10% ao ano. Além disso, essas ações podem gerar acesso a **financiamentos verdes* e melhorar a *imagem da marca*."
-            )
-        else:
-            st.markdown(
-                "✅ *Prática ESG já implementada:*\n"
-                "Sua empresa já investe em *eficiência energética, uma das práticas ESG com maior impacto no EBITDA. Continue monitorando resultados e ampliando suas iniciativas para **maximizar o retorno financeiro*."
-            )
+            return fig
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
