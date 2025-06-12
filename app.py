@@ -450,7 +450,10 @@ if mostrar_analise:
                 height=600
             )
     
-            st.plotly_chart(fig, use_container_width=True)    
+            st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
+            
     
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
