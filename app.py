@@ -340,37 +340,47 @@ if mostrar_analise:
         df_resultados, total, esg, financeiro = avaliar_empresa(nome_empresa, respostas)
         plotar_radar(df_resultados, nome_empresa)
         
-        # Gráfico de impacto esg
-        def calcular_impacto_individual(indicadores_interesse, respostas_usuario):
-            impacto = {}
-            for indicador_nome in indicadores_interesse:
-                for valor, peso, faixas in respostas_usuario:
-                    if indicador_nome in indicador_nome:
-                        nota = aplicar_faixas(valor, faixas)
-                        impacto[indicador_nome] = nota * peso / 100
-            return impacto
-        
-        # Após o botão de "Calcular Resultado"
-        indicadores_de_interesse = [
-            "Eficiência energética (%)",
-            "Diversidade e Inclusão Mulheres (%)",
-            "Diversidade e Inclusão Pessoas Negras (%)"
-        ]
+        # Projeção com Melhoria ESG baseada no Setor
+        st.subheader("Projeção de Crescimento com Melhoria em Indicadores ESG")
     
-        impacto_individual = calcular_impacto_individual(indicadores_de_interesse, respostas_esg)
+        anos = np.arange(0, 6)
     
-        df_impacto = pd.DataFrame({
-             "Indicador": list(impacto_individual.keys()),
-            "Contribuição no Score ESG": list(impacto_individual.values())
-        })
+        # Cenários ajustados conforme setor
+        cenarios_por_setor = {
+            "Beleza / Tecnologia / Serviços": {"Conservador": 0.03, "Base": 0.05, "Otimista": 0.08},
+            "Indústria Leve / Moda": {"Conservador": 0.025, "Base": 0.04, "Otimista": 0.065},
+            "Transporte / Logística": {"Conservador": 0.02, "Base": 0.035, "Otimista": 0.06},
+            "Químico / Agropecuário": {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.055},
+            "Metalurgia": {"Conservador": 0.015, "Base": 0.025, "Otimista": 0.04},
+            "Petróleo e Gás": {"Conservador": 0.01, "Base": 0.02, "Otimista": 0.035},
+        }
     
-        fig = px.bar(
-            df_impacto,
-            x="Indicador",
-            y="Contribuição no Score ESG",
-            title="Impacto de Indicadores ESG na Pontuação da Empresa",
-            text_auto='.2f',
-            labels={"Contribuição no Score ESG": "Impacto no Score ESG (%)"}
+        # Dados de entrada
+        eficiencia_energetica = [item for item in respostas_esg if "Eficiência energética" in item[0]][0][0]
+        diversidade_mulheres = [item for item in respostas_esg if "Mulheres" in item[0]][0][0]
+        diversidade_negras = [item for item in respostas_esg if "Pessoas Negras" in item[0]][0][0]
+    
+        ebitda = [item for item in respostas_financeiros if "EBITDA  (R$ Bi)" in item[0]][0][0]
+        lucro_liquido = [item for item in respostas_financeiros if "Lucro Líquido (R$ Bi)" in item[0]][0][0]
+      
+    
+        crescimentos = cenarios_por_setor.get(setor_empresa, {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.05})
+    
+        fig = go.Figure()
+    
+        for nome, taxa in crescimentos.items():
+            fator = (1 + taxa) ** anos
+            fig.add_trace(go.Scatter(x=anos, y=ebitda * fator, mode='lines+markers', name=f'EBITDA - {nome}'))
+            fig.add_trace(go.Scatter(x=anos, y=lucro_liquido * fator, mode='lines+markers', name=f'Lucro Líquido - {nome}'))
+           
+    
+        fig.update_layout(
+            title="Projeção Financeira com Melhoria ESG (baseada no setor)",
+            xaxis_title="Ano",
+            yaxis_title="Valor Projetado",
+            legend_title="Indicador e Cenário",
+            template="plotly_white",
+            height=600
         )
     
         st.plotly_chart(fig, use_container_width=True)
