@@ -341,59 +341,44 @@ if mostrar_analise:
         plotar_radar(df_resultados, nome_empresa)
         
         # Gráfico de impacto esg
-        def gerar_grafico_barras_duplas_com_setor_alinhado(respostas, nome_empresa, setor_empresa, impacto_por_setor):
-        
-            idx_base = 5
-            idx_mulheres = idx_base + 3
-            idx_negras = idx_base + 4
-            idx_co2 = idx_base
-            idx_eficiencia = idx_base + 2
-        
-            indicadores = [
-                ("Diversidade Mulheres", respostas[idx_mulheres]),
-                ("Diversidade Pessoas Negras", respostas[idx_negras]),
-                ("Redução CO₂", respostas[idx_co2]),
-                ("Eficiência Energética", respostas[idx_eficiencia])
+        if st.button("Estimar Impacto dos Indicadores na Receita") and "score_esg" in st.session_state:
+
+            indicadores_chave = [
+                "Eficiência energética (%)",
+                "Diversidade e Inclusão Mulheres (%)",
+                "Diversidade e Inclusão Pessoas Negras (%)"
             ]
         
-            impacto_esg = []
-            impacto_ebitda = []
-            nomes = []
+            score_esg_base = st.session_state["score_esg"]
+            score_fin_base = st.session_state["score_fin"]
+            impactos = []
         
-            fator_setor = impacto_por_setor.get(setor_empresa, 0)
-            multiplicador_setor = 1 + (fator_setor / 100)
+            for indicador_nome in indicadores_chave:
+                indicador = next(i for i in indicadores_esg if i["indicador"] == indicador_nome)
+                valor_simulado = 100
+                score_simulado = aplicar_faixas(valor_simulado, indicador["faixas"]) * indicador["peso"] / 100
+                valor_atual = next((v[0] for v in respostas_esg if v[1] == indicador["peso"]), 0)
+                score_atual = aplicar_faixas(valor_atual, indicador["faixas"]) * indicador["peso"] / 100
+                delta_score_esg = score_simulado - score_atual
         
-            for nome, valor in indicadores:
-                nomes.append(nome)
+                # Modelagem da correlação com Score Financeiro
+                df_temp = df.dropna(subset=["Score ESG", "Score Financeiro"])
+                coef = np.polyfit(df_temp["Score ESG"], df_temp["Score Financeiro"], 1)[0]
+                delta_score_fin = delta_score_esg * coef
         
-                if nome == "Redução CO₂":
-                    esg = max(0, min(100, (10 - valor) / 10 * 100))
-                    ebitda = max(0, min(5, (10 - valor) / 10 * 5)) * multiplicador_setor
-                else:
-                    esg = max(0, min(100, valor))
-                    ebitda = max(0, min(5, valor / 100 * 5)) * multiplicador_setor
+                # Projeção conservadora de impacto: cada ponto no score financeiro equivale a R$ 100 milhões
+                impacto_receita = delta_score_fin * 100  # em milhões
         
-                impacto_esg.append(round(esg, 1))
-                impacto_ebitda.append(round(ebitda, 2))
+                impactos.append({
+                    "Indicador": indicador_nome,
+                    "Melhoria ESG": round(delta_score_esg, 2),
+                    "Impacto Score Financeiro": round(delta_score_fin, 2),
+                    "Impacto Receita (R$ Mi)": round(impacto_receita, 2)
+                })
         
-            fig = go.Figure(data=[
-                go.Bar(name='Impacto ESG (%)', x=nomes, y=impacto_esg, marker_color='green',
-                       text=[f"{v:.1f}%" for v in impacto_esg], textposition='outside'),
-                go.Bar(name='Impacto EBITDA (%)', x=nomes, y=impacto_ebitda, marker_color='blue',
-                       text=[f"{v:.2f}%" for v in impacto_ebitda], textposition='outside')
-            ])
-        
-            fig.update_layout(
-                barmode='group',
-                title=f"Impacto ESG e Financeiro por Indicador - {nome_empresa} ({setor_empresa})",
-                xaxis_title="Indicador",
-                yaxis_title="Impacto Estimado (%)",
-                height=500,
-                plot_bgcolor='white',
-                font=dict(size=13)
-            )
-        
-            return fig
+            impacto_df = pd.DataFrame(impactos)
+            st.subheader("Impacto Estimado na Receita")
+            st.dataframe(impacto_df)
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
