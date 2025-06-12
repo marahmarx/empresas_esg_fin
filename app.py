@@ -252,12 +252,12 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
 
         st.pyplot(fig)
         plt.close(fig)
-        df_resultados = pd.DataFrame([
-            {"Indicador": ind["indicador"], "Score": calcular_score([(valor, *faixas)])}
-            for ind, (valor, *faixas) in zip(indicadores_esg, respostas_esg)
-        ])
+    df_resultados = pd.DataFrame([
+        {"Indicador": ind["indicador"], "Score": calcular_score([(valor, *faixas)])}
+        for ind, (valor, *faixas) in zip(indicadores_esg, respostas_esg)
+    ])
 
-        plotar_radar(df_resultados, "Nova Empresa")
+    plotar_radar(df_resultados, "Nova Empresa")
 
 
 
