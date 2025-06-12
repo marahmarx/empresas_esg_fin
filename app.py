@@ -340,64 +340,7 @@ if mostrar_analise:
         df_resultados, total, esg, financeiro = avaliar_empresa(nome_empresa, respostas)
         plotar_radar(df_resultados, nome_empresa)
         
-        # Projeção com Melhoria ESG baseada no Setor
-        st.subheader("Projeção de Crescimento com Melhoria em Indicadores ESG")
-
-        st.markdown("### Ajuste de melhoria nos indicadores ESG")
-
-        melhoria_eficiencia = st.slider("Melhoria esperada em Eficiência Energética (%)", 0, 50, 10)
-        melhoria_div_mulheres = st.slider("Melhoria esperada em Diversidade (Mulheres) (%)", 0, 50, 10)
-        melhoria_div_negras = st.slider("Melhoria esperada em Diversidade (Pessoas Negras) (%)", 0, 50, 10)
-    
-        st.markdown(
-            f"""
-            🔋 *Eficiência Energética:* aumento de {melhoria_eficiencia}%  
-            👩‍💼 *Diversidade Mulheres:* aumento de {melhoria_div_mulheres}%  
-            ✊🏾 *Diversidade Negras:* aumento de {melhoria_div_negras}%
-            """
-        )
-    
-        anos = np.arange(0, 6)
-    
-        # Cenários ajustados conforme setor
-        cenarios_por_setor = {
-            "Beleza / Tecnologia / Serviços": {"Conservador": 0.03, "Base": 0.05, "Otimista": 0.08},
-            "Indústria Leve / Moda": {"Conservador": 0.025, "Base": 0.04, "Otimista": 0.065},
-            "Transporte / Logística": {"Conservador": 0.02, "Base": 0.035, "Otimista": 0.06},
-            "Químico / Agropecuário": {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.055},
-            "Metalurgia": {"Conservador": 0.015, "Base": 0.025, "Otimista": 0.04},
-            "Petróleo e Gás": {"Conservador": 0.01, "Base": 0.02, "Otimista": 0.035},
-        }
-    
-        # Dados de entrada
-        eficiencia_energetica = [item for item in respostas_esg if "Eficiência energética" in item[0]][0][0]
-        diversidade_mulheres = [item for item in respostas_esg if "Mulheres" in item[0]][0][0]
-        diversidade_negras = [item for item in respostas_esg if "Pessoas Negras" in item[0]][0][0]
-    
-        ebitda = [item for item in respostas_financeiros if "EBITDA  (R$ Bi)" in item[0]][0][0]
-        lucro_liquido = [item for item in respostas_financeiros if "Lucro Líquido (R$ Bi)" in item[0]][0][0]
-      
-    
-        crescimentos = cenarios_por_setor.get(setor_empresa, {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.05})
-    
-        fig = go.Figure()
-    
-        for nome, taxa in crescimentos.items():
-            fator = (1 + taxa) ** anos
-            fig.add_trace(go.Scatter(x=anos, y=ebitda * fator, mode='lines+markers', name=f'EBITDA - {nome}'))
-            fig.add_trace(go.Scatter(x=anos, y=lucro_liquido * fator, mode='lines+markers', name=f'Lucro Líquido - {nome}'))
-           
-    
-        fig.update_layout(
-            title="Projeção Financeira com Melhoria ESG (baseada no setor)",
-            xaxis_title="Ano",
-            yaxis_title="Valor Projetado",
-            legend_title="Indicador e Cenário",
-            template="plotly_white",
-            height=600
-        )
-    
-        st.plotly_chart(fig, use_container_width=True)
+        
         def simular_impacto_indicadores(indicadores_simular, respostas_atuais):
             st.subheader("Impacto de Indicadores Individuais sobre o Score ESG")
         
