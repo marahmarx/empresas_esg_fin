@@ -252,9 +252,14 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
 
         st.pyplot(fig)
         plt.close(fig)
+        df_resultados = pd.DataFrame([
+            {"Indicador": ind["indicador"], "Score": calcular_score([(valor, *faixas)])}
+            for ind, (valor, *faixas) in zip(indicadores_esg, respostas_esg)
+        ])
 
-    # Supondo que `df_resultados` seja criado anteriormente com os indicadores e seus scores
-    # plotar_radar(df_resultados, "Nova Empresa")
+        plotar_radar(df_resultados, "Nova Empresa")
+
+
 
     # --- Ajustes de Melhoria ESG ---
     st.markdown("### Ajuste de melhoria nos indicadores ESG")
@@ -272,9 +277,6 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
 
     # --- Projeção de Cenários Financeiros ---
     st.subheader("Projeção de Crescimento com Melhoria em Indicadores ESG")
-
-    import numpy as np
-    import plotly.graph_objects as go
 
     anos = np.arange(0, 6)
     cenarios_por_setor = {
