@@ -165,254 +165,329 @@ respostas_financeiros = [
     for ind in indicadores_financeiros
 ]
 
-# --- Análise e Gráficos ---
 if st.button("Calcular Resultado"):
     score_esg = calcular_score(respostas_esg)
     score_fin = calcular_score(respostas_financeiros)
 
+    st.session_state["score_esg"] = score_esg
+    st.session_state["score_fin"] = score_fin
     st.metric("Score ESG", score_esg)
     st.metric("Score Financeiro", score_fin)
 
-    respostas = respostas_binarias + [r[0] for r in respostas_esg] + [r[0] for r in respostas_financeiros]
+    if score_esg > 70 and score_fin > 50:
+        st.success("Empresa aprovada")
+        st.balloons()
+    else:
+        st.error("Empresa reprovada")
 
-    # --- Radar ---
-    def gerar_grafico_radar(respostas, nome_empresa):
+# --- Comparativo ---
+if "score_esg" in st.session_state and "score_fin" in st.session_state:
+    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+    df = carregar_dados_empresas(url)
+    setor = st.session_state.get("setor", "")
+    impacto_setor = impacto_por_setor.get(setor, 0)  # Pega o impacto total (ex: 25)
+
+    # Aqui aplicamos a função atualizada
+    df = calcular_scores(df, indicadores_esg, "ESG", impacto_setor)
+    df = calcular_scores(df, indicadores_financeiros, "Financeiro", impacto_setor)
+
+
+    nova = {col: None for col in df.columns}
+    nova.update({
+        "Empresa": "Nova Empresa",
+        "Score ESG": st.session_state["score_esg"],
+        "Score Financeiro": st.session_state["score_fin"]
+    })
+    df = pd.concat([df, pd.DataFrame([nova])], ignore_index=True)
+
+    try:
+        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
+
+        df_empresas = carregar_dados_empresas(url)
+
+        colunas_percentuais = [
+            "Emissão de CO ( M ton)",
+            "Investimento em Programas Sociais (R$ M)",
+            "EBITDA  (R$ Bi)",
+            "Lucro Líquido (R$ Bi)"
+        ]
+
+        for nome_coluna in colunas_percentuais:
+            if nome_coluna in df_empresas.columns:
+                df_empresas[nome_coluna] = df_empresas[nome_coluna].astype(str).str.replace('%', '', regex=False)
+                df_empresas[nome_coluna] = df_empresas[nome_coluna].str.replace(',', '.', regex=False)
+                df_empresas[nome_coluna] = pd.to_numeric(df_empresas[nome_coluna], errors='coerce')
+                max_val = df_empresas[nome_coluna].max()
+                if pd.notna(max_val) and max_val <= 1:
+                    df_empresas[nome_coluna] *= 100
+
+        setor_empresa = st.session_state.get("setor", "")
+        impacto_setor = impacto_por_setor.get(setor_empresa, 0)
+        fator_redutor = 1 - impacto_setor / 100
+
+        df_empresas = calcular_scores(df_empresas, indicadores_esg, "ESG", fator_redutor)
+        df_empresas = calcular_scores(df_empresas, indicadores_financeiros, "Financeiro", fator_redutor)
+
+        score_esg = st.session_state.get('score_esg', 0)
+        score_financeiro = st.session_state.get('score_fin', 0)
+
+        nova_linha = {col: None for col in df_empresas.columns}
+        nova_linha.update({
+            'Empresa': 'Nova Empresa',
+            'Score ESG': score_esg,
+            'Score Financeiro': score_financeiro
+        })
+
+        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_linha])], ignore_index=True)
+
+        plotar_matriz_interativa(df_empresas)
+
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+
+
+# Segunda parte: Análise visual completa
+mostrar_analise = st.button("Obter análise Radar")
+
+if mostrar_analise:
+    try:
+        # Gráfico Radar
+        respostas = respostas_esg + respostas_financeiros
         indicadores = indicadores_esg + indicadores_financeiros
-        pontuacoes = []
-        categorias = []
 
-        for i, indicador in enumerate(indicadores):
-            valor = respostas[5 + i]
-            score = aplicar_faixas(valor, indicador['faixas'])
-            pontuacoes.append(score)
-            categorias.append(indicador['indicador'])
+        def calcular_pontuacao(valor, faixas):
+            for faixa in faixas:
+                if faixa[0] <= valor <= faixa[1]:
+                    return faixa[2]
+            return 0
 
-        valores = pontuacoes + [pontuacoes[0]]
-        angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-        angles += angles[:1]
+        def avaliar_empresa(nome_empresa, respostas):
+            resultados = []
+            total_score = 0
+            score_esg = 0
+            score_financeiro = 0
 
-        fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
-        ax.fill(angles, valores, color='blue', alpha=0.25)
-        ax.plot(angles, valores, color='blue', linewidth=2)
-        ax.set_yticklabels([])
-        ax.set_xticks(angles[:-1])
-        ax.set_xticklabels(categorias, fontsize=9, rotation=90)
-        ax.set_title(f"Radar de Indicadores - {nome_empresa}", size=15)
+            for indicador_info, resposta in zip(indicadores, respostas):
+                if indicador_info["indicador"].startswith(("6.", "12.", "14.", "17.")):
+                    continue
 
-        for angle, value in zip(angles, valores):
-            ax.annotate(f"{value:.0f}",
-                        xy=(angle, value),
-                        xytext=(5, 5),
-                        textcoords='offset points',
-                        ha='center', va='center', fontsize=9)
+                try:
+                    valor = float(resposta[0]) if isinstance(resposta, (list, tuple)) else float(resposta)
+                except (ValueError, TypeError, IndexError):
+                    valor = 0.0
 
-        st.pyplot(fig)
+                try:
+                    peso = float(indicador_info["peso"])
+                except (ValueError, TypeError):
+                    peso = 0.0
 
-    gerar_grafico_radar(respostas, nome_empresa)
+                try:
+                    score = float(calcular_pontuacao(valor, indicador_info["faixas"]))
+                except Exception:
+                    score = 0.0
 
-    # --- Impacto ESG ---
-    def gerar_grafico_impacto_esg(respostas):
-        praticas_info = [
-            ("Energia Renovável", 3, lambda x: float(x) >= 70),
-            ("Redução CO2", 1, lambda x: float(x) < 5000),
-            ("Diversidade de Mulheres", 4, lambda x: float(x) >= 30),
-            ("Diversidade de pessoas negras", 5, lambda x: int(x) == 1),
-        ]
+                weighted_score = score * peso / 100
 
-        impactos = {
-            "Energia Renovável": (2.5, 1.2),
-            "Redução CO2": (3.0, 1.8),
-            "Diversidade de Mulheres": (1.8, 0.8),
-            "Diversidade de pessoas negras": (1.5, 0.5),
- 
+                if indicador_info["indicador"].startswith(("13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.")):
+                    score_financeiro += weighted_score
+                else:
+                    score_esg += weighted_score
 
-        praticas_ativas = []
-        impacto_ebitda = []
-        impacto_receita = []
+                resultados.append({
+                    "Indicador": indicador_info["indicador"],
+                    "Valor": valor,
+                    "Score": score,
+                    "Peso (%)": peso,
+                    "Score Ponderado": weighted_score
+                })
 
-        for nome, idx, condicao in praticas_info:
-            try:
-                if idx < len(respostas) and condicao(respostas[idx]):
-                    praticas_ativas.append(nome)
-                    impacto_ebitda.append(impactos[nome][0])
-                    impacto_receita.append(impactos[nome][1])
-            except Exception:
-                continue
+                total_score += weighted_score
 
-        if not praticas_ativas:
-            st.warning("Nenhuma prática ESG ativa.")
-            return
+            df_resultados = pd.DataFrame(resultados)
+            return df_resultados, total_score, score_esg, score_financeiro
 
-        fig = go.Figure(data=[
-            go.Bar(name='EBITDA (%)', x=praticas_ativas, y=impacto_ebitda),
-            go.Bar(name='Receita (%)', x=praticas_ativas, y=impacto_receita)
-        ])
-        fig.update_layout(
-            title="Impacto das Práticas ESG",
-            xaxis_title="Prática",
-            yaxis_title="Impacto (%)",
-            barmode="group"
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        def plotar_radar(df_resultados, nome_empresa):
+            categorias = df_resultados['Indicador']
+            valores = df_resultados['Score']
 
-    gerar_grafico_impacto_esg(respostas)
+            categorias = list(categorias)
+            valores = list(valores)
+            valores += valores[:1]
 
-    # --- Projeção de Faturamento ---
-    def gerar_projecao_financeira(respostas):
-        faturamento_base = 100_000_000
-        margem_ebitda = respostas[15] / 100
-        roi_inicial = respostas[16] / 100
-        margem_lucro_liquida = respostas[18] / 100
+            angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+            angles += angles[:1]
 
-        ebitda_inicial = faturamento_base * margem_ebitda
-        lucro_inicial = faturamento_base * margem_lucro_liquida
+            fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+            ax.fill(angles, valores, color='red', alpha=0.25)
+            ax.plot(angles, valores, color='red', linewidth=2)
+            # Ajuste de layout
+            ax.set_yticklabels([])
+            ax.set_xticks(angles[:-1])
+            ax.set_xticklabels(categorias, fontsize=9, rotation=90)
+            ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
 
-        impacto_percentual = {
-            'emissoes_carbono': 0.015,
-            'diversidade_genero': 0.005,
-            'transparencia': 0.01,
-            'eficiencia': 0.02
-        }
+            # --- Adiciona os valores diretamente nos pontos ---
+            for angle, value in zip(angles, valores):
+                ax.annotate(f"{value:.0f}",
+                            xy=(angle, value),
+                            xytext=(5, 5),
+                            textcoords='offset points',
+                            ha='center', va='center', fontsize=9, color='black', weight='bold')
 
-        bin_map = {
-            'emissoes_carbono': respostas[2] == 1,
-            'diversidade_genero': respostas[3] == 1,
-            'transparencia': respostas[1] == 1,
-            'eficiencia': respostas[0] == 1
-        }
+            st.pyplot(fig)
+            plt.close(fig)
 
-        ajuste_ebitda = 1 + sum([impacto_percentual[k] for k in bin_map if bin_map[k]])
-        ajuste_lucro = 1 + 0.6 * (ajuste_ebitda - 1)
-        ajuste_roi = 1 + 0.3 * (ajuste_ebitda - 1)
+        df_resultados, total, esg, financeiro = avaliar_empresa(nome_empresa, respostas)
+        plotar_radar(df_resultados, nome_empresa)
+        
+        # Gráfico de impacto esg
+        def gerar_grafico_impacto_esg(respostas):
+            praticas_info = [
+                ("Uso de Energia Renovável", 2, lambda x: float(x) >= 70),
+                ("Redução de Emissões de Carbono", 0, lambda x: float(x) < 5000),
+                ("Diversidade no Conselho de Administração", 15, lambda x: float(x) >= 30),
+                ("Remuneração Atrelada a Metas ESG", 13, lambda x: int(x) == 1),
+                ("Monitoramento ESG da Cadeia de Suprimentos", 10, lambda x: int(x) >= 1),
+                ("Inovação em Produtos Sustentáveis", 11, lambda x: float(x) >= 20),
+            ]
+        
+            # Impactos estimados por prática ESG (EBITDA %, Receita %)
+            impactos = {
+                "Uso de Energia Renovável": (2.5, 1.2),
+                "Redução de Emissões de Carbono": (3.0, 1.8),
+                "Diversidade no Conselho de Administração": (1.8, 0.8),
+                "Remuneração Atrelada a Metas ESG": (1.5, 0.5),
+                "Monitoramento ESG da Cadeia de Suprimentos": (2.2, 1.0),
+                "Inovação em Produtos Sustentáveis": (3.5, 5.5),
+            }
+        
+            praticas_ativas = []
+            impacto_ebitda = []
+            impacto_receita = []
+        
+            for nome, idx, condicao in praticas_info:
+                try:
+                    if idx < len(respostas) and condicao(respostas[idx]):
+                        praticas_ativas.append(nome)
+                        impacto_ebitda.append(impactos[nome][0])
+                        impacto_receita.append(impactos[nome][1])
+                except Exception:
+                    continue  # Evita erro caso a resposta não seja numérica, por exemplo
+        
+            if not praticas_ativas:
+                print("❌ Nenhuma prática ESG suficiente foi identificada nas respostas.")
+                return
+        
+            fig = go.Figure(data=[
+                go.Bar(
+                    name='Impacto no EBITDA (%)',
+                    x=praticas_ativas,
+                    y=impacto_ebitda,
+                    text=[f'{v}%' for v in impacto_ebitda],
+                    textposition='outside',
+                    marker_color='rgba(26, 118, 255, 0.8)'
+                ),
+                go.Bar(
+                    name='Impacto na Receita (%)',
+                    x=praticas_ativas,
+                    y=impacto_receita,
+                    text=[f'{v}%' for v in impacto_receita],
+                    textposition='outside',
+                    marker_color='rgba(255, 158, 44, 0.8)'
+                )
+            ])
+        
+            fig.update_layout(
+                title='Impacto Financeiro das Práticas ESG Ativas',
+                xaxis_title='Práticas ESG',
+                yaxis_title='Impacto Estimado (%)',
+                barmode='group',
+                bargap=0.25,
+                plot_bgcolor='white',
+                font=dict(size=12),
+                height=500,
+                legend=dict(x=0.85, y=1.1),
+            )
+        
+            fig.show()
 
-        anos = [2025, 2026, 2027, 2028, 2029]
-        crescimento = 0.05
 
-        ebitda_proj, lucro_proj, roi_proj = [], [], []
-
-        for i in range(5):
-            e = ebitda_inicial * ((1 + crescimento) ** i) * (ajuste_ebitda ** i)
-            l = lucro_inicial * ((1 + crescimento) ** i) * (ajuste_lucro ** i)
-            r = roi_inicial * (ajuste_roi ** i)
-
-            ebitda_proj.append(e)
-            lucro_proj.append(l)
-            roi_proj.append(r * 100)
-
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(anos, ebitda_proj, label="EBITDA (R$)")
-        ax.plot(anos, lucro_proj, label="Lucro Líquido (R$)")
-        ax.plot(anos, roi_proj, label="ROI (%)")
-        ax.set_title("Projeção Financeira ESG")
-        ax.set_xlabel("Ano")
-        ax.set_ylabel("Valor")
-        ax.legend()
-        ax.grid(True)
-        st.pyplot(fig)
-
-    gerar_projecao_financeira(respostas)
+        # Gráfico do faturamento
+        faturamento_base = 100_000_000  # R$ 100 milhões
     
-    # --- Impacto ESG ---
-    def gerar_grafico_impacto_esg(respostas):
-        praticas_info = [
-            ("Eficiência energética", 7, lambda x: float(x) >= 70),
-            ("Redução CO2", 5, lambda x: float(x) < 5000),
-            ("Diversidade de mulheres", 11, lambda x: float(x) >= 20),
-            ("Diversidade de pessoas negras", 11, lambda x: float(x) >= 20),
-        ]
-
-        impactos = {
-            "Eficiência energética": (2.5, 1.2),
-            "Redução CO2": (3.0, 1.8),
-            "Diversidade de mulheres": (1.8, 0.8),
-            "Diversidade de pessoas negras": (1.5, 0.5),
-        }
-
-        praticas_ativas = []
-        impacto_ebitda = []
-        impacto_receita = []
-
-        for nome, idx, condicao in praticas_info:
-            try:
-                if idx < len(respostas) and condicao(respostas[idx]):
-                    praticas_ativas.append(nome)
-                    impacto_ebitda.append(impactos[nome][0])
-                    impacto_receita.append(impactos[nome][1])
-            except Exception:
-                continue
-
-        if not praticas_ativas:
-            st.warning("Nenhuma prática ESG ativa.")
-            return
-
-        fig = go.Figure(data=[
-            go.Bar(name='EBITDA (%)', x=praticas_ativas, y=impacto_ebitda),
-            go.Bar(name='Receita (%)', x=praticas_ativas, y=impacto_receita)
-        ])
-        fig.update_layout(
-            title="Impacto das Práticas ESG",
-            xaxis_title="Prática",
-            yaxis_title="Impacto (%)",
-            barmode="group"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    gerar_grafico_impacto_esg(respostas)
-
-    # --- Projeção de Faturamento ---
-    def gerar_projecao_financeira(respostas):
-        faturamento_base = 100_000_000
-        margem_ebitda = respostas[18] / 100
-        roi_inicial = respostas[19] / 100
-        margem_lucro_liquida = respostas[20] / 100
-
+        # Extração das métricas financeiras a partir das respostas
+        margem_ebitda = respostas_financeiros[3][0] / 100         # Margem EBITDA (%)
+        roi_inicial = respostas_financeiros[4][0] / 100            # ROI (%)
+        margem_lucro_liquida = respostas_financeiros[6][0] / 100   # Margem líquida (%)
+    
         ebitda_inicial = faturamento_base * margem_ebitda
-        lucro_inicial = faturamento_base * margem_lucro_liquida
-
+        lucro_liquido_inicial = faturamento_base * margem_lucro_liquida
+    
+        # Leitura das práticas ESG binárias
+        respostas_bin_dict = {
+            'emissoes_carbono': respostas_binarias[2] == 1,
+            'diversidade_genero': respostas_binarias[3] == 1,
+            'transparencia_fornecedores': respostas_binarias[1] == 1,
+            'eficiencia_energetica': respostas_binarias[0] == 1
+        }
+    
+        # Impacto percentual estimado por prática ESG
         impacto_percentual = {
             'emissoes_carbono': 0.015,
             'diversidade_genero': 0.005,
-            'transparencia': 0.01,
-            'eficiencia': 0.02
+            'transparencia_fornecedores': 0.01,
+            'eficiencia_energetica': 0.02
         }
-
-        bin_map = {
-            'emissoes_carbono': respostas[2] == 1,
-            'diversidade_genero': respostas[3] == 1,
-            'transparencia': respostas[1] == 1,
-            'eficiencia': respostas[0] == 1
-        }
-
-        ajuste_ebitda = 1 + sum([impacto_percentual[k] for k in bin_map if bin_map[k]])
-        ajuste_lucro = 1 + 0.6 * (ajuste_ebitda - 1)
-        ajuste_roi = 1 + 0.3 * (ajuste_ebitda - 1)
-
+    
+        # Cálculo dos ajustes de performance
+        ajuste_ebitda = 1 + sum([impacto_percentual[key] for key in respostas_bin_dict if respostas_bin_dict[key]])
+        ajuste_lucro = 1 + (0.6 * (ajuste_ebitda - 1))
+        ajuste_roi = 1 + (0.3 * (ajuste_ebitda - 1))
+    
+        # Projeção de 5 anos
         anos = [2025, 2026, 2027, 2028, 2029]
-        crescimento = 0.05
-
-        ebitda_proj, lucro_proj, roi_proj = [], [], []
-
+        crescimento_base = 0.05
+    
+        ebitda_proj = []
+        lucro_proj = []
+        roi_proj = []
+    
         for i in range(5):
-            e = ebitda_inicial * ((1 + crescimento) ** i) * (ajuste_ebitda ** i)
-            l = lucro_inicial * ((1 + crescimento) ** i) * (ajuste_lucro ** i)
-            r = roi_inicial * (ajuste_roi ** i)
-
-            ebitda_proj.append(e)
-            lucro_proj.append(l)
-            roi_proj.append(r * 100)
-
+            ebitda_atual = ebitda_inicial * ((1 + crescimento_base) ** i) * (ajuste_ebitda ** i)
+            lucro_atual = lucro_liquido_inicial * ((1 + crescimento_base) ** i) * (ajuste_lucro ** i)
+            roi_atual = roi_inicial * (ajuste_roi ** i)
+    
+            ebitda_proj.append(round(ebitda_atual, 2))
+            lucro_proj.append(round(lucro_atual, 2))
+            roi_proj.append(round(roi_atual, 4))
+    
+        # Plotagem com matplotlib
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(anos, ebitda_proj, label="EBITDA (R$)")
-        ax.plot(anos, lucro_proj, label="Lucro Líquido (R$)")
-        ax.plot(anos, roi_proj, label="ROI (%)")
-        ax.set_title("Projeção Financeira ESG")
-        ax.set_xlabel("Ano")
-        ax.set_ylabel("Valor")
+        ax.plot(anos, ebitda_proj, label='EBITDA (R$)', marker='o')
+        ax.plot(anos, lucro_proj, label='Lucro Líquido (R$)', marker='s')
+        ax.plot(anos, [r * 100 for r in roi_proj], label='ROI (%)', marker='^')
+        ax.set_title('Projeção Financeira com Base nas Práticas ESG')
+        ax.set_xlabel('Ano')
+        ax.set_ylabel('Valores Projetados')
         ax.legend()
         ax.grid(True)
         st.pyplot(fig)
+    
+        # Recomendação específica
+        if not respostas_bin_dict['eficiencia_energetica']:
+            st.markdown(
+                "📌 *Recomendação ESG:*\n"
+                "Sua empresa ainda *não investe fortemente em eficiência energética*. Estudos de caso como os da Unilever, Ambev e Schneider Electric mostram que implementar práticas de eficiência energética "
+                "pode reduzir custos operacionais significativamente, elevando o EBITDA em até *10% ao ano. Além disso, essas ações podem gerar acesso a **financiamentos verdes* e melhorar a *imagem da marca*."
+            )
+        else:
+            st.markdown(
+                "✅ *Prática ESG já implementada:*\n"
+                "Sua empresa já investe em *eficiência energética, uma das práticas ESG com maior impacto no EBITDA. Continue monitorando resultados e ampliando suas iniciativas para **maximizar o retorno financeiro*."
+            )
 
-    gerar_projecao_financeira(respostas)
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
 
     
 #Gerar relatórios
@@ -492,9 +567,9 @@ if st.button("Gerar Relatório ESG"):
 
             estrutura_escolhida = estrutura.get(formato.upper(), estrutura["GRI"])
             st.subheader(f"📘 Rascunho do Relatório - {formato.upper()}")
-            st.markdown(f"**Empresa:** {nome_empresa}")
+            st.markdown(f"*Empresa:* {nome_empresa}")
             for item, valor in estrutura_escolhida.items():
-                st.markdown(f"- **{item}**: {valor}")
+                st.markdown(f"- *{item}*: {valor}")
 
 
             return estrutura_escolhida
