@@ -341,44 +341,42 @@ if mostrar_analise:
         plotar_radar(df_resultados, nome_empresa)
         
         # Gráfico de impacto esg
-        if st.button("Estimar Impacto dos Indicadores na Receita") and "score_esg" in st.session_state:
-
-            indicadores_chave = [
-                "Eficiência energética (%)",
-                "Diversidade e Inclusão Mulheres (%)",
-                "Diversidade e Inclusão Pessoas Negras (%)"
-            ]
-        
-            score_esg_base = st.session_state["score_esg"]
-            score_fin_base = st.session_state["score_fin"]
-            impactos = []
-        
-            for indicador_nome in indicadores_chave:
-                indicador = next(i for i in indicadores_esg if i["indicador"] == indicador_nome)
-                valor_simulado = 100
-                score_simulado = aplicar_faixas(valor_simulado, indicador["faixas"]) * indicador["peso"] / 100
-                valor_atual = next((v[0] for v in respostas_esg if v[1] == indicador["peso"]), 0)
-                score_atual = aplicar_faixas(valor_atual, indicador["faixas"]) * indicador["peso"] / 100
-                delta_score_esg = score_simulado - score_atual
-        
-                # Modelagem da correlação com Score Financeiro
-                df_temp = df.dropna(subset=["Score ESG", "Score Financeiro"])
-                coef = np.polyfit(df_temp["Score ESG"], df_temp["Score Financeiro"], 1)[0]
-                delta_score_fin = delta_score_esg * coef
-        
-                # Projeção conservadora de impacto: cada ponto no score financeiro equivale a R$ 100 milhões
-                impacto_receita = delta_score_fin * 100  # em milhões
-        
-                impactos.append({
-                    "Indicador": indicador_nome,
-                    "Melhoria ESG": round(delta_score_esg, 2),
-                    "Impacto Score Financeiro": round(delta_score_fin, 2),
-                    "Impacto Receita (R$ Mi)": round(impacto_receita, 2)
-                })
-        
-            impacto_df = pd.DataFrame(impactos)
-            st.subheader("Impacto Estimado na Receita")
-            st.dataframe(impacto_df)
+        indicadores_chave = [
+            "Eficiência energética (%)",
+            "Diversidade e Inclusão Mulheres (%)",
+            "Diversidade e Inclusão Pessoas Negras (%)"
+        ]
+    
+        score_esg_base = st.session_state["score_esg"]
+        score_fin_base = st.session_state["score_fin"]
+        impactos = []
+    
+        for indicador_nome in indicadores_chave:
+            indicador = next(i for i in indicadores_esg if i["indicador"] == indicador_nome)
+            valor_simulado = 100
+            score_simulado = aplicar_faixas(valor_simulado, indicador["faixas"]) * indicador["peso"] / 100
+            valor_atual = next((v[0] for v in respostas_esg if v[1] == indicador["peso"]), 0)
+            score_atual = aplicar_faixas(valor_atual, indicador["faixas"]) * indicador["peso"] / 100
+            delta_score_esg = score_simulado - score_atual
+    
+            # Modelagem da correlação com Score Financeiro
+            df_temp = df.dropna(subset=["Score ESG", "Score Financeiro"])
+            coef = np.polyfit(df_temp["Score ESG"], df_temp["Score Financeiro"], 1)[0]
+            delta_score_fin = delta_score_esg * coef
+    
+            # Projeção conservadora de impacto: cada ponto no score financeiro equivale a R$ 100 milhões
+            impacto_receita = delta_score_fin * 100  # em milhões
+    
+            impactos.append({
+                "Indicador": indicador_nome,
+                "Melhoria ESG": round(delta_score_esg, 2),
+                "Impacto Score Financeiro": round(delta_score_fin, 2),
+                "Impacto Receita (R$ Mi)": round(impacto_receita, 2)
+            })
+    
+        impacto_df = pd.DataFrame(impactos)
+        st.subheader("Impacto Estimado na Receita")
+        st.dataframe(impacto_df)
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
