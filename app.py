@@ -375,6 +375,46 @@ if mostrar_analise:
         
             st.plotly_chart(fig, use_container_width=True)
 
+    # Projeção de crescimento com melhoria ESG
+    st.subheader("Projeção de Crescimento com Melhoria de Indicadores ESG")
+
+        # Simular melhoria de 20% em 3 indicadores ESG
+        melhoria_percentual = 20  # melhoria dos indicadores ESG
+        crescimento_anual_estimado = 0.05  # 5% a.a. composto (conservador)
+    
+        anos = np.arange(0, 6)  # anos de 0 a 5
+        fator_crescimento = (1 + crescimento_anual_estimado) ** anos
+    
+        # Obter dados iniciais do usuário
+        eficiencia_energetica = [item for item in respostas_esg if "Eficiência energética" in item[0]][0][0]
+        diversidade_mulheres = [item for item in respostas_esg if "Mulheres" in item[0]][0][0]
+        diversidade_negras = [item for item in respostas_esg if "Pessoas Negras" in item[0]][0][0]
+    
+        ebitda = [item for item in respostas_financeiros if "EBITDA  (R$ Bi)" in item[0]][0][0]
+        lucro_liquido = [item for item in respostas_financeiros if "Lucro Líquido (R$ Bi)" in item[0]][0][0]
+    
+    
+        # Aplica fator de crescimento
+        ebitda_proj = ebitda * fator_crescimento
+        lucro_proj = lucro_liquido * fator_crescimento
+        
+    
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=anos, y=ebitda_proj, mode='lines+markers', name='EBITDA (R$ Bi)'))
+        fig.add_trace(go.Scatter(x=anos, y=lucro_proj, mode='lines+markers', name='Lucro Líquido (R$ Bi)'))
+       
+    
+        fig.update_layout(
+            title="Projeção de Crescimento Financeiro com Adoção de Práticas ESG",
+            xaxis_title="Ano",
+            yaxis_title="Valor Projetado",
+            legend_title="Indicadores",
+            template="plotly_white"
+        )
+    
+        st.plotly_chart(fig, use_container_width=True)
+
+    
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
 
