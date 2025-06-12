@@ -377,6 +377,36 @@ if mostrar_analise:
         impacto_df = pd.DataFrame(impactos)
         st.subheader("Impacto Estimado na Receita")
         st.dataframe(impacto_df)
+        impacto_df = pd.DataFrame(impactos)
+        st.subheader("Impacto Estimado na Receita")
+        st.dataframe(impacto_df)
+    
+        st.subheader("📊 Gráfico de Impacto Estimado na Receita por Indicador ESG")
+    
+        fig = px.bar(
+            impacto_df,
+            x="Indicador",
+            y="Impacto Receita (R$ Mi)",
+            text="Impacto Receita (R$ Mi)",
+            color="Indicador",
+            title="Projeção de Receita Adicional com Melhoria em Indicadores ESG",
+            height=500
+        )
+    
+        fig.update_traces(
+            texttemplate='R$ %{text:.2f} mi',
+            textposition='outside'
+        )
+    
+        fig.update_layout(
+            showlegend=False,
+            yaxis_title="Receita Estimada (R$ Mi)",
+            xaxis_title="Indicador ESG",
+            uniformtext_minsize=8,
+            uniformtext_mode='hide'
+        )
+    
+        st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
