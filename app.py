@@ -222,36 +222,38 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
     plotar_matriz_interativa(df)
 
     # --- Radar de Indicadores ---
+    # --- Função para gráfico radar ---
     def plotar_radar(df_resultados, nome_empresa):
         import matplotlib.pyplot as plt
         import numpy as np
-
+    
         categorias = df_resultados['Indicador'].tolist()
         valores = df_resultados['Score'].tolist()
-
+    
         categorias += [categorias[0]]
         valores += [valores[0]]
-
+    
         angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
         angles += [angles[0]]
-
+    
         fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
         ax.plot(angles, valores, color='red', linewidth=2)
         ax.fill(angles, valores, color='red', alpha=0.25)
-
+    
         ax.set_xticks(angles[:-1])
         ax.set_xticklabels(categorias, fontsize=8)
         ax.set_ylim(0, 100)
         ax.set_yticks([20, 40, 60, 80, 100])
-
+    
         ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=12, weight='bold', pad=20)
-
+    
         for angle, value in zip(angles, valores):
             ax.annotate(f"{value:.0f}", xy=(angle, value), xytext=(0, 6), textcoords='offset points',
                         ha='center', va='center', fontsize=8)
-
+    
         st.pyplot(fig)
         plt.close(fig)
+
     df_resultados = pd.DataFrame([
         {"Indicador": ind["indicador"], "Score": calcular_score([(valor, *faixas)])}
         for ind, (valor, *faixas) in zip(indicadores_esg, respostas_esg)
@@ -263,52 +265,89 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
 
     # --- Ajustes de Melhoria ESG ---
     st.markdown("### Ajuste de melhoria nos indicadores ESG")
-    melhoria_eficiencia = st.slider("Melhoria esperada em Eficiência Energética (%)", 0, 50, 10)
-    melhoria_div_mulheres = st.slider("Melhoria esperada em Diversidade (Mulheres) (%)", 0, 50, 10)
-    melhoria_div_negras = st.slider("Melhoria esperada em Diversidade (Pessoas Negras) (%)", 0, 50, 10)
-
+    
+    if "melhoria_eficiencia" not in st.session_state:
+        st.session_state["melhoria_eficiencia"] = 10
+    if "melhoria_div_mulheres" not in st.session_state:
+        st.session_state["melhoria_div_mulheres"] = 10
+    if "melhoria_div_negras" not in st.session_state:
+        st.session_state["melhoria_div_negras"] = 10
+    
+    melhoria_eficiencia = st.slider(
+        "Melhoria esperada em Eficiência Energética (%)",
+        0, 50, st.session_state["melhoria_eficiencia"],
+        key="melhoria_eficiencia"
+    )
+    melhoria_div_mulheres = st.slider(
+        "Melhoria esperada em Diversidade (Mulheres) (%)",
+        0, 50, st.session_state["melhoria_div_mulheres"],
+        key="melhoria_div_mulheres"
+    )
+    melhoria_div_negras = st.slider(
+        "Melhoria esperada em Diversidade (Pessoas Negras) (%)",
+        0, 50, st.session_state["melhoria_div_negras"],
+        key="melhoria_div_negras"
+    )
+    
     st.markdown(
         f"""
-        🔋 *Eficiência Energética:* aumento de {melhoria_eficiencia}%  
-        👩‍💼 *Diversidade Mulheres:* aumento de {melhoria_div_mulheres}%  
-        ✊🏾 *Diversidade Negras:* aumento de {melhoria_div_negras}%  
+        🔋 **Eficiência Energética:** aumento de {melhoria_eficiencia}%  
+        👩‍💼 **Diversidade Mulheres:** aumento de {melhoria_div_mulheres}%  
+        ✊🏾 **Diversidade Negras:** aumento de {melhoria_div_negras}%
         """
     )
-
-    # --- Projeção de Cenários Financeiros ---
-    st.subheader("Projeção de Crescimento com Melhoria em Indicadores ESG")
-
-    anos = np.arange(0, 6)
-    cenarios_por_setor = {
-        "Beleza / Tecnologia / Serviços": {"Conservador": 0.03, "Base": 0.05, "Otimista": 0.08},
-        "Indústria Leve / Moda": {"Conservador": 0.025, "Base": 0.04, "Otimista": 0.065},
-        "Transporte / Logística": {"Conservador": 0.02, "Base": 0.035, "Otimista": 0.06},
-        "Químico / Agropecuário": {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.055},
-        "Metalurgia": {"Conservador": 0.015, "Base": 0.025, "Otimista": 0.04},
-        "Petróleo e Gás": {"Conservador": 0.01, "Base": 0.02, "Otimista": 0.035},
-    }
-
-    dict_esg = {ind["indicador"]: val for (val, _, _), ind in zip(respostas_esg, indicadores_esg)}
-    dict_fin = {ind["indicador"]: val for (val, _, _), ind in zip(respostas_financeiros, indicadores_financeiros)}
-
-    try:
-        eficiencia_energetica = dict_esg["Eficiência energética (%)"] * (1 + melhoria_eficiencia / 100)
-        diversidade_mulheres = dict_esg["Diversidade e Inclusão Mulheres (%)"] * (1 + melhoria_div_mulheres / 100)
-        diversidade_negras = dict_esg["Diversidade e Inclusão Pessoas Negras (%)"] * (1 + melhoria_div_negras / 100)
-
-        ebitda = dict_fin["EBITDA  (R$ Bi)"]
-        lucro_liquido = dict_fin["Lucro Líquido (R$ Bi)"]
-
-        crescimentos = cenarios_por_setor.get(setor_empresa, {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.05})
-
-        fig = go.Figure()
-        for nome, taxa in crescimentos.items():
-            fator = (1 + taxa) ** anos
-            fig.add_trace(go.Scatter(x=anos, y=ebitda * fator, mode='lines+markers', name=f'EBITDA - {nome}'))
-            fig.add_trace(go.Scatter(x=anos, y=lucro_liquido * fator, mode='lines+markers', name=f'Lucro Líquido - {nome}'))
-
-        fig.update_layout(title="Projeção Financeira com Cenários ESG", xaxis_title="Ano", yaxis_title="Valor (R$ Bi)")
-        st.plotly_chart(fig)
+    
+     # --- PROJEÇÃO FINANCEIRA COM CENÁRIOS ESG ---
+        st.subheader("Projeção de Crescimento com Melhoria em Indicadores ESG")
+    
+        anos = np.arange(0, 6)
+    
+        # Cenários ajustados conforme setor
+        cenarios_por_setor = {
+            "Beleza / Tecnologia / Serviços": {"Conservador": 0.03, "Base": 0.05, "Otimista": 0.08},
+            "Indústria Leve / Moda": {"Conservador": 0.025, "Base": 0.04, "Otimista": 0.065},
+            "Transporte / Logística": {"Conservador": 0.02, "Base": 0.035, "Otimista": 0.06},
+            "Químico / Agropecuário": {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.055},
+            "Metalurgia": {"Conservador": 0.015, "Base": 0.025, "Otimista": 0.04},
+            "Petróleo e Gás": {"Conservador": 0.01, "Base": 0.02, "Otimista": 0.035},
+        }
+    
+        # Cria dicionário com nome do indicador -> valor
+        dict_esg = {ind["indicador"]: valor for (valor, _, _), ind in zip(respostas_esg, indicadores_esg)}
+        dict_fin = {ind["indicador"]: valor for (valor, _, _), ind in zip(respostas_financeiros, indicadores_financeiros)}
+    
+        try:
+            eficiencia_energetica = dict_esg["Eficiência energética (%)"] * (1 + melhoria_eficiencia / 100)
+            diversidade_mulheres = dict_esg["Diversidade e Inclusão Mulheres (%)"] * (1 + melhoria_div_mulheres / 100)
+            diversidade_negras = dict_esg["Diversidade e Inclusão Pessoas Negras (%)"] * (1 + melhoria_div_negras / 100)
+    
+            ebitda = dict_fin["EBITDA  (R$ Bi)"]
+            lucro_liquido = dict_fin["Lucro Líquido (R$ Bi)"]
+            roi = 12  # ROI base fixo
+    
+            crescimentos = cenarios_por_setor.get(setor_empresa, {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.05})
+    
+            fig = go.Figure()
+    
+            for nome, taxa in crescimentos.items():
+                fator = (1 + taxa) ** anos
+                fig.add_trace(go.Scatter(x=anos, y=ebitda * fator, mode='lines+markers', name=f'EBITDA - {nome}'))
+                fig.add_trace(go.Scatter(x=anos, y=lucro_liquido * fator, mode='lines+markers', name=f'Lucro Líquido - {nome}'))
+                fig.add_trace(go.Scatter(x=anos, y=roi * fator, mode='lines+markers', name=f'ROI - {nome}'))
+    
+            fig.update_layout(
+                title="Projeção Financeira com Melhoria ESG (baseada no setor)",
+                xaxis_title="Ano",
+                yaxis_title="Valor Projetado",
+                legend_title="Indicador e Cenário",
+                template="plotly_white",
+                height=600
+            )
+    
+            st.plotly_chart(fig, use_container_width=True)
+    
+        except Exception as e:
+            st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
 
     except KeyError as e:
         st.warning(f"Dados insuficientes para projeção: {e}")
