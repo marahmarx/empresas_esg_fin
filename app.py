@@ -510,10 +510,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         anos = np.arange(0, 6)
         
         # Captura os valores atuais dos indicadores
-        margem_liquida_atual = next(
-            (valor for nome, valor in respostas_financeiros if "Margem Líquida (%)" in nome),
-            None
-        )
+        margem_liquida_atual = respostas_financeiros[-1][0]
         
         # Captura o percentual de melhoria inserido via slider
         melhoria_eficiencia = st.session_state.get("melhoria_eficiencia", 10)
