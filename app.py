@@ -407,45 +407,50 @@ if mostrar_analise:
         except Exception as e:
             st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
             
-            # Simulando entrada da empresa
-            respostas_empresa = pd.DataFrame({
-                'Indicador': ['Diversidade Negra', 'Diversidade Feminina', 'Eficiência Energética', 'Governança'],
-                'Nota': [3, 4, 2, 5]
-            })
-            
-            # Impacto de cada indicador (pode vir de um modelo ou análise prévia)
-            impactos = pd.DataFrame({
-                'Indicador': ['Diversidade Negra', 'Diversidade Feminina', 'Eficiência Energética', 'Governança'],
-                'Faturamento': [4, 3, 2, 1],
-                'Redução de Custos': [2, 2, 5, 1],
-                'Risco Reputacional': [5, 4, 3, 2],
-                'Acesso a Capital': [4, 3, 3, 5]
-            })
-            
-            # (Opcional) combinar respostas com pesos para um modelo de impacto ajustado
-            # Exemplo: ponderar impacto pela nota imputada
-            for col in ['Faturamento', 'Redução de Custos', 'Risco Reputacional', 'Acesso a Capital']:
-                impactos[col] = impactos[col] * respostas_empresa['Nota']
-            
-            # Preparar para heatmap
-            df_long = impactos.melt(id_vars='Indicador', var_name='Impacto', value_name='Intensidade')
-            
-            # Gerar gráfico de calor
-            fig = px.density_heatmap(
-                df_long,
-                x='Impacto',
-                y='Indicador',
-                z='Intensidade',
-                color_continuous_scale='YlGnBu',
-                title='Impacto Ajustado dos Indicadores ESG no Negócio'
-            )
-            
-            fig.update_layout(
-                xaxis_title='Dimensão de Impacto no Negócio',
-                yaxis_title='Indicador ESG'
-            )
-            
-            fig.show()
+        import pandas as pd
+        import plotly.express as px
+        import streamlit as st
+        
+        # Simulando entrada da empresa
+        respostas_empresa = pd.DataFrame({
+            'Indicador': ['Diversidade Negra', 'Diversidade Feminina', 'Eficiência Energética', 'Governança'],
+            'Nota': [3, 4, 2, 5]
+        })
+        
+        # Impacto de cada indicador (pode vir de um modelo ou análise prévia)
+        impactos = pd.DataFrame({
+            'Indicador': ['Diversidade Negra', 'Diversidade Feminina', 'Eficiência Energética', 'Governança'],
+            'Faturamento': [4, 3, 2, 1],
+            'Redução de Custos': [2, 2, 5, 1],
+            'Risco Reputacional': [5, 4, 3, 2],
+            'Acesso a Capital': [4, 3, 3, 5]
+        })
+        
+        # Ponderar impacto pela nota imputada
+        for col in ['Faturamento', 'Redução de Custos', 'Risco Reputacional', 'Acesso a Capital']:
+            impactos[col] = impactos[col] * respostas_empresa['Nota']
+        
+        # Preparar dados para o heatmap
+        df_long = impactos.melt(id_vars='Indicador', var_name='Impacto', value_name='Intensidade')
+        
+        # Criar o heatmap com Plotly
+        fig = px.density_heatmap(
+            df_long,
+            x='Impacto',
+            y='Indicador',
+            z='Intensidade',
+            color_continuous_scale='YlGnBu',
+            title='Impacto Ajustado dos Indicadores ESG no Negócio'
+        )
+        
+        fig.update_layout(
+            xaxis_title='Dimensão de Impacto no Negócio',
+            yaxis_title='Indicador ESG'
+        )
+        
+        # Mostrar no Streamlit
+        st.plotly_chart(fig)
+
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
