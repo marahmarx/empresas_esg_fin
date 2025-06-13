@@ -243,7 +243,6 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         plotar_matriz_interativa(df_empresas)
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # Gráfico Radar
-        # --- Avaliação da empresa e geração de DataFrame de resultados ---
         def avaliar_empresa(nome_empresa, respostas):
             resultados = []
         
@@ -268,6 +267,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
             df_resultados = pd.DataFrame(resultados)
             total_score = df_resultados["Score Ponderado"].sum()
             return df_resultados, total_score
+
         
         def plotar_radar(df_resultados, nome_empresa):
             categorias = df_resultados['Indicador']
