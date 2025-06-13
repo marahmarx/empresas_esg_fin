@@ -505,8 +505,11 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
-
+  
 #Gerar relatórios
+import json
+import os
+import streamlit as st
 
 st.subheader("📄 Relatório ESG Automatizado")
 
