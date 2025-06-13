@@ -400,7 +400,6 @@ if mostrar_analise:
     
             ebitda = dict_fin["EBITDA  (R$ Bi)"]
             lucro_liquido = dict_fin["Lucro Líquido (R$ Bi)"]
-            roi = 12  # ROI base fixo
     
             crescimentos = cenarios_por_setor.get(setor_empresa, {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.05})
     
@@ -410,7 +409,6 @@ if mostrar_analise:
                 fator = (1 + taxa) ** anos
                 fig.add_trace(go.Scatter(x=anos, y=ebitda * fator, mode='lines+markers', name=f'EBITDA - {nome}'))
                 fig.add_trace(go.Scatter(x=anos, y=lucro_liquido * fator, mode='lines+markers', name=f'Lucro Líquido - {nome}'))
-                fig.add_trace(go.Scatter(x=anos, y=roi * fator, mode='lines+markers', name=f'ROI - {nome}'))
     
             fig.update_layout(
                 title="Projeção Financeira com Melhoria ESG (baseada no setor)",
