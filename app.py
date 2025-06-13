@@ -119,13 +119,13 @@ indicadores_esg = [
 ]
 
 indicadores_financeiros = [
-    {"indicador": "Variação da ação YoY (%)", "peso": 20, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Variação da ação YoY (%)", "peso": 20, "faixas": [(-np.inf, 0, 0), (0.01, 5, 20), (5.01, 15, 40), (15.01, 20, 80), (20.01, np.inf, 100)]},
     {"indicador": "EBITDA  (R$ Bi)", "peso": 10, "faixas": [(0, 1, 40), (1.01, 3, 70), (3.01, np.inf, 100)]},
-    {"indicador": "EBITDA YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Margem EBITDA (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "EBITDA YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0.01, 5, 30), ( 5.01, 15, 60), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Margem EBITDA (%)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0.01, 5, 30), ( 5.01, 15, 60), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "Lucro Líquido (R$ Bi)", "peso": 10, "faixas": [(0, 1, 40), (1.01, 3, 70), (3.01, np.inf, 100)]},
-    {"indicador": "Lucro Líquido YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Margem Líquida (%)", "peso": 15, "faixas": [(-np.inf, 0, 10), (0.01, 15, 80), (15.01, 20, 90), (20.01, np.inf, 100)]}
+    {"indicador": "Lucro Líquido YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0.01, 5, 30), ( 5.01, 15, 60), (15.01, 20, 90), (20.01, np.inf, 100)]},
+    {"indicador": "Margem Líquida (%)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0.01, 5, 30), ( 5.01, 15, 60), (15.01, 20, 90), (20.01, np.inf, 100)]}
 ]
 
 # --- Interface ---
