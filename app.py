@@ -503,7 +503,9 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         
         st.plotly_chart(fig_penalizacao, use_container_width=True)
 
-    
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
+
 #Gerar relatórios
 
 st.subheader("📄 Relatório ESG Automatizado")
