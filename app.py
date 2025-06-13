@@ -243,12 +243,31 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         plotar_matriz_interativa(df_empresas)
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # Gráfico Radar
-        respostas = respostas_esg + respostas_financeiros
-        indicadores = indicadores_esg + indicadores_financeiros
-        score += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
+        # --- Avaliação da empresa e geração de DataFrame de resultados ---
+        def avaliar_empresa(nome_empresa, respostas):
+            resultados = []
         
-        df_resultados = pd.DataFrame(score)
-        return df_resultados, score
+            for indicador_info, resposta in zip(indicadores, respostas):
+                try:
+                    valor = float(resposta[0]) if isinstance(resposta, (list, tuple)) else float(resposta)
+                except (ValueError, TypeError, IndexError):
+                    valor = 0.0
+        
+                peso = float(indicador_info.get("peso", 0))
+                score_percentual = aplicar_faixas(valor, indicador_info["faixas"])
+                score_ponderado = score_percentual * peso / 100
+        
+                resultados.append({
+                    "Indicador": indicador_info["indicador"],
+                    "Valor": valor,
+                    "Score (%)": score_percentual,
+                    "Peso (%)": peso,
+                    "Score Ponderado": score_ponderado
+                })
+        
+            df_resultados = pd.DataFrame(resultados)
+            total_score = df_resultados["Score Ponderado"].sum()
+            return df_resultados, total_score
         
         def plotar_radar(df_resultados, nome_empresa):
             categorias = df_resultados['Indicador']
@@ -256,7 +275,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         
             categorias = list(categorias)
             valores = list(valores)
-            valores += valores[:1]
+            valores += valores[:1]  # Fecha o círculo
         
             angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
             angles += angles[:1]
@@ -270,6 +289,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
             ax.set_xticklabels(categorias, fontsize=9, rotation=90)
             ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
         
+            # Anotar valores diretamente nos pontos
             for angle, value in zip(angles, valores):
                 ax.annotate(f"{value:.0f}",
                             xy=(angle, value),
@@ -280,9 +300,13 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
             st.pyplot(fig)
             plt.close(fig)
         
-        # Calcular resultados e plotar radar
+        # --- Execução final ---
+        respostas = respostas_esg + respostas_financeiros
+        indicadores = indicadores_esg + indicadores_financeiros
+        
         df_resultados, total_score = avaliar_empresa("Nova Empresa", respostas)
         plotar_radar(df_resultados, "Nova Empresa")
+
 
         
         # Gráfico de impacto esg       
