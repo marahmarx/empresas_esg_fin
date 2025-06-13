@@ -245,28 +245,10 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         # Gráfico Radar
         respostas = respostas_esg + respostas_financeiros
         indicadores = indicadores_esg + indicadores_financeiros
+        score += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
         
-        # --- Funções de apoio ---
-        def aplicar_faixas(valor, faixas):
-            for faixa in faixas:
-                if faixa[0] <= valor <= faixa[1]:
-                    return faixa[2]
-            return 0
-        
-        def calcular_score(lista):
-            total = 0
-            for valor, peso, faixas in lista:
-                total += aplicar_faixas(valor, faixas) * peso / 100
-            return total
-
-
-        def avaliar_empresa(nome_empresa, respostas):
-            resultados = []
-            total_score = 0    
-            total_score +=  total
-        
-            df_resultados = pd.DataFrame(resultados)
-            return df_resultados, total_score
+            df_resultados = pd.DataFrame(score)
+            return df_resultados, score
         
         def plotar_radar(df_resultados, nome_empresa):
             categorias = df_resultados['Indicador']
