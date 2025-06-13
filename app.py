@@ -242,15 +242,6 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
 
         plotar_matriz_interativa(df_empresas)
 
-    except Exception as e:
-        st.error(f"Erro ao carregar os dados da planilha: {e}")
-
-
-# Segunda parte: Análise visual completa
-mostrar_analise = st.button("Obter análise Radar")
-
-if mostrar_analise:
-    try:
         # Gráfico Radar
         respostas = respostas_esg + respostas_financeiros
         indicadores = indicadores_esg + indicadores_financeiros
@@ -467,6 +458,74 @@ if mostrar_analise:
         
         # Mostrar no Streamlit
         st.plotly_chart(fig)
+
+        st.subheader("Custo da Inação em ESG")
+        
+        # Penalizações por setor (% sobre EBITDA por ano)
+        penalizacoes_por_setor = {
+            "Beleza / Tecnologia / Serviços": 0.015,
+            "Indústria Leve / Moda": 0.02,
+            "Transporte / Logística": 0.025,
+            "Químico / Agropecuário": 0.03,
+            "Metalurgia": 0.035,
+            "Petróleo e Gás": 0.04
+        }
+        
+        # Obtemos os mesmos dados anteriores
+        ebitda_base = ebitda
+        anos = np.arange(0, 6)
+        
+        # Obter taxa de penalização e taxa de crescimento com base no setor
+        penalizacao = penalizacoes_por_setor.get(setor_empresa, 0.02)
+        crescimentos = cenarios_por_setor.get(setor_empresa, {"Base": 0.03})
+        
+        # Cenário 1: Sem ESG - perda acumulada no EBITDA
+        ebitda_inação = [ebitda_base * ((1 - penalizacao) ** ano) for ano in anos]
+        
+        # Cenário 2: Com ESG - crescimento projetado com melhoria
+        taxa_crescimento = crescimentos["Base"]
+        ebitda_com_melhoria = [ebitda_base * ((1 + taxa_crescimento) ** ano) for ano in anos]
+        
+        # Criação do gráfico
+        fig_penalizacao = go.Figure()
+        
+        fig_penalizacao.add_trace(go.Scatter(
+            x=anos,
+            y=ebitda_com_melhoria,
+            mode='lines+markers',
+            name='Com Melhoria ESG',
+            line=dict(color='green')
+        ))
+        
+        fig_penalizacao.add_trace(go.Scatter(
+            x=anos,
+            y=ebitda_inação,
+            mode='lines+markers',
+            name='Sem Ação ESG',
+            line=dict(color='red', dash='dash')
+        ))
+        
+        # Área entre os dois cenários (valor perdido)
+        fig_penalizacao.add_trace(go.Scatter(
+            x=np.concatenate([anos, anos[::-1]]),
+            y=np.concatenate([ebitda_com_melhoria, ebitda_inação[::-1]]),
+            fill='toself',
+            fillcolor='rgba(255,0,0,0.1)',
+            line=dict(color='rgba(255,255,255,0)'),
+            hoverinfo="skip",
+            showlegend=False
+        ))
+        
+        fig_penalizacao.update_layout(
+            title="Projeção do Custo da Inação em ESG (Impacto no EBITDA)",
+            xaxis_title="Ano",
+            yaxis_title="EBITDA (R$ Bi)",
+            legend_title="Cenário",
+            template="plotly_white",
+            height=500
+        )
+        
+        st.plotly_chart(fig_penalizacao, use_container_width=True)
 
 
     except Exception as e:
