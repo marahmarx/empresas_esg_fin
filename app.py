@@ -527,6 +527,77 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         
         st.plotly_chart(fig_penalizacao, use_container_width=True)
 
+        #Gráfico projeção lucro líquido
+        st.subheader("Projeção de Melhoria da Margem Líquida com Práticas ESG")
+        
+        # Anos de projeção
+        anos = np.arange(0, 6)
+        
+        # Captura os valores atuais dos indicadores
+        margem_liquida_atual = [item for item in respostas_financeiros if "Margem Líquida" in item[0]][0][0]
+        
+        # Captura o percentual de melhoria inserido via slider
+        melhoria_eficiencia = st.session_state.get("melhoria_eficiencia", 10)
+        melhoria_div_mulheres = st.session_state.get("melhoria_div_mulheres", 10)
+        melhoria_div_negras = st.session_state.get("melhoria_div_negras", 10)
+        
+        # Conversão das melhorias para fatores proporcionais
+        fator_eficiencia = melhoria_eficiencia / 50  # até 0.5 p.p.
+        fator_mulheres = melhoria_div_mulheres / 50   # até 0.3 p.p.
+        fator_negras = melhoria_div_negras / 50       # até 0.4 p.p.
+        
+        # Crescimento da margem líquida (em p.p. por ano)
+        crescimento_margem_ano = (
+            fator_eficiencia * 0.5 +
+            fator_mulheres * 0.3 +
+            fator_negras * 0.4
+        )
+        
+        # Projeção ao longo dos anos
+        margem_liquida_proj = [margem_liquida_atual + crescimento_margem_ano * ano for ano in anos]
+        margem_liquida_constante = [margem_liquida_atual] * len(anos)
+        
+        # Criação do gráfico
+        fig_margem = go.Figure()
+        
+        fig_margem.add_trace(go.Scatter(
+            x=anos,
+            y=margem_liquida_constante,
+            mode='lines+markers',
+            name='Sem Melhoria ESG',
+            line=dict(color='red', dash='dot')
+        ))
+        
+        fig_margem.add_trace(go.Scatter(
+            x=anos,
+            y=margem_liquida_proj,
+            mode='lines+markers',
+            name='Com Melhoria ESG',
+            line=dict(color='green')
+        ))
+        
+        # Área entre os dois cenários
+        fig_margem.add_trace(go.Scatter(
+            x=np.concatenate([anos, anos[::-1]]),
+            y=np.concatenate([margem_liquida_proj, margem_liquida_constante[::-1]]),
+            fill='toself',
+            fillcolor='rgba(0,255,0,0.1)',
+            line=dict(color='rgba(255,255,255,0)'),
+            hoverinfo="skip",
+            showlegend=False
+        ))
+        
+        fig_margem.update_layout(
+            title="Projeção da Margem Líquida com Práticas ESG",
+            xaxis_title="Ano",
+            yaxis_title="Margem Líquida (%)",
+            legend_title="Cenário",
+            template="plotly_white",
+            height=500
+        )
+        
+        st.plotly_chart(fig_margem, use_container_width=True)
+
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
