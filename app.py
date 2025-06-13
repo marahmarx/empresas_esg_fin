@@ -262,15 +262,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
 
         def avaliar_empresa(nome_empresa, respostas):
             resultados = []
-            total_score = 0
-                       
-            resultados.append({
-                "Indicador": indicador_info["indicador"],
-                "Valor": valor,
-                "Score (%)": total,  
-
-              })
-    
+            total_score = 0    
             total_score +=  total
         
             df_resultados = pd.DataFrame(resultados)
