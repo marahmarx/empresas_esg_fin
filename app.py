@@ -375,56 +375,56 @@ if mostrar_analise:
         )
         
          # --- PROJEÇÃO FINANCEIRA COM CENÁRIOS ESG ---
-            st.subheader("Projeção de Crescimento com Melhoria em Indicadores ESG")
-        
-            anos = np.arange(0, 6)
-        
-            # Cenários ajustados conforme setor
-            cenarios_por_setor = {
-                "Beleza / Tecnologia / Serviços": {"Conservador": 0.03, "Base": 0.05, "Otimista": 0.08},
-                "Indústria Leve / Moda": {"Conservador": 0.025, "Base": 0.04, "Otimista": 0.065},
-                "Transporte / Logística": {"Conservador": 0.02, "Base": 0.035, "Otimista": 0.06},
-                "Químico / Agropecuário": {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.055},
-                "Metalurgia": {"Conservador": 0.015, "Base": 0.025, "Otimista": 0.04},
-                "Petróleo e Gás": {"Conservador": 0.01, "Base": 0.02, "Otimista": 0.035},
-            }
-        
-            # Cria dicionário com nome do indicador -> valor
-            dict_esg = {ind["indicador"]: valor for (valor, _, _), ind in zip(respostas_esg, indicadores_esg)}
-            dict_fin = {ind["indicador"]: valor for (valor, _, _), ind in zip(respostas_financeiros, indicadores_financeiros)}
-        
-            try:
-                eficiencia_energetica = dict_esg["Eficiência energética (%)"] * (1 + melhoria_eficiencia / 100)
-                diversidade_mulheres = dict_esg["Diversidade e Inclusão Mulheres (%)"] * (1 + melhoria_div_mulheres / 100)
-                diversidade_negras = dict_esg["Diversidade e Inclusão Pessoas Negras (%)"] * (1 + melhoria_div_negras / 100)
-        
-                ebitda = dict_fin["EBITDA  (R$ Bi)"]
-                lucro_liquido = dict_fin["Lucro Líquido (R$ Bi)"]
-                roi = 12  # ROI base fixo
-        
-                crescimentos = cenarios_por_setor.get(setor_empresa, {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.05})
-        
-                fig = go.Figure()
-        
-                for nome, taxa in crescimentos.items():
-                    fator = (1 + taxa) ** anos
-                    fig.add_trace(go.Scatter(x=anos, y=ebitda * fator, mode='lines+markers', name=f'EBITDA - {nome}'))
-                    fig.add_trace(go.Scatter(x=anos, y=lucro_liquido * fator, mode='lines+markers', name=f'Lucro Líquido - {nome}'))
-                    fig.add_trace(go.Scatter(x=anos, y=roi * fator, mode='lines+markers', name=f'ROI - {nome}'))
-        
-                fig.update_layout(
-                    title="Projeção Financeira com Melhoria ESG (baseada no setor)",
-                    xaxis_title="Ano",
-                    yaxis_title="Valor Projetado",
-                    legend_title="Indicador e Cenário",
-                    template="plotly_white",
-                    height=600
-                )
-        
-                st.plotly_chart(fig, use_container_width=True)
-        
-            except Exception as e:
-                st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
+        st.subheader("Projeção de Crescimento com Melhoria em Indicadores ESG")
+    
+        anos = np.arange(0, 6)
+    
+        # Cenários ajustados conforme setor
+        cenarios_por_setor = {
+            "Beleza / Tecnologia / Serviços": {"Conservador": 0.03, "Base": 0.05, "Otimista": 0.08},
+            "Indústria Leve / Moda": {"Conservador": 0.025, "Base": 0.04, "Otimista": 0.065},
+            "Transporte / Logística": {"Conservador": 0.02, "Base": 0.035, "Otimista": 0.06},
+            "Químico / Agropecuário": {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.055},
+            "Metalurgia": {"Conservador": 0.015, "Base": 0.025, "Otimista": 0.04},
+            "Petróleo e Gás": {"Conservador": 0.01, "Base": 0.02, "Otimista": 0.035},
+        }
+    
+        # Cria dicionário com nome do indicador -> valor
+        dict_esg = {ind["indicador"]: valor for (valor, _, _), ind in zip(respostas_esg, indicadores_esg)}
+        dict_fin = {ind["indicador"]: valor for (valor, _, _), ind in zip(respostas_financeiros, indicadores_financeiros)}
+    
+        try:
+            eficiencia_energetica = dict_esg["Eficiência energética (%)"] * (1 + melhoria_eficiencia / 100)
+            diversidade_mulheres = dict_esg["Diversidade e Inclusão Mulheres (%)"] * (1 + melhoria_div_mulheres / 100)
+            diversidade_negras = dict_esg["Diversidade e Inclusão Pessoas Negras (%)"] * (1 + melhoria_div_negras / 100)
+    
+            ebitda = dict_fin["EBITDA  (R$ Bi)"]
+            lucro_liquido = dict_fin["Lucro Líquido (R$ Bi)"]
+            roi = 12  # ROI base fixo
+    
+            crescimentos = cenarios_por_setor.get(setor_empresa, {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.05})
+    
+            fig = go.Figure()
+    
+            for nome, taxa in crescimentos.items():
+                fator = (1 + taxa) ** anos
+                fig.add_trace(go.Scatter(x=anos, y=ebitda * fator, mode='lines+markers', name=f'EBITDA - {nome}'))
+                fig.add_trace(go.Scatter(x=anos, y=lucro_liquido * fator, mode='lines+markers', name=f'Lucro Líquido - {nome}'))
+                fig.add_trace(go.Scatter(x=anos, y=roi * fator, mode='lines+markers', name=f'ROI - {nome}'))
+    
+            fig.update_layout(
+                title="Projeção Financeira com Melhoria ESG (baseada no setor)",
+                xaxis_title="Ano",
+                yaxis_title="Valor Projetado",
+                legend_title="Indicador e Cenário",
+                template="plotly_white",
+                height=600
+            )
+    
+            st.plotly_chart(fig, use_container_width=True)
+    
+        except Exception as e:
+            st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
             
         import pandas as pd
         import plotly.express as px
