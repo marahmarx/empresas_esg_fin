@@ -259,14 +259,14 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
                 total += aplicar_faixas(valor, faixas) * peso / 100
             return total
                        
-                resultados.append({
-                    "Indicador": indicador_info["indicador"],
-                    "Valor": valor,
-                    "Score (%)": total,  
+            resultados.append({
+                "Indicador": indicador_info["indicador"],
+                "Valor": valor,
+                "Score (%)": total,  
 
-                  })
-        
-                total_score +=  total
+              })
+    
+            total_score +=  total
         
             df_resultados = pd.DataFrame(resultados)
             return df_resultados, total_score
