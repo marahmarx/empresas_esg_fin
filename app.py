@@ -222,37 +222,28 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
     plotar_matriz_interativa(df)
 
     # --- Radar de Indicadores ---
-    # --- Função para gráfico radar ---
     def plotar_radar(df_resultados, nome_empresa):
-        import matplotlib.pyplot as plt
-        import numpy as np
-    
         categorias = df_resultados['Indicador'].tolist()
         valores = df_resultados['Score'].tolist()
     
+        # Fechar o gráfico (repetir primeiro valor no final)
         categorias += [categorias[0]]
         valores += [valores[0]]
     
         angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-        angles += [angles[0]]
+        angles += [angles[0]]  # fechar o polígono
     
+        # Criar o gráfico
         fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
         ax.plot(angles, valores, color='red', linewidth=2)
         ax.fill(angles, valores, color='red', alpha=0.25)
-    
-        ax.set_xticks(angles[:-1])
-        ax.set_xticklabels(categorias, fontsize=8)
-        ax.set_ylim(0, 100)
-        ax.set_yticks([20, 40, 60, 80, 100])
-    
-        ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=12, weight='bold', pad=20)
-    
-        for angle, value in zip(angles, valores):
-            ax.annotate(f"{value:.0f}", xy=(angle, value), xytext=(0, 6), textcoords='offset points',
-                        ha='center', va='center', fontsize=8)
+        ax.set_xticks(angles[:-1])  # não incluir o duplicado
+        ax.set_xticklabels(categorias[:-1], fontsize=10)
+        ax.set_yticklabels([])  # remove os labels dos eixos y
+        ax.set_title(f'Gráfico Radar - {nome_empresa}', fontsize=14, pad=20)
     
         st.pyplot(fig)
-        plt.close(fig)
+
 
     df_resultados = pd.DataFrame([
         {"Indicador": ind["indicador"], "Score": calcular_score([(valor, *faixas)])}
