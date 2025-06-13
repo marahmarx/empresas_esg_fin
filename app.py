@@ -165,14 +165,12 @@ respostas_financeiros = [
     for ind in indicadores_financeiros
 ]
 
-# --- Botão para calcular os scores ---
 if st.button("Calcular Resultado"):
     score_esg = calcular_score(respostas_esg)
     score_fin = calcular_score(respostas_financeiros)
 
     st.session_state["score_esg"] = score_esg
     st.session_state["score_fin"] = score_fin
-
     st.metric("Score ESG", score_esg)
     st.metric("Score Financeiro", score_fin)
 
@@ -182,171 +180,238 @@ if st.button("Calcular Resultado"):
     else:
         st.error("Empresa reprovada")
 
-
-# --- Comparativo e Visualização (se já houve cálculo) ---
+# --- Comparativo ---
 if "score_esg" in st.session_state and "score_fin" in st.session_state:
-    url_csv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
-    setor_empresa = st.session_state.get("setor", "")
-    impacto_setor = impacto_por_setor.get(setor_empresa, 0)
-    fator_redutor = 1 - impacto_setor / 100
+    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv"
+    df = carregar_dados_empresas(url)
+    setor = st.session_state.get("setor", "")
+    impacto_setor = impacto_por_setor.get(setor, 0)  # Pega o impacto total (ex: 25)
 
-    # Carrega os dados e trata as colunas percentuais
-    df = carregar_dados_empresas(url_csv)
-    colunas_percentuais = [
-        "Emissão de CO ( M ton)",
-        "Investimento em Programas Sociais (R$ M)",
-        "EBITDA  (R$ Bi)",
-        "Lucro Líquido (R$ Bi)"
-    ]
-    for col in colunas_percentuais:
-        if col in df.columns:
-            df[col] = df[col].astype(str).str.replace('%', '').str.replace(',', '.')
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-            if df[col].max() <= 1:  # Se estiver em fração
-                df[col] *= 100
+    # Aqui aplicamos a função atualizada
+    df = calcular_scores(df, indicadores_esg, "ESG", impacto_setor)
+    df = calcular_scores(df, indicadores_financeiros, "Financeiro", impacto_setor)
 
-    # Calcula os scores com redutor de impacto setorial
-    df = calcular_scores(df, indicadores_esg, "ESG", fator_redutor)
-    df = calcular_scores(df, indicadores_financeiros, "Financeiro", fator_redutor)
 
-    # Adiciona a nova empresa ao DataFrame
-    nova_linha = {col: None for col in df.columns}
-    nova_linha.update({
+    nova = {col: None for col in df.columns}
+    nova.update({
         "Empresa": "Nova Empresa",
         "Score ESG": st.session_state["score_esg"],
         "Score Financeiro": st.session_state["score_fin"]
     })
-    df = pd.concat([df, pd.DataFrame([nova_linha])], ignore_index=True)
-
-    # --- Matriz ESG x Financeiro ---
-    plotar_matriz_interativa(df)
-
-    # --- Radar de Indicadores ---
-    def plotar_radar(df_resultados, nome_empresa):
-        categorias = df_resultados['Indicador'].tolist()
-        valores = df_resultados['Score'].tolist()
-    
-        # Fechar o gráfico (repetir primeiro valor no final)
-        categorias += [categorias[0]]
-        valores += [valores[0]]
-    
-        angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
-        angles += [angles[0]]  # fechar o polígono
-    
-        # Criar o gráfico
-        fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-        ax.plot(angles, valores, color='red', linewidth=2)
-        ax.fill(angles, valores, color='red', alpha=0.25)
-        ax.set_xticks(angles[:-1])  # não incluir o duplicado
-        ax.set_xticklabels(categorias[:-1], fontsize=10)
-        ax.set_yticklabels([])  # remove os labels dos eixos y
-        ax.set_title(f'Gráfico Radar - {nome_empresa}', fontsize=14, pad=20)
-    
-        st.pyplot(fig)
-
-
-    df_resultados = pd.DataFrame([
-        {"Indicador": ind["indicador"], "Score": calcular_score([(valor, *faixas)])}
-        for ind, (valor, *faixas) in zip(indicadores_esg, respostas_esg)
-    ])
-
-    plotar_radar(df_resultados, "Nova Empresa")
-
-
-
-    # --- Ajustes de Melhoria ESG ---
-    st.markdown("### Ajuste de melhoria nos indicadores ESG")
-    
-    if "melhoria_eficiencia" not in st.session_state:
-        st.session_state["melhoria_eficiencia"] = 10
-    if "melhoria_div_mulheres" not in st.session_state:
-        st.session_state["melhoria_div_mulheres"] = 10
-    if "melhoria_div_negras" not in st.session_state:
-        st.session_state["melhoria_div_negras"] = 10
-    
-    melhoria_eficiencia = st.slider(
-        "Melhoria esperada em Eficiência Energética (%)",
-        0, 50, st.session_state["melhoria_eficiencia"],
-        key="melhoria_eficiencia"
-    )
-    melhoria_div_mulheres = st.slider(
-        "Melhoria esperada em Diversidade (Mulheres) (%)",
-        0, 50, st.session_state["melhoria_div_mulheres"],
-        key="melhoria_div_mulheres"
-    )
-    melhoria_div_negras = st.slider(
-        "Melhoria esperada em Diversidade (Pessoas Negras) (%)",
-        0, 50, st.session_state["melhoria_div_negras"],
-        key="melhoria_div_negras"
-    )
-    
-    st.markdown(
-        f"""
-        🔋 **Eficiência Energética:** aumento de {melhoria_eficiencia}%  
-        👩‍💼 **Diversidade Mulheres:** aumento de {melhoria_div_mulheres}%  
-        ✊🏾 **Diversidade Negras:** aumento de {melhoria_div_negras}%
-        """
-    )
-    
-     # --- PROJEÇÃO FINANCEIRA COM CENÁRIOS ESG ---
-    st.subheader("Projeção de Crescimento com Melhoria em Indicadores ESG")
-
-    anos = np.arange(0, 6)
-
-    # Cenários ajustados conforme setor
-    cenarios_por_setor = {
-        "Beleza / Tecnologia / Serviços": {"Conservador": 0.03, "Base": 0.05, "Otimista": 0.08},
-        "Indústria Leve / Moda": {"Conservador": 0.025, "Base": 0.04, "Otimista": 0.065},
-        "Transporte / Logística": {"Conservador": 0.02, "Base": 0.035, "Otimista": 0.06},
-        "Químico / Agropecuário": {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.055},
-        "Metalurgia": {"Conservador": 0.015, "Base": 0.025, "Otimista": 0.04},
-        "Petróleo e Gás": {"Conservador": 0.01, "Base": 0.02, "Otimista": 0.035},
-    }
-
-    # Cria dicionário com nome do indicador -> valor
-    dict_esg = {ind["indicador"]: valor for (valor, _, _), ind in zip(respostas_esg, indicadores_esg)}
-    dict_fin = {ind["indicador"]: valor for (valor, _, _), ind in zip(respostas_financeiros, indicadores_financeiros)}
+    df = pd.concat([df, pd.DataFrame([nova])], ignore_index=True)
 
     try:
-        eficiencia_energetica = dict_esg["Eficiência energética (%)"] * (1 + melhoria_eficiencia / 100)
-        diversidade_mulheres = dict_esg["Diversidade e Inclusão Mulheres (%)"] * (1 + melhoria_div_mulheres / 100)
-        diversidade_negras = dict_esg["Diversidade e Inclusão Pessoas Negras (%)"] * (1 + melhoria_div_negras / 100)
+        url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRNhswndyd9TY2LHQyP6BNO3y6ga47s5mztANezDmTIGsdNbBNekuvlgZlmQGZ-NAn0q0su2nKFRbAu/pub?gid=0&single=true&output=csv'
 
-        ebitda = dict_fin["EBITDA  (R$ Bi)"]
-        lucro_liquido = dict_fin["Lucro Líquido (R$ Bi)"]
-        roi = 12  # ROI base fixo
+        df_empresas = carregar_dados_empresas(url)
 
-        crescimentos = cenarios_por_setor.get(setor_empresa, {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.05})
+        colunas_percentuais = [
+            "Emissão de CO ( M ton)",
+            "Investimento em Programas Sociais (R$ M)",
+            "EBITDA  (R$ Bi)",
+            "Lucro Líquido (R$ Bi)"
+        ]
 
-        fig = go.Figure()
+        for nome_coluna in colunas_percentuais:
+            if nome_coluna in df_empresas.columns:
+                df_empresas[nome_coluna] = df_empresas[nome_coluna].astype(str).str.replace('%', '', regex=False)
+                df_empresas[nome_coluna] = df_empresas[nome_coluna].str.replace(',', '.', regex=False)
+                df_empresas[nome_coluna] = pd.to_numeric(df_empresas[nome_coluna], errors='coerce')
+                max_val = df_empresas[nome_coluna].max()
+                if pd.notna(max_val) and max_val <= 1:
+                    df_empresas[nome_coluna] *= 100
 
-        for nome, taxa in crescimentos.items():
-            fator = (1 + taxa) ** anos
-            fig.add_trace(go.Scatter(x=anos, y=ebitda * fator, mode='lines+markers', name=f'EBITDA - {nome}'))
-            fig.add_trace(go.Scatter(x=anos, y=lucro_liquido * fator, mode='lines+markers', name=f'Lucro Líquido - {nome}'))
-            fig.add_trace(go.Scatter(x=anos, y=roi * fator, mode='lines+markers', name=f'ROI - {nome}'))
+        setor_empresa = st.session_state.get("setor", "")
+        impacto_setor = impacto_por_setor.get(setor_empresa, 0)
+        fator_redutor = 1 - impacto_setor / 100
 
-        fig.update_layout(
-            title="Projeção Financeira com Melhoria ESG (baseada no setor)",
-            xaxis_title="Ano",
-            yaxis_title="Valor Projetado",
-            legend_title="Indicador e Cenário",
-            template="plotly_white",
-            height=600
-        )
+        df_empresas = calcular_scores(df_empresas, indicadores_esg, "ESG", fator_redutor)
+        df_empresas = calcular_scores(df_empresas, indicadores_financeiros, "Financeiro", fator_redutor)
 
-        st.plotly_chart(fig, use_container_width=True)
+        score_esg = st.session_state.get('score_esg', 0)
+        score_financeiro = st.session_state.get('score_fin', 0)
+
+        nova_linha = {col: None for col in df_empresas.columns}
+        nova_linha.update({
+            'Empresa': 'Nova Empresa',
+            'Score ESG': score_esg,
+            'Score Financeiro': score_financeiro
+        })
+
+        df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_linha])], ignore_index=True)
+
+        plotar_matriz_interativa(df_empresas)
+
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados da planilha: {e}")
+
+
+# Segunda parte: Análise visual completa
+mostrar_analise = st.button("Obter análise Radar")
+
+if mostrar_analise:
+    try:
+        # Gráfico Radar
+        respostas = respostas_esg + respostas_financeiros
+        indicadores = indicadores_esg + indicadores_financeiros
+
+        def calcular_pontuacao(valor, faixas):
+            for faixa in faixas:
+                if faixa[0] <= valor <= faixa[1]:
+                    return faixa[2]
+            return 0
+
+        def avaliar_empresa(nome_empresa, respostas):
+            resultados = []
+            total_score = 0
+            score_esg = 0
+            score_financeiro = 0
+
+            for indicador_info, resposta in zip(indicadores, respostas):
+                if indicador_info["indicador"].startswith(("6.", "12.", "14.", "17.")):
+                    continue
+
+                try:
+                    valor = float(resposta[0]) if isinstance(resposta, (list, tuple)) else float(resposta)
+                except (ValueError, TypeError, IndexError):
+                    valor = 0.0
+
+                try:
+                    peso = float(indicador_info["peso"])
+                except (ValueError, TypeError):
+                    peso = 0.0
+
+                try:
+                    score = float(calcular_pontuacao(valor, indicador_info["faixas"]))
+                except Exception:
+                    score = 0.0
+
+                weighted_score = score * peso / 100
+
+                if indicador_info["indicador"].startswith(("13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.")):
+                    score_financeiro += weighted_score
+                else:
+                    score_esg += weighted_score
+
+                resultados.append({
+                    "Indicador": indicador_info["indicador"],
+                    "Valor": valor,
+                    "Score": score,
+                    "Peso (%)": peso,
+                    "Score Ponderado": weighted_score
+                })
+
+                total_score += weighted_score
+
+            df_resultados = pd.DataFrame(resultados)
+            return df_resultados, total_score, score_esg, score_financeiro
+
+        def plotar_radar(df_resultados, nome_empresa):
+            categorias = df_resultados['Indicador']
+            valores = df_resultados['Score']
+
+            categorias = list(categorias)
+            valores = list(valores)
+            valores += valores[:1]
+
+            angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
+            angles += angles[:1]
+
+            fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
+            ax.fill(angles, valores, color='red', alpha=0.25)
+            ax.plot(angles, valores, color='red', linewidth=2)
+            # Ajuste de layout
+            ax.set_yticklabels([])
+            ax.set_xticks(angles[:-1])
+            ax.set_xticklabels(categorias, fontsize=9, rotation=90)
+            ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
+
+            # --- Adiciona os valores diretamente nos pontos ---
+            for angle, value in zip(angles, valores):
+                ax.annotate(f"{value:.0f}",
+                            xy=(angle, value),
+                            xytext=(5, 5),
+                            textcoords='offset points',
+                            ha='center', va='center', fontsize=9, color='black', weight='bold')
+
+            st.pyplot(fig)
+            plt.close(fig)
+
+        df_resultados, total, esg, financeiro = avaliar_empresa(nome_empresa, respostas)
+        plotar_radar(df_resultados, nome_empresa)
+        
+        # Gráfico de impacto esg
+        st.markdown("### Ajuste de melhoria nos indicadores ESG")
+
+            melhoria_eficiencia = st.slider("Melhoria esperada em Eficiência Energética (%)", 0, 50, 10)
+            melhoria_div_mulheres = st.slider("Melhoria esperada em Diversidade (Mulheres) (%)", 0, 50, 10)
+            melhoria_div_negras = st.slider("Melhoria esperada em Diversidade (Pessoas Negras) (%)", 0, 50, 10)
+        
+            st.markdown(
+                f"""
+                🔋 **Eficiência Energética:** aumento de {melhoria_eficiencia}%  
+                👩‍💼 **Diversidade Mulheres:** aumento de {melhoria_div_mulheres}%  
+                ✊🏾 **Diversidade Negras:** aumento de {melhoria_div_negras}%
+                """
+            )
+        
+            # --- PROJEÇÃO FINANCEIRA COM CENÁRIOS ESG ---
+            st.subheader("Projeção de Crescimento com Melhoria em Indicadores ESG")
+        
+            anos = np.arange(0, 6)
+        
+            # Cenários ajustados conforme setor
+            cenarios_por_setor = {
+                "Beleza / Tecnologia / Serviços": {"Conservador": 0.03, "Base": 0.05, "Otimista": 0.08},
+                "Indústria Leve / Moda": {"Conservador": 0.025, "Base": 0.04, "Otimista": 0.065},
+                "Transporte / Logística": {"Conservador": 0.02, "Base": 0.035, "Otimista": 0.06},
+                "Químico / Agropecuário": {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.055},
+                "Metalurgia": {"Conservador": 0.015, "Base": 0.025, "Otimista": 0.04},
+                "Petróleo e Gás": {"Conservador": 0.01, "Base": 0.02, "Otimista": 0.035},
+            }
+        
+            # Cria dicionário com nome do indicador -> valor
+            dict_esg = {ind["indicador"]: valor for (valor, _, _), ind in zip(respostas_esg, indicadores_esg)}
+            dict_fin = {ind["indicador"]: valor for (valor, _, _), ind in zip(respostas_financeiros, indicadores_financeiros)}
+        
+            try:
+                eficiencia_energetica = dict_esg["Eficiência energética (%)"] * (1 + melhoria_eficiencia / 100)
+                diversidade_mulheres = dict_esg["Diversidade e Inclusão Mulheres (%)"] * (1 + melhoria_div_mulheres / 100)
+                diversidade_negras = dict_esg["Diversidade e Inclusão Pessoas Negras (%)"] * (1 + melhoria_div_negras / 100)
+        
+                ebitda = dict_fin["EBITDA  (R$ Bi)"]
+                lucro_liquido = dict_fin["Lucro Líquido (R$ Bi)"]
+                roi = 12  # ROI base fixo
+        
+                crescimentos = cenarios_por_setor.get(setor_empresa, {"Conservador": 0.02, "Base": 0.03, "Otimista": 0.05})
+        
+                fig = go.Figure()
+        
+                for nome, taxa in crescimentos.items():
+                    fator = (1 + taxa) ** anos
+                    fig.add_trace(go.Scatter(x=anos, y=ebitda * fator, mode='lines+markers', name=f'EBITDA - {nome}'))
+                    fig.add_trace(go.Scatter(x=anos, y=lucro_liquido * fator, mode='lines+markers', name=f'Lucro Líquido - {nome}'))
+                    fig.add_trace(go.Scatter(x=anos, y=roi * fator, mode='lines+markers', name=f'ROI - {nome}'))
+        
+                fig.update_layout(
+                    title="Projeção Financeira com Melhoria ESG (baseada no setor)",
+                    xaxis_title="Ano",
+                    yaxis_title="Valor Projetado",
+                    legend_title="Indicador e Cenário",
+                    template="plotly_white",
+                    height=600
+                )
+        
+                st.plotly_chart(fig, use_container_width=True)
+        
+            except Exception as e:
+                st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
 
     except Exception as e:
         st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
 
-    except KeyError as e:
-        st.warning(f"Dados insuficientes para projeção: {e}")
     
 #Gerar relatórios
-import json
-import os
-import streamlit as st
 
 st.subheader("📄 Relatório ESG Automatizado")
 
@@ -420,9 +485,9 @@ if st.button("Gerar Relatório ESG"):
 
             estrutura_escolhida = estrutura.get(formato.upper(), estrutura["GRI"])
             st.subheader(f"📘 Rascunho do Relatório - {formato.upper()}")
-            st.markdown(f"*Empresa:* {nome_empresa}")
+            st.markdown(f"**Empresa:** {nome_empresa}")
             for item, valor in estrutura_escolhida.items():
-                st.markdown(f"- *{item}*: {valor}")
+                st.markdown(f"- **{item}**: {valor}")
 
 
             return estrutura_escolhida
