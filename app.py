@@ -258,6 +258,11 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
             for valor, peso, faixas in lista:
                 total += aplicar_faixas(valor, faixas) * peso / 100
             return total
+
+
+        def avaliar_empresa(nome_empresa, respostas):
+            resultados = []
+            total_score = 0
                        
             resultados.append({
                 "Indicador": indicador_info["indicador"],
