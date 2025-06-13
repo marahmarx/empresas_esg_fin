@@ -511,7 +511,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         
         # Captura os valores atuais dos indicadores
         margem_liquida_atual = next(
-            (item[1] for item in respostas_financeiros if isinstance(item[0], str) and "Margem Líquida" in item[0]),
+            (valor for nome, valor in respostas_financeiros if "Margem Líquida (%)" in nome),
             None
         )
         
