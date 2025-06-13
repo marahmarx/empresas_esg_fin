@@ -513,20 +513,20 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         margem_liquida_atual = respostas_financeiros[-1][0]
         
         # Captura o percentual de melhoria inserido via slider
-        melhoria_eficiencia = st.session_state.get("melhoria_eficiencia", 10)
-        melhoria_div_mulheres = st.session_state.get("melhoria_div_mulheres", 10)
-        melhoria_div_negras = st.session_state.get("melhoria_div_negras", 10)
+        eficiencia_energetica = respostas_esg[2][0]
+        div_mulheres = respostas_esg[3][0]
+        div_negras = respostas_esg[4][0]
         
-        # Conversão das melhorias para fatores proporcionais
-        fator_eficiencia = melhoria_eficiencia / 50  # até 0.5 p.p.
-        fator_mulheres = melhoria_div_mulheres / 50   # até 0.3 p.p.
-        fator_negras = melhoria_div_negras / 50       # até 0.4 p.p.
+        # Conversão para fatores proporcionais (0 a 1)
+        fator_eficiencia = eficiencia_energetica / 100
+        fator_mulheres = div_mulheres / 100
+        fator_negras = div_negras / 100
         
         # Crescimento da margem líquida (em p.p. por ano)
         crescimento_margem_ano = (
-            fator_eficiencia * 0.5 +
-            fator_mulheres * 0.3 +
-            fator_negras * 0.4
+            fator_eficiencia * 0.5 +  # até 0.5 p.p.
+            fator_mulheres * 0.3 +    # até 0.3 p.p.
+            fator_negras * 0.4        # até 0.4 p.p.
         )
         
         # Projeção ao longo dos anos
