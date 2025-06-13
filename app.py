@@ -515,11 +515,6 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
             None
         )
         
-        if margem_liquida_atual is None:
-            st.error("Margem líquida não encontrada nos dados fornecidos.")
-            st.stop()
-
-        
         # Captura o percentual de melhoria inserido via slider
         melhoria_eficiencia = st.session_state.get("melhoria_eficiencia", 10)
         melhoria_div_mulheres = st.session_state.get("melhoria_div_mulheres", 10)
