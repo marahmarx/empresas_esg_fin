@@ -241,58 +241,35 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         df_empresas = pd.concat([df_empresas, pd.DataFrame([nova_linha])], ignore_index=True)
 
         plotar_matriz_interativa(df_empresas)
-
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # Gráfico Radar
         respostas = respostas_esg + respostas_financeiros
         indicadores = indicadores_esg + indicadores_financeiros
         
-        def calcular_pontuacao(valor, faixas):
+        # --- Funções de apoio ---
+        def aplicar_faixas(valor, faixas):
             for faixa in faixas:
                 if faixa[0] <= valor <= faixa[1]:
                     return faixa[2]
             return 0
         
-        def avaliar_empresa(nome_empresa, respostas):
-            resultados = []
-            total_score = 0
-            score_esg = 0
-            score_financeiro = 0
-        
-            for indicador_info, resposta in zip(indicadores, respostas):
-                try:
-                    valor = float(resposta[0]) if isinstance(resposta, (list, tuple)) else float(resposta)
-                except (ValueError, TypeError, IndexError):
-                    valor = 0.0
-        
-                try:
-                    peso = float(indicador_info["peso"])
-                except (ValueError, TypeError):
-                    peso = 0.0
-        
-                try:
-                    score = float(calcular_pontuacao(valor, indicador_info["faixas"]))
-                except Exception:
-                    score = 0.0
-        
-                weighted_score = score * peso / 100
-        
-                if indicador_info["indicador"] in [i["indicador"] for i in indicadores_financeiros]:
-                    score_financeiro += weighted_score
-                else:
-                    score_esg += weighted_score
-        
+        def calcular_score(lista):
+            total = 0
+            for valor, peso, faixas in lista:
+                total += aplicar_faixas(valor, faixas) * peso / 100
+            return total
+                       
                 resultados.append({
                     "Indicador": indicador_info["indicador"],
                     "Valor": valor,
-                    "Score (%)": score,  # << Aqui usamos o score direto (0-100)
-                    "Peso (%)": peso,
-                    "Score Ponderado": weighted_score
-                })
+                    "Score (%)": total,  
+
+                  })
         
-                total_score += weighted_score
+                total_score +=  total
         
             df_resultados = pd.DataFrame(resultados)
-            return df_resultados, total_score, score_esg, score_financeiro
+            return df_resultados, total_score
         
         def plotar_radar(df_resultados, nome_empresa):
             categorias = df_resultados['Indicador']
@@ -325,7 +302,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
             plt.close(fig)
         
         # Calcular resultados e plotar radar
-        df_resultados, total_score, score_esg, score_financeiro = avaliar_empresa("Nova Empresa", respostas)
+        df_resultados, total_score = avaliar_empresa("Nova Empresa", respostas)
         plotar_radar(df_resultados, "Nova Empresa")
 
         
