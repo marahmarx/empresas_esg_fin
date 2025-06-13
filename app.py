@@ -308,7 +308,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         plotar_radar(df_resultados, "Nova Empresa")
 
 
-        
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------        
         # Gráfico de impacto esg       
         st.markdown("### Ajuste de melhoria nos indicadores ESG")
         
@@ -392,12 +392,9 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
     
         except Exception as e:
             st.error(f"Erro ao carregar os dados ou gerar os gráficos: {e}")
-            
-        import pandas as pd
-        import plotly.express as px
-        import streamlit as st
-        
-        # Simulando entrada da empresa
+ 
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       #Gráfico Bibi
         respostas_empresa = pd.DataFrame({
             'Indicador': ['Diversidade Negra', 'Diversidade Feminina', 'Eficiência Energética', 'Governança'],
             'Nota': [3, 4, 2, 5]
@@ -437,6 +434,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         # Mostrar no Streamlit
         st.plotly_chart(fig)
 
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         st.subheader("Custo da Inação em ESG")
         
         # Penalizações por setor (% sobre EBITDA por ano)
@@ -504,7 +502,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         )
         
         st.plotly_chart(fig_penalizacao, use_container_width=True)
-
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         #Gráfico projeção lucro líquido
         st.subheader("Projeção de Melhoria da Margem Líquida com Práticas ESG")
         
@@ -512,7 +510,15 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         anos = np.arange(0, 6)
         
         # Captura os valores atuais dos indicadores
-        margem_liquida_atual = [item for item in respostas_financeiros if "Margem Líquida" in item[0]][0][0]
+        margem_liquida_atual = next(
+            (item[1] for item in respostas_financeiros if isinstance(item[0], str) and "Margem Líquida" in item[0]),
+            None
+        )
+        
+        if margem_liquida_atual is None:
+            st.error("Margem líquida não encontrada nos dados fornecidos.")
+            st.stop()
+
         
         # Captura o percentual de melhoria inserido via slider
         melhoria_eficiencia = st.session_state.get("melhoria_eficiencia", 10)
