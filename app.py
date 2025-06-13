@@ -109,21 +109,21 @@ impacto_por_setor = {
 }
 
 indicadores_esg = [
-    {"indicador": "Emissão de CO2 (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.01, np.inf, 40)]},
+    {"indicador": "Emissão de CO2 (M ton)", "peso": 20, "faixas": [(0, 10, 100), (10.01, 50, 70), (50.9, 100, 30), (100.01, np.inf, 0)]},
     {"indicador": "Gestão de Resíduos (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Eficiência energética (%)", "peso": 15, "faixas": [(90, 100, 100), (60, 89.99, 70), (40, 59.99, 50), (20, 39.99, 30), (10.1, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Diversidade e Inclusão Mulheres (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10, 19.99, 10), (0, 10, 0)]},
     {"indicador": "Diversidade e Inclusão Pessoas Negras (%)", "peso": 15, "faixas": [(50, 100, 100), (40, 49.99, 90), (20, 39.99, 40), (10.1, 19.99, 10), (0, 10, 0)]},
-    {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (0, 49.99, 30)]},
+    {"indicador": "Índice de Satisfação dos Funcionários (%)", "peso": 5, "faixas": [(80, 100, 100), (50, 79.99, 70), (20, 49.99, 30), (0, 19.99, 0)]},
     {"indicador": "Investimento em Programas Sociais (R$ M)", "peso": 15, "faixas": [(0, 0, 0), (1, 5, 40), (6, 20, 70), (21, np.inf, 100)]}
 ]
 
 indicadores_financeiros = [
     {"indicador": "Variação da ação YoY (%)", "peso": 20, "faixas": [(-np.inf, 0, 0), (0.01, 5, 20), (5.01, 15, 40), (15.01, 20, 80), (20.01, np.inf, 100)]},
-    {"indicador": "EBITDA  (R$ Bi)", "peso": 10, "faixas": [(0, 1, 40), (1.01, 3, 70), (3.01, np.inf, 100)]},
+    {"indicador": "EBITDA  (R$ Bi)", "peso": 10, "faixas": [(0, 0.1, 0), (0.2 , 1, 50), (1.01, 3, 70), (3.01, np.inf, 100)]},
     {"indicador": "EBITDA YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0.01, 5, 30), ( 5.01, 15, 60), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "Margem EBITDA (%)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0.01, 5, 30), ( 5.01, 15, 60), (15.01, 20, 90), (20.01, np.inf, 100)]},
-    {"indicador": "Lucro Líquido (R$ Bi)", "peso": 10, "faixas": [(0, 1, 40), (1.01, 3, 70), (3.01, np.inf, 100)]},
+    {"indicador": "Lucro Líquido (R$ Bi)", "peso": 10, "faixas": [(0, 0.1, 0), (0.2 , 1, 50), (1.01, 3, 70), (3.01, np.inf, 100)]},
     {"indicador": "Lucro Líquido YoY (%)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0.01, 5, 30), ( 5.01, 15, 60), (15.01, 20, 90), (20.01, np.inf, 100)]},
     {"indicador": "Margem Líquida (%)", "peso": 15, "faixas": [(-np.inf, 0, 0), (0.01, 5, 30), ( 5.01, 15, 60), (15.01, 20, 90), (20.01, np.inf, 100)]}
 ]
