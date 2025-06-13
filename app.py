@@ -247,8 +247,8 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         indicadores = indicadores_esg + indicadores_financeiros
         score += aplicar_faixas(valor, indicador["faixas"]) * indicador["peso"] / 100
         
-            df_resultados = pd.DataFrame(score)
-            return df_resultados, score
+        df_resultados = pd.DataFrame(score)
+        return df_resultados, score
         
         def plotar_radar(df_resultados, nome_empresa):
             categorias = df_resultados['Indicador']
