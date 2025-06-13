@@ -242,98 +242,92 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
 
         plotar_matriz_interativa(df_empresas)
 
-        #Gráfico radar
+        # Gráfico Radar
         respostas = respostas_esg + respostas_financeiros
         indicadores = indicadores_esg + indicadores_financeiros
-
+        
         def calcular_pontuacao(valor, faixas):
             for faixa in faixas:
                 if faixa[0] <= valor <= faixa[1]:
                     return faixa[2]
             return 0
-
+        
         def avaliar_empresa(nome_empresa, respostas):
             resultados = []
             total_score = 0
             score_esg = 0
             score_financeiro = 0
-
+        
             for indicador_info, resposta in zip(indicadores, respostas):
-                if indicador_info["indicador"].startswith(("6.", "12.", "14.", "17.")):
-                    continue
-
                 try:
                     valor = float(resposta[0]) if isinstance(resposta, (list, tuple)) else float(resposta)
                 except (ValueError, TypeError, IndexError):
                     valor = 0.0
-
+        
                 try:
                     peso = float(indicador_info["peso"])
                 except (ValueError, TypeError):
                     peso = 0.0
-
+        
                 try:
                     score = float(calcular_pontuacao(valor, indicador_info["faixas"]))
                 except Exception:
                     score = 0.0
-
+        
                 weighted_score = score * peso / 100
-
-                if indicador_info["indicador"].startswith(("13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.")):
+        
+                if indicador_info["indicador"] in [i["indicador"] for i in indicadores_financeiros]:
                     score_financeiro += weighted_score
                 else:
                     score_esg += weighted_score
-
+        
                 resultados.append({
                     "Indicador": indicador_info["indicador"],
                     "Valor": valor,
-                    "Score": score,
+                    "Score (%)": score,  # << Aqui usamos o score direto (0-100)
                     "Peso (%)": peso,
                     "Score Ponderado": weighted_score
                 })
-
+        
                 total_score += weighted_score
-
+        
             df_resultados = pd.DataFrame(resultados)
             return df_resultados, total_score, score_esg, score_financeiro
-
+        
         def plotar_radar(df_resultados, nome_empresa):
             categorias = df_resultados['Indicador']
-            valores = df_resultados['Score']
-
+            valores = df_resultados['Score (%)']
+        
             categorias = list(categorias)
             valores = list(valores)
             valores += valores[:1]
-
+        
             angles = np.linspace(0, 2 * np.pi, len(categorias), endpoint=False).tolist()
             angles += angles[:1]
-
+        
             fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(polar=True))
             ax.fill(angles, valores, color='red', alpha=0.25)
             ax.plot(angles, valores, color='red', linewidth=2)
-            # Ajuste de layout
+        
             ax.set_yticklabels([])
             ax.set_xticks(angles[:-1])
             ax.set_xticklabels(categorias, fontsize=9, rotation=90)
             ax.set_title(f"Radar de Desempenho por Indicador - {nome_empresa}", size=15, weight='bold')
-
-            # --- Adiciona os valores diretamente nos pontos ---
+        
             for angle, value in zip(angles, valores):
                 ax.annotate(f"{value:.0f}",
                             xy=(angle, value),
                             xytext=(5, 5),
                             textcoords='offset points',
                             ha='center', va='center', fontsize=9, color='black', weight='bold')
-
+        
             st.pyplot(fig)
             plt.close(fig)
-        df_resultados = pd.DataFrame([
-            {"Indicador": ind["indicador"], "Score": calcular_score([(valor, *faixas)])}
-            for ind, (valor, *faixas) in zip(indicadores_esg, respostas_esg)
-        ])
         
-        # Plota o gráfico radar com os scores da "Nova Empresa"
+        # Calcular resultados e plotar radar
+        df_resultados, total_score, score_esg, score_financeiro = avaliar_empresa("Nova Empresa", respostas)
         plotar_radar(df_resultados, "Nova Empresa")
+
         
         # Gráfico de impacto esg       
         st.markdown("### Ajuste de melhoria nos indicadores ESG")
