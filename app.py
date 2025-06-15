@@ -174,7 +174,7 @@ if st.button("Calcular Resultado"):
     st.metric("Score ESG", score_esg)
     st.metric("Score Financeiro", score_fin)
 
-    if score_esg > 70 and score_fin > 50:
+    if score_esg > 55 and score_fin > 60:
         st.success("Empresa aprovada")
         st.balloons()
     else:
