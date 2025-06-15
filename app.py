@@ -85,10 +85,10 @@ def plotar_matriz_interativa(df):
     )
 
     shapes = [
-        dict(type="rect", x0=0, y0=0, x1=70, y1=70, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
-        dict(type="rect", x0=70, y0=0, x1=100, y1=70, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),
-        dict(type="rect", x0=0, y0=70, x1=70, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),
-        dict(type="rect", x0=70, y0=70, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),
+        dict(type="rect", x0=0, y0=0, x1=55, y1=60, fillcolor="rgba(255, 0, 0, 0.1)", line=dict(width=0)),
+        dict(type="rect", x0=70, y0=0, x1=100, y1=60, fillcolor="rgba(255, 165, 0, 0.1)", line=dict(width=0)),
+        dict(type="rect", x0=0, y0=60, x1=55, y1=100, fillcolor="rgba(173, 216, 230, 0.1)", line=dict(width=0)),
+        dict(type="rect", x0=55, y0=60, x1=100, y1=100, fillcolor="rgba(144, 238, 144, 0.15)", line=dict(width=0)),
     ]
     fig.update_layout(shapes=shapes)
     fig.update_xaxes(range=[0, 100])
