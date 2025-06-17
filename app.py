@@ -378,6 +378,10 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
                 fator = (1 + taxa) ** anos
                 valores_ebitda = ebitda * fator
                 valores_lucro = lucro_liquido * fator
+
+                texto_ebitda = [f"R$ {v:.2f} Bi" if i == 5 else "" for i, v in enumerate(valores_ebitda)]
+                texto_lucro = [f"R$ {v:.2f} Bi" if i == 5 else "" for i, v in enumerate(valores_lucro)]
+
             
                 fig.add_trace(go.Scatter(
                     x=anos,
