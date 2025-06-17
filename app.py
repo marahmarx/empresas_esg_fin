@@ -376,17 +376,27 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
     
             for nome, taxa in crescimentos.items():
                 fator = (1 + taxa) ** anos
-                fig.add_trace(go.Scatter(x=anos, y=ebitda * fator, mode='lines+markers', name=f'EBITDA - {nome}'))
-                fig.add_trace(go.Scatter(x=anos, y=lucro_liquido * fator, mode='lines+markers', name=f'Lucro Líquido - {nome}'))
-    
-            fig.update_layout(
-                title="Projeção Financeira com Melhoria ESG (baseada no setor)",
-                xaxis_title="Ano",
-                yaxis_title="Valor Projetado",
-                legend_title="Indicador e Cenário",
-                template="plotly_white",
-                height=600
-            )
+                valores_ebitda = ebitda * fator
+                valores_lucro = lucro_liquido * fator
+            
+                fig.add_trace(go.Scatter(
+                    x=anos,
+                    y=valores_ebitda,
+                    mode='lines+markers+text',
+                    name=f'EBITDA - {nome}',
+                    text=[f"R$ {v:.2f} Bi" for v in valores_ebitda],
+                    textposition="top center"
+                ))
+            
+                fig.add_trace(go.Scatter(
+                    x=anos,
+                    y=valores_lucro,
+                    mode='lines+markers+text',
+                    name=f'Lucro Líquido - {nome}',
+                    text=[f"R$ {v:.2f} Bi" for v in valores_lucro],
+                    textposition="bottom center"
+                ))
+
     
             st.plotly_chart(fig, use_container_width=True)
     
