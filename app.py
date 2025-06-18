@@ -434,23 +434,29 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
         # Criação do gráfico
         fig_penalizacao = go.Figure()
         
+        # Com melhoria ESG
         fig_penalizacao.add_trace(go.Scatter(
             x=anos,
             y=ebitda_com_melhoria,
-            mode='lines+markers',
+            mode='lines+markers+text',
             name='Com Melhoria ESG',
-            line=dict(color='green')
+            line=dict(color='green'),
+            text=[f"R$ {v:.2f} Bi" if i in [0, 5] else "" for i, v in enumerate(ebitda_com_melhoria)],
+            textposition="top center"
         ))
         
+        # Sem ação ESG
         fig_penalizacao.add_trace(go.Scatter(
             x=anos,
             y=ebitda_inação,
-            mode='lines+markers',
+            mode='lines+markers+text',
             name='Sem Ação ESG',
-            line=dict(color='red', dash='dash')
+            line=dict(color='red', dash='dash'),
+            text=[f"R$ {v:.2f} Bi" if i in [0, 5] else "" for i, v in enumerate(ebitda_inação)],
+            textposition="bottom center"
         ))
         
-        # Área entre os dois cenários (valor perdido)
+        # Área entre os dois cenários
         fig_penalizacao.add_trace(go.Scatter(
             x=np.concatenate([anos, anos[::-1]]),
             y=np.concatenate([ebitda_com_melhoria, ebitda_inação[::-1]]),
@@ -460,15 +466,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
             hoverinfo="skip",
             showlegend=False
         ))
-        
-        fig_penalizacao.update_layout(
-            title="Projeção do Custo da Inação em ESG (Impacto no EBITDA)",
-            xaxis_title="Ano",
-            yaxis_title="EBITDA (R$ Bi)",
-            legend_title="Cenário",
-            template="plotly_white",
-            height=500
-        )
+
         
         st.plotly_chart(fig_penalizacao, use_container_width=True)
 
