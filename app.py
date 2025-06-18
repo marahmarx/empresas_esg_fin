@@ -384,7 +384,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
                     y=valores_ebitda,
                     mode='lines+markers+text',
                     name=f'EBITDA - {nome}',
-                    text=[f"R$ {v:.2f} Bi" if i in [0, 5] else "" for i, v in enumerate(valores_lucro)],
+                    text=[f"R$ {v:.2f} Bi" if i in [0, 5] else "" for i, v in enumerate(valores_ebitda)],
                     textposition="top center"
                 ))
             
