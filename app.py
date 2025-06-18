@@ -379,16 +379,12 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
                 valores_ebitda = ebitda * fator
                 valores_lucro = lucro_liquido * fator
 
-                texto_ebitda = [f"R$ {v:.2f} Bi" if i == 5 else "" for i, v in enumerate(valores_ebitda)]
-                texto_lucro = [f"R$ {v:.2f} Bi" if i == 5 else "" for i, v in enumerate(valores_lucro)]
-
-            
                 fig.add_trace(go.Scatter(
                     x=anos,
                     y=valores_ebitda,
                     mode='lines+markers+text',
                     name=f'EBITDA - {nome}',
-                    text=[f"R$ {v:.2f} Bi" for v in valores_ebitda],
+                    text=[f"R$ {v:.2f} Bi" if i == 5 else "" for i,  v in enumerate(valores_ebitda)],
                     textposition="top center"
                 ))
             
@@ -397,7 +393,7 @@ if "score_esg" in st.session_state and "score_fin" in st.session_state:
                     y=valores_lucro,
                     mode='lines+markers+text',
                     name=f'Lucro Líquido - {nome}',
-                    text=[f"R$ {v:.2f} Bi" for v in valores_lucro],
+                    text=[f"R$ {v:.2f} Bi" if i == 5 else "" for i, v in enumerate(valores_lucro)],
                     textposition="bottom center"
                 ))
 
